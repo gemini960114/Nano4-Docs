@@ -16,18 +16,18 @@
 ---
 
 ## 📌 目錄 (Table of Contents)
-- [1. 叢集前門：晶創26 前端與資料傳輸架構 (SSH:22 vs SFTP:2222)](#1-叢集前門晶創26-前端與資料傳輸架構-ssh22-vs-sftp2222)
-- [2. 前置準備：iService 申請晶創26計畫與 IDExpert 2FA 綁定](#2-前置準備iservice-申請晶創26計畫與-idexpert-2fa-綁定)
-- [3. SSH 登入實戰與三種雙因子驗證方式](#3-ssh-登入實戰與三種雙因子驗證方式)
-- [4. 極速登入技巧：設定本地端 SSH Config](#4-極速登入技巧設定本地端-ssh-config)
-- [5. 大檔案傳輸必備：資料傳輸節點 (DTN Port 2222) 實作](#5-大檔案傳輸必備資料傳輸節點-dtn-port-2222-實作)
-- [6. 登入後第一步：環境健檢與三大儲存空間架構 (/home vs /work vs /project)](#6-登入後第一步環境健檢與三大儲存空間架構-home-vs-work-vs-project)
-- [7. HPC 軟體環境管理：Environment Modules / Lmod (ml/module)](#7-hpc-軟體環境管理environment-modules--lmod-mlmodule)
-- [8. HPC 容器化運算：Singularity / Apptainer 實務](#8-hpc-容器化運算singularity--apptainer-實務)
-- [9. 現代極速 Python 套件管理：uv 實務 (解決 Inode 爆量痛點)](#9-現代極速-python-套件管理uv-實務-解決-inode-爆量痛點)
-- [10. 晶創26 Slurm 資源管理與完整佇列速查 (H200, GB200 與 NGS 生醫運算)](#10-晶創26-slurm-資源管理與完整佇列速查-h200-gb200-與-ngs-生醫運算)
-- [11. 初學者實戰演練：從零開始的 6 個 HPC 入門練習 (Beginner Hands-on Labs)](#11-初學者實戰演練從零開始的-6-個-hpc-入門練習-beginner-hands-on-labs)
-- [12. 連線與環境常見踩坑與排錯 (FAQ)](#12-連線與環境常見踩坑與排錯-faq)
+- [1. 叢集前門：晶創26 前端與資料傳輸架構 (SSH:22 vs SFTP:2222)](#_1-叢集前門-晶創26-前端與資料傳輸架構-ssh-22-vs-sftp-2222)
+- [2. 前置準備：iService 申請晶創26計畫與 IDExpert 2FA 綁定](#_2-前置準備-iservice-申請晶創26計畫與-idexpert-2fa-綁定)
+- [3. SSH 登入實戰與三種雙因子驗證方式](#_3-ssh-登入實戰與三種雙因子驗證方式)
+- [4. 極速登入技巧：設定本地端 SSH Config](#_4-極速登入技巧-設定本地端-ssh-config)
+- [5. 大檔案傳輸必備：資料傳輸節點 (DTN Port 2222) 實作](#_5-大檔案傳輸必備-資料傳輸節點-dtn-port-2222-實作)
+- [6. 登入後第一步：環境健檢與三大儲存空間架構 (/home vs /work vs /project)](#_6-登入後第一步-環境健檢與三大儲存空間架構-home-vs-work-vs-project)
+- [7. HPC 軟體環境管理：Environment Modules / Lmod (ml/module)](#_7-hpc-軟體環境管理-environment-modules-lmod-ml-module)
+- [8. HPC 容器化運算：Singularity / Apptainer 實務](#_8-hpc-容器化運算-singularity-apptainer-實務)
+- [9. 現代極速 Python 套件管理：uv 實務 (解決 Inode 爆量痛點)](#_9-現代極速-python-套件管理-uv-實務-解決-inode-爆量痛點)
+- [10. 晶創26 Slurm 資源管理與完整佇列速查 (H200, GB200 與 NGS 生醫運算)](#_10-晶創26-slurm-資源管理與完整佇列速查-h200-gb200-與-ngs-生醫運算)
+- [11. 初學者實戰演練：從零開始的 6 個 HPC 入門練習 (Beginner Hands-on Labs)](#_11-初學者實戰演練-從零開始的-6-個-hpc-入門練習-beginner-hands-on-labs)
+- [12. 連線與環境常見踩坑與排錯 (FAQ)](#_12-連線與環境常見踩坑與排錯-faq)
 
 ---
 

@@ -7,22 +7,22 @@
 ---
 
 ## 📌 目錄 (Table of Contents)
-- [1. 為什麼需要 Slurm？排程器運作本質](#1-為什麼需要-slurm排程器運作本質)
-- [2. Nano4 官方硬體規格與佇列分區表 (Partitions)](#2-nano4-官方硬體規格與佇列分區表-partitions)
-  - [A. 計畫錢包餘額與帳號權限查詢 (`wallet` / `sacctmgr`)](#a-計畫錢包餘額與帳號權限查詢-wallet--sacctmgr)
+- [1. 為什麼需要 Slurm？排程器運作本質](#_1-為什麼需要-slurm-排程器運作本質)
+- [2. Nano4 官方硬體規格與佇列分區表 (Partitions)](#_2-nano4-官方硬體規格與佇列分區表-partitions)
+  - [A. 計畫錢包餘額與帳號權限查詢 (`wallet` / `sacctmgr`)](#a-計畫錢包餘額與帳號權限查詢-wallet-sacctmgr)
   - [B. 專案類別與佇列分區對應架構 (Project vs. Partition)](#b-專案類別與佇列分區對應架構-project-vs-partition)
   - [C. Nano4 常用佇列清單與 QoS 限制](#c-nano4-常用佇列清單與-qos-限制)
-- [3. Slurm 核心參數速查表 (#SBATCH Directives)](#3-slurm-核心參數速查表-sbatch-directives)
-- [4. 資源配置關鍵四要素：Nodes、Tasks、CPUs 與 Memory](#4-資源配置關鍵四要素nodestaskscpus-與-memory)
-- [5. 進階排程神器：陣列、相依性與 GPU 運算](#5-進階排程神器陣列相依性與-gpu-運算)
+- [3. Slurm 核心參數速查表 (#SBATCH Directives)](#_3-slurm-核心參數速查表-sbatch-directives)
+- [4. 資源配置關鍵四要素：Nodes、Tasks、CPUs 與 Memory](#_4-資源配置關鍵四要素-nodes、tasks、cpus-與-memory)
+- [5. 進階排程神器：陣列、相依性與 GPU 運算](#_5-進階排程神器-陣列、相依性與-gpu-運算)
   - [A. 批次陣列作業 (Array Jobs)](#a-批次陣列作業-array-jobs)
   - [B. 流水線相依性作業 (Job Dependencies)](#b-流水線相依性作業-job-dependencies)
   - [C. NVIDIA H200 GPU 資源申請](#c-nvidia-h200-gpu-資源申請)
-  - [D. 互動式除錯與即時開發 (`salloc` + `srun`)](#d-互動式除錯與即時開發-salloc--srun)
-- [6. 作業監控、效能分析 (seff) 與資源除錯](#6-作業監控效能分析-seff-與資源除錯)
-- [7. HPC 容器化技術：Singularity / Apptainer 實務](#7-hpc-容器化技術singularity--apptainer-實務)
-- [8. 初學者循序漸進實作演練 (Hands-on Labs)](#8-初學者循序漸進實作演練-hands-on-labs)
-- [9. Nano4 常見踩坑與排錯清單 (Troubleshooting)](#9-nano4-常見踩坑與排錯清單-troubleshooting)
+  - [D. 互動式除錯與即時開發 (`salloc` + `srun`)](#d-互動式除錯與即時開發-salloc-srun)
+- [6. 作業監控、效能分析 (seff) 與資源除錯](#_6-作業監控、效能分析-seff-與資源除錯)
+- [7. HPC 容器化技術：Singularity / Apptainer 實務](#_7-hpc-容器化技術-singularity-apptainer-實務)
+- [8. 初學者循序漸進實作演練 (Hands-on Labs)](#_8-初學者循序漸進實作演練-hands-on-labs)
+- [9. Nano4 常見踩坑與排錯清單 (Troubleshooting)](#_9-nano4-常見踩坑與排錯清單-troubleshooting)
 
 ---
 

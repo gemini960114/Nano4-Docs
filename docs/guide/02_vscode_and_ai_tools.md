@@ -9,15 +9,15 @@
 ---
 
 ## 📌 目錄 (Table of Contents)
-- [1. 為什麼推薦 VS Code Remote-SSH？(終結黑底終端機)](#1-為什麼推薦-vs-code-remote-ssh-終結黑底終端機)
-- [2. 本地電腦 VS Code Remote-SSH 連線實戰 (3 分鐘速成)](#2-本地電腦-vs-code-remote-ssh-連線實戰-3-分鐘速成)
-- [3. 遠端工作區必備擴充套件安裝 (Python, Jupyter, AI)](#3-遠端工作區必備擴充套件安裝-python-jupyter-ai)
-- [4. 終端 AI 命令行工具配置：OpenCode CLI 與 Antigravity CLI](#4-終端-ai-命令行工具配置opencode-cli-與-antigravity-cli)
-- [5. 國網中心地端大模型 (Medusa / GenAI API) 設定實務](#5-國網中心地端大模型-medusa--genai-api-設定實務)
-- [6. 國網中心支援模型清單與場景推薦](#6-國網中心支援模型清單與場景推薦)
-- [7. 超算專屬 AI Agent 治理守則：AGENTS.md 實務](#7-超算專屬-ai-agent-治理守則agentsmd-實務)
-- [8. 初學者動手實戰練習 (Hands-on Labs 1 ~ 3)](#8-初學者動手實戰練習-hands-on-labs-1--3)
-- [9. 常見踩坑與連線排錯 (FAQ)](#9-常見踩坑與連線排錯-faq)
+- [1. 為什麼推薦 VS Code Remote-SSH？(終結黑底終端機)](#_1-為什麼推薦-vs-code-remote-ssh-終結黑底終端機)
+- [2. 本地電腦 VS Code Remote-SSH 連線實戰 (3 分鐘速成)](#_2-本地電腦-vs-code-remote-ssh-連線實戰-3-分鐘速成)
+- [3. 遠端工作區必備擴充套件安裝 (Python, Jupyter, AI)](#_3-遠端工作區必備擴充套件安裝-python-jupyter-ai)
+- [4. 終端 AI 命令行工具配置：OpenCode CLI 與 Antigravity CLI](#_4-終端-ai-命令行工具配置-opencode-cli-與-antigravity-cli)
+- [5. 國網中心地端大模型 (Medusa / GenAI API) 設定實務](#_5-國網中心地端大模型-medusa-genai-api-設定實務)
+- [6. 國網中心支援模型清單與場景推薦](#_6-國網中心支援模型清單與場景推薦)
+- [7. 超算專屬 AI Agent 治理守則：AGENTS.md 實務](#_7-超算專屬-ai-agent-治理守則-agents-md-實務)
+- [8. 初學者動手實戰練習 (Hands-on Labs 1 ~ 3)](#_8-初學者動手實戰練習-hands-on-labs-1-3)
+- [9. 常見踩坑與連線排錯 (FAQ)](#_9-常見踩坑與連線排錯-faq)
 
 ---
 
