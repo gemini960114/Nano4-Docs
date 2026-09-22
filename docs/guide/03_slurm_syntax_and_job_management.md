@@ -6,6 +6,18 @@
 
 ---
 
+
+> [!NOTE]
+> 本章範本位於教材 repository。若重新開啟終端機，先回到教材根目錄：
+>
+> ```bash
+> cd "$HOME/Nano4-Docs"
+> ```
+
+
+> [!WARNING]
+> 本章所有 `GOV...`、`MST...` 都是說明用範例；提交前必須以 `wallet` 和 association 查到的 project ID 取代，不能直接照抄。
+
 ## 📌 目錄 (Table of Contents)
 - [1. 為什麼需要 Slurm？排程器運作本質](#_1-為什麼需要-slurm-排程器運作本質)
 - [2. Nano4 官方硬體規格與佇列分區表 (Partitions)](#_2-nano4-官方硬體規格與佇列分區表-partitions)

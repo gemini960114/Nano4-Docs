@@ -282,7 +282,7 @@ sinfo | opencode run "這是我在 Nano4 查詢到的 sinfo 資訊，請用繁�
 * **原因**：未安裝遠端 Python / Jupyter 擴充套件，或尚未啟動虛擬環境。
 * **解法**：
   1. 確保已在遠端安裝 `ms-toolsai.jupyter` 與 `ms-python.python`。
-  2. 點擊 Notebook 右上角的「Select Kernel ➔ Python Environments」，選擇您在第 01 章建立的 `/work/$USER/test_uv_env` 或自訂環境路徑。
+  2. 點擊 Notebook 右上角的「Select Kernel ➔ Python Environments」，選擇您在第 01 章建立的 `/work/$USER/lab_env` 或自訂環境路徑。
 
 ---
 

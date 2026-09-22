@@ -44,6 +44,11 @@ features:
     details: 沉澱 Nano4 領域知識為專家技能 (nano4-slurm-operations, slurm-job-advisor, ai-agent-slurm-pipeline)，內建預檢與防呆。
     link: /guide/06_skills_hub
     linkText: 探索 AI 專家技能庫
+  - icon: 🧬
+    title: 第 07 章｜nf-core/ampliseq 真實 16S 案例
+    details: 先手動完成官方 test 與公開 paired-end 16S 分析，再讓 AI Agent 重做、比較並封裝成可重用 Skill。
+    link: /guide/07_nfcore_ampliseq_case_study
+    linkText: 進入完整案例
   - icon: 📜
     title: 附錄｜Nano4 專屬 AGENTS.md 守則
     details: 專為超級電腦量身定制的 AI Agent 治理規範：嚴禁 sudo、WekaFS /work 儲存分層、module purge、ngs62g 記憶體限制。

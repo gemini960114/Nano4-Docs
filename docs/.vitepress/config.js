@@ -23,7 +23,8 @@ export default defineConfig({
           { text: '第 03 章：Slurm 語法精講與作業調度', link: '/guide/03_slurm_syntax_and_job_management' },
           { text: '第 04 章：AI 輔助生醫管線實作', link: '/guide/04_ai_assisted_bio_pipeline' },
           { text: '第 05 章：AI Agent 自動化排程管線', link: '/guide/05_ai_agent_slurm_pipeline' },
-          { text: '第 06 章：Nano4 AI Agent 技能庫 (Skills Hub)', link: '/guide/06_skills_hub' }
+          { text: '第 06 章：Nano4 AI Agent 技能庫 (Skills Hub)', link: '/guide/06_skills_hub' },
+          { text: '第 07 章：nf-core/ampliseq 真實 16S 案例', link: '/guide/07_nfcore_ampliseq_case_study' }
         ]
       },
       { text: 'AI 規範 (AGENTS.md)', link: '/guide/agents_governance' },
@@ -54,7 +55,8 @@ export default defineConfig({
         text: '🎯 第四階段：AI 自動重構與生產級排程',
         items: [
           { text: '🚀 第 05 章：AI Agent 自動化排程重構與派送', link: '/guide/05_ai_agent_slurm_pipeline' },
-          { text: '🧰 第 06 章：Nano4 AI Agent 技能總匯庫 (Skills Hub)', link: '/guide/06_skills_hub' }
+          { text: '🧰 第 06 章：Nano4 AI Agent 技能總匯庫 (Skills Hub)', link: '/guide/06_skills_hub' },
+          { text: '🧬 第 07 章：nf-core/ampliseq 真實 16S 案例', link: '/guide/07_nfcore_ampliseq_case_study' }
         ]
       },
       {

@@ -5,7 +5,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DATA_DIR="${SCRIPT_DIR}/../data/fastq_raw"
+DATA_ROOT="${DATA_ROOT:-/work/${USER}/nano4-case-a-qc}"
+DATA_DIR="${DATA_ROOT}/fastq_raw"
 mkdir -p "${DATA_DIR}"
 
 echo "========================================================"

@@ -11,7 +11,7 @@
 我原本在登入節點有一個執行 FASTQ 質控分析（FastQC + MultiQC）的互動腳本 `run_fastqc_multiqc.sh`。
 現在我希望將這套流程改由 Slurm 佇列派送到 Nano4 計算節點（Compute Node）執行。
 
-請幫我編寫兩個版本的 Slurm 批次作業腳本（符合 Nano4 規格，生醫專案使用 #SBATCH --account=GOV115088 與 --partition=ngs62g，並嚴格加上 #SBATCH --mem=16G 避免 QoS 超限）：
+請幫我編寫兩個版本的 Slurm 批次作業腳本（符合 Nano4 規格，生醫專案使用 #SBATCH --account=YOUR_BIO_PROJECT_ID 與 --partition=ngs62g，並嚴格加上 #SBATCH --mem=16G 避免 QoS 超限）：
 
 【版本一：事前下載 / 離線運算模式】
 - 假設資料已在登入節點下載完畢，存放在 /work/${USER}/ 高速共享目錄。

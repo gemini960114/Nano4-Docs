@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=GOV115088           # 生醫專案代號 (例如 GOV115088 或 MST109178)
+#SBATCH --account=YOUR_BIO_PROJECT_ID           # 生醫專案代號 (例如 YOUR_BIO_PROJECT_ID 或 MST109178)
 #SBATCH --job-name=qc_offline         # 作業名稱
 #SBATCH --partition=ngs62g            # 排程分區 (Nano4 生醫佇列)
 #SBATCH --nodes=1                     # 節點數
@@ -13,7 +13,7 @@
 # ==============================================================================
 # 02_submit_offline_qc.slurm - [案例 A] 計算節點離線執行 FastQC 與 MultiQC (Nano4 版)
 # 提交指令: sbatch 02_submit_offline_qc.slurm
-# 覆寫專案代號: sbatch --account=GOV115088 02_submit_offline_qc.slurm
+# 覆寫專案代號: sbatch --account=YOUR_BIO_PROJECT_ID 02_submit_offline_qc.slurm
 # ==============================================================================
 
 set -euo pipefail
@@ -26,9 +26,10 @@ echo "模式         : 案例 A (事前下載 / 純離線分析)"
 echo "=========================================================="
 
 SCRIPT_DIR="${SLURM_SUBMIT_DIR}"
-DATA_DIR="${SCRIPT_DIR}/../data/fastq_raw"
-FASTQC_OUT="${SCRIPT_DIR}/../data/fastqc_out_offline"
-MULTIQC_OUT="${SCRIPT_DIR}/../data/multiqc_out_offline"
+DATA_ROOT="${DATA_ROOT:-/work/${USER}/nano4-case-a-qc}"
+DATA_DIR="${DATA_ROOT}/fastq_raw"
+FASTQC_OUT="${DATA_ROOT}/fastqc_out_offline"
+MULTIQC_OUT="${DATA_ROOT}/multiqc_out_offline"
 
 mkdir -p "${FASTQC_OUT}" "${MULTIQC_OUT}"
 

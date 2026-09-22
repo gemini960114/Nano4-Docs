@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=GOV115088           # 生醫專案代號 (例如 GOV115088)
+#SBATCH --account=YOUR_BIO_PROJECT_ID           # 生醫專案代號 (例如 YOUR_BIO_PROJECT_ID)
 #SBATCH --job-name=qc_online          # 作業名稱
 #SBATCH --partition=ngs62g            # 排程分區 (Nano4 生醫佇列)
 #SBATCH --nodes=1                     # 節點數
@@ -26,9 +26,10 @@ echo "模式         : 案例 B (Nano4 計算節點外網直連 / 動態下載�
 echo "=========================================================="
 
 SCRIPT_DIR="${SLURM_SUBMIT_DIR}"
-DATA_DIR="${SCRIPT_DIR}/../data/fastq_dynamic"
-FASTQC_OUT="${SCRIPT_DIR}/../data/fastqc_out_online"
-MULTIQC_OUT="${SCRIPT_DIR}/../data/multiqc_out_online"
+DATA_ROOT="${DATA_ROOT:-/work/${USER}/nano4-case-b-qc}"
+DATA_DIR="${DATA_ROOT}/fastq_dynamic"
+FASTQC_OUT="${DATA_ROOT}/fastqc_out_online"
+MULTIQC_OUT="${DATA_ROOT}/multiqc_out_online"
 
 mkdir -p "${DATA_DIR}" "${FASTQC_OUT}" "${MULTIQC_OUT}"
 

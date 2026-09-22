@@ -14,6 +14,14 @@
 
 ---
 
+
+> [!NOTE]
+> 本章實作檔案位於教材 repository。若重新開啟終端機，先回到教材根目錄：
+>
+> ```bash
+> cd "$HOME/Nano4-Docs"
+> ```
+
 ## 📌 目錄 (Table of Contents)
 - [1. 生醫資訊前處理概念：FASTQ、FastQC 與 MultiQC](#_1-生醫資訊前處理概念-fastq、fastqc-與-multiqc)
 - [2. 請 AI Agent 撰寫分析腳本 (Prompt 提示詞技巧)](#_2-請-ai-agent-撰寫分析腳本-prompt-提示詞技巧)
@@ -90,6 +98,9 @@ cd 04-ai-assisted-bio-pipeline/scripts
 bash download_demo_fastq.sh
 ```
 此腳本會自動準備 4 組示範樣本（`sample_01_R1.fastq.gz` ~ `sample_04_R1.fastq.gz`）。
+
+> [!WARNING]
+> 本章腳本若找不到 FastQC，會產生「示範用」FastQC 格式檔案讓 MultiQC 流程可以教學演示；這些不是實際 FastQC 結果，不能拿來做研究判讀。正式資料必須使用真正的 FastQC 或容器化執行環境。
 
 ### 步驟 2：執行質控管線
 ```bash

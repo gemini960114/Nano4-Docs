@@ -19,6 +19,7 @@
 - [1. 叢集前門：晶創26 前端與資料傳輸架構 (SSH:22 vs SFTP:2222)](#_1-叢集前門-晶創26-前端與資料傳輸架構-ssh-22-vs-sftp-2222)
 - [2. 前置準備：iService 申請晶創26計畫與 IDExpert 2FA 綁定](#_2-前置準備-iservice-申請晶創26計畫與-idexpert-2fa-綁定)
 - [3. SSH 登入實戰與三種雙因子驗證方式](#_3-ssh-登入實戰與三種雙因子驗證方式)
+- [3-C. 取得課程教材 repository](#_3-c-取得課程教材-repository)
 - [4. 極速登入技巧：設定本地端 SSH Config](#_4-極速登入技巧-設定本地端-ssh-config)
 - [5. 大檔案傳輸必備：資料傳輸節點 (DTN Port 2222) 實作](#_5-大檔案傳輸必備-資料傳輸節點-dtn-port-2222-實作)
 - [6. 登入後第一步：環境健檢與三大儲存空間架構 (/home vs /work vs /project)](#_6-登入後第一步-環境健檢與三大儲存空間架構-home-vs-work-vs-project)
@@ -117,6 +118,27 @@ Password:
 輸入您在 iService 設定的主機密碼（輸入時螢幕不會顯示任何字元，此為 Linux 正常安全設計），按下 Enter 即可成功登入！
 
 ---
+
+### C. 取得課程教材 repository
+
+登入成功後，先在登入節點的 `$HOME` 下載課程原始碼。程式碼與教學範本放在 `$HOME` 即可；FASTQ、模型、Nextflow work 與 container cache 則放到 `/work/${USER}`。
+
+```bash
+cd "$HOME"
+if [[ -d Nano4-Docs/.git ]]; then
+    git -C Nano4-Docs pull --ff-only
+else
+    git clone https://github.com/gemini960114/Nano4-Docs.git
+fi
+cd "$HOME/Nano4-Docs"
+git status --short
+```
+
+後續章節的 `cd 01-...`、`cd 02-...` 等命令，都以 `$HOME/Nano4-Docs` 為目前工作目錄；若重新開啟終端機，請先執行：
+
+```bash
+cd "$HOME/Nano4-Docs"
+```
 
 ## 4. 極速登入技巧：設定本地端 SSH Config
 

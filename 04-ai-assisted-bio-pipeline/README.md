@@ -91,6 +91,9 @@ bash download_demo_fastq.sh
 ```
 此腳本會自動準備 4 組示範樣本（`sample_01_R1.fastq.gz` ~ `sample_04_R1.fastq.gz`）。
 
+> [!WARNING]
+> 本章腳本若找不到 FastQC，會產生「示範用」FastQC 格式檔案讓 MultiQC 流程可以教學演示；這些不是實際 FastQC 結果，不能拿來做研究判讀。正式資料必須使用真正的 FastQC 或容器化執行環境。
+
 ### 步驟 2：執行質控管線
 ```bash
 bash run_fastqc_multiqc.sh

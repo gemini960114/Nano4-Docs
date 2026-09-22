@@ -8,6 +8,14 @@
 
 ---
 
+
+> [!NOTE]
+> 本章指令預設已完成第 01 章的 repository clone。若重新開啟終端機，先回到教材根目錄：
+>
+> ```bash
+> cd "$HOME/Nano4-Docs"
+> ```
+
 ## 📌 目錄 (Table of Contents)
 - [1. 為什麼推薦 VS Code Remote-SSH？(終結黑底終端機)](#_1-為什麼推薦-vs-code-remote-ssh-終結黑底終端機)
 - [2. 本地電腦 VS Code Remote-SSH 連線實戰 (3 分鐘速成)](#_2-本地電腦-vs-code-remote-ssh-連線實戰-3-分鐘速成)
@@ -282,7 +290,7 @@ sinfo | opencode run "這是我在 Nano4 查詢到的 sinfo 資訊，請用繁�
 * **原因**：未安裝遠端 Python / Jupyter 擴充套件，或尚未啟動虛擬環境。
 * **解法**：
   1. 確保已在遠端安裝 `ms-toolsai.jupyter` 與 `ms-python.python`。
-  2. 點擊 Notebook 右上角的「Select Kernel ➔ Python Environments」，選擇您在第 01 章建立的 `/work/$USER/test_uv_env` 或自訂環境路徑。
+  2. 點擊 Notebook 右上角的「Select Kernel ➔ Python Environments」，選擇您在第 01 章建立的 `/work/$USER/lab_env` 或自訂環境路徑。
 
 ---
 

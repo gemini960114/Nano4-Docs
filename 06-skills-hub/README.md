@@ -13,6 +13,7 @@
 | **[`nano4-slurm-operations`](./nano4-slurm-operations/)** | • 執行唯讀 preflight 檢查<br>• 驗證 `wallet` 專案與 Slurm association<br>• 檢查生醫專案 (`GOV115088`) 與 `ngs*` 佇列政策相容性 | 準備派送作業、查詢專案權限或確認佇列政策時 |
 | **[`slurm-job-advisor`](./slurm-job-advisor/)** | • 引導式 4 步問答挖掘運算需求<br>• Nano4 硬體約束防呆（`ngs62g` 漏填 `--mem` 攔截、`dev` 需 `--gres=gpu:1`）<br>• `sbatch --test-only` 免扣點模擬預檢 | 需要規劃、配置、診斷或撰寫 Slurm 排程腳本時 |
 | **[`ai-agent-slurm-pipeline`](./ai-agent-slurm-pipeline/)** | • 互動式腳本自動重構為 Slurm 批次管線<br>• 高速離線 (Case A) vs 外網直連 (Case B) 架構選型<br>• 多階段相依管線自動串接 (`--dependency=afterok:`) | 將 VS Code / 登入節點執行的資料分析流程派送至計算節點時 |
+| **[`nfcore-ampliseq-nano4`](./nfcore-ampliseq-nano4/)** | • 真實 amplicon 資料溯源與 checksum<br>• nf-core test → 正式資料的 Slurm 執行<br>• primer、metadata、結果與資源驗證 | 在 Nano4 準備、執行或審查 nf-core/ampliseq 分析時 |
 
 ---
 
@@ -70,3 +71,7 @@ AI Agent 偵測到掛載的 `slurm-job-advisor` 技能後，將自動進行以�
 2. **主動防呆**：為生醫任務推薦 `ngs62g` 分區，並**主動加入 `#SBATCH --mem=16G`**，防止初學者漏寫導致的 `QOSMaxMemoryPerJob` 卡死。
 3. **自動使用萬用日誌格式**：`#SBATCH --output=%x-%j.out`，避免子目錄不存在的崩潰問題。
 4. **自動調用 `sbatch --test-only`** 進行免扣點模擬預檢，確認 100% 能在排程器中排隊後才回覆給使用者！
+
+---
+
+👉 **下一課**：[第 07 章：nf-core/ampliseq 真實案例——手動操作、AI 重做與 Skill 封裝](../07-nfcore-ampliseq-case-study/)

@@ -22,6 +22,7 @@
 | **04** | **AI 輔助生醫管線 (FASTQ 質控微型實作)** | 以生醫 FASTQ 質控為具象化案例（架構全領域通用），在 VS Code 內引導 AI 編寫分析管線、登入節點微型測試，並透過連接埠轉送在瀏覽器即時預覽 MultiQC 互動報告。 | **微型原型實踐**<br>小數據原型開發、邏輯驗證與報告即時轉送預覽 | [前往章節](./04_ai_assisted_bio_pipeline) |
 | **05** | **AI Agent 自動化排程 (重構生醫管線至 Slurm)** | 【全系列集大成】引導 AI Agent 自動將登入節點分析管線重構為生產級 Slurm 批次作業：實作「事前下載離線運算 (Case A)」與「計算節點外網直連動態下載 (Case B)」雙架構！ | **全流程自動化**<br>AI 排程重構、直接連網批次運算與成果交付 | [前往章節](./05_ai_agent_slurm_pipeline) |
 | **06** | **Nano4 AI Agent 技能總匯庫 (Skills Hub)** | 將 Nano4 領域知識打包為 AI Agent 專家技能 (`nano4-slurm-operations`, `slurm-job-advisor`, `ai-agent-slurm-pipeline`)，支援 `wallet` 預檢與 `sbatch --test-only` 防呆。 | **專家技能庫**<br>掛載超算領域專家技能，賦予 AI 即時作戰能力 | [前往章節](./06_skills_hub) |
+| **07** | **nf-core/ampliseq 真實 16S 案例** | 先手動完成官方 test 與公開 paired-end 16S 分析，再讓 AI Agent 重做、比較並封裝成可重用 Skill。 | **完整案例實戰**<br>手動操作 → AI 重現 → Skill 固化 | [前往章節](./07_nfcore_ampliseq_case_study) |
 | **附錄** | **HPC 專屬 AI Agent 治理守則 (AGENTS.md)** | 全工作區通用系統守則，規範嚴禁 sudo、WekaFS `/work` 儲存分層、module purge、ngs62g 記憶體限制與日誌萬用命名。 | **系統憲法**<br>防止 AI 產生危險指令與超算違規行為 | [查看守則](./agents_governance) |
 
 ---
@@ -52,6 +53,8 @@ flowchart TD
         C5["第 05 課：AI Agent 自動化排程重構與派送<br>• AI 自動遵守 AGENTS.md 重構生醫管線為 Slurm<br>• 案例 A：事前資料下載 / 高速離線運算<br>• 案例 B：Nano4 計算節點外網直連 / 動態下載"]
         C6["第 06 課：Nano4 AI Agent 技能總匯庫 (Skills Hub)<br>• nano4-slurm-operations (唯讀預檢)<br>• slurm-job-advisor (資源規劃與 QoS 防呆)<br>• ai-agent-slurm-pipeline (管線自動串接)"]
         C4 --> C5
+        C7["第 07 課：nf-core/ampliseq 真實 16S 案例<br>• 官方 test profile 驗證環境<br>• 公開 paired-end 資料完整分析<br>• 手動操作 → AI 重現 → Skill 固化"]
+        C6 --> C7
         C3 -.->|Slurm 規範注入| C5
         C5 -->|技能沉澱與模組化| C6
     end
@@ -62,7 +65,7 @@ flowchart TD
 
     class C1,C2 primary;
     class C3,C4 highlight;
-    class C5,C6 capstone;
+    class C5,C6,C7 capstone;
 ```
 
 ---
