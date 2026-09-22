@@ -4,7 +4,7 @@
 
 但如果每次寫程式都得使用黑底白字的文字終端機（如 vim 或 nano），對於初學者來說開發門檻較高。在晶創26（Nano4）環境中，**最主流、最流暢且最推薦的現代化開發方式，就是使用您個人電腦上的 Visual Studio Code 透過「Remote - SSH」擴充套件直連 Nano4**！
 
-本章將帶您在個人電腦打造直通超級電腦的圖形化開發工作台，並在遠端環境中配置 **AI 開發工具鏈（OpenCode CLI、Antigravity CLI、國網 Medusa 地端大模型 API）**，以及導入超算專屬的 **`AGENTS.md`** 治理守則，讓 AI 成為您探索超算的隨身神隊友！
+本章將帶您在個人電腦打造直通超級電腦的圖形化開發工作台，並在遠端環境中配置 **AI 開發工具鏈（ChatGPT、Gemini、Codex CLI、OpenCode CLI、Antigravity CLI 與國網 Medusa 地端大模型 API）**，以及導入超算專屬的 **`AGENTS.md`** 治理守則，讓 AI 成為您探索超算的隨身神隊友！
 
 ---
 
@@ -12,12 +12,13 @@
 - [1. 為什麼推薦 VS Code Remote-SSH？(終結黑底終端機)](#_1-為什麼推薦-vs-code-remote-ssh-終結黑底終端機)
 - [2. 本地電腦 VS Code Remote-SSH 連線實戰 (3 分鐘速成)](#_2-本地電腦-vs-code-remote-ssh-連線實戰-3-分鐘速成)
 - [3. 遠端工作區必備擴充套件安裝 (Python, Jupyter, AI)](#_3-遠端工作區必備擴充套件安裝-python-jupyter-ai)
-- [4. 終端 AI 命令行工具配置：OpenCode CLI 與 Antigravity CLI](#_4-終端-ai-命令行工具配置-opencode-cli-與-antigravity-cli)
-- [5. 國網中心地端大模型 (Medusa / GenAI API) 設定實務](#_5-國網中心地端大模型-medusa-genai-api-設定實務)
-- [6. 國網中心支援模型清單與場景推薦](#_6-國網中心支援模型清單與場景推薦)
-- [7. 超算專屬 AI Agent 治理守則：AGENTS.md 實務](#_7-超算專屬-ai-agent-治理守則-agents-md-實務)
-- [8. 初學者動手實戰練習 (Hands-on Labs 1 ~ 3)](#_8-初學者動手實戰練習-hands-on-labs-1-3)
-- [9. 常見踩坑與連線排錯 (FAQ)](#_9-常見踩坑與連線排錯-faq)
+- [4. AI 工具選擇與雙工具操作練習](#_4-ai-工具選擇與雙工具操作練習)
+- [5. 終端 AI 命令行工具配置：Codex、OpenCode 與 Antigravity](#_5-終端-ai-命令行工具配置-codex-opencode-與-antigravity)
+- [6. 國網中心地端大模型 (Medusa / GenAI API) 設定實務](#_6-國網中心地端大模型-medusa-genai-api-設定實務)
+- [7. 國網中心支援模型清單與場景推薦](#_7-國網中心支援模型清單與場景推薦)
+- [8. 超算專屬 AI Agent 治理守則：AGENTS.md 實務](#_8-超算專屬-ai-agent-治理守則-agents-md-實務)
+- [9. 初學者動手實戰練習 (Hands-on Labs 1 ~ 4)](#_9-初學者動手實戰練習-hands-on-labs-1-4)
+- [10. 常見踩坑與連線排錯 (FAQ)](#_10-常見踩坑與連線排錯-faq)
 
 ---
 
@@ -101,6 +102,8 @@ Host nano4
 | **Claude AI 助手** | `anthropic.claude-code` | Anthropic 官方 Claude 程式碼輔助工具 |
 | **Roo Code / Cline** | `rooveterinaryinc.roo-cline` | 支援自訂 API (可接國網 Medusa) 的 AI Agent |
 
+> ChatGPT 與 Gemini 主要在學員本機的 Web/Desktop 應用程式中使用，不需要安裝到 Nano4。Codex CLI、OpenCode CLI 才是可直接操作 repository 的終端工具。
+
 ### B. 一鍵安裝腳本 (在 VS Code 整合終端執行)
 
 按下 **``Ctrl + ` ``** 開啟整合式終端機，執行本章隨附的安裝腳本：
@@ -114,11 +117,39 @@ bash install_vscode_extensions.sh
 
 ---
 
-## 4. 終端 AI 命令行工具配置：OpenCode CLI 與 Antigravity CLI
+## 4. AI 工具選擇與雙工具操作練習
+
+本課程不限定只使用 OpenCode。每位學員至少選擇 **兩個 AI 工具**，對同一個 Nano4 任務進行對話、追問、修改與驗證，最後比較它們的差異。推薦組合是 **Gemini + Codex**；也可以選擇 ChatGPT + Codex、ChatGPT + OpenCode，或 Gemini + OpenCode。
+
+| 工具 | 使用位置 | 本章練習角色 | 是否安裝到 Nano4？ |
+| :--- | :--- | :--- | :---: |
+| [ChatGPT](https://chatgpt.com/) | 本機 Web/Desktop | 解釋錯誤、審查腳本、提出改善方案 | 否 |
+| [Gemini](https://gemini.google.com/) | 本機 Web | 第二意見、比較提示詞與分析結果 | 否 |
+| [Codex CLI](https://developers.openai.com/codex/cli) | 本機或 Nano4 終端 | 讀取 repository、修改檔案、執行測試 | 可選 |
+| [OpenCode](https://opencode.ai) | Nano4 終端 | 連接 Medusa、產生與診斷 HPC 腳本 | 是 |
+
+### 雙工具練習流程
+
+1. 兩個工具使用**同一份 prompt、同一份檔案與同一個問題**。
+2. 先請工具說明計畫，不要立即執行破壞性指令。
+3. 比較它們提出的路徑、Slurm 資源、`/work` 使用方式與錯誤處理。
+4. 由學生手動選擇與合併建議，再執行 `bash -n`、`sbatch --test-only` 或小型測試。
+5. 記錄工具名稱、prompt、修改內容與驗證結果，形成可重現的 AI 使用紀錄。
+
+## 5. 終端 AI 命令行工具配置：Codex、OpenCode 與 Antigravity
 
 除了編輯器外掛，在 HPC 終端環境中常駐 AI CLI 工具，能讓您隨時透過指令請 AI 生成代碼、修改腳本或診斷 Slurm 排程錯誤。
 
-### A. OpenCode CLI
+### A. Codex CLI
+[Codex CLI](https://developers.openai.com/codex/cli) 可在終端中檢查、修改與執行 repository 內容。若在 Nano4 安裝，請使用使用者權限：
+
+```bash
+curl -fsSL https://chatgpt.com/codex/install.sh | sh
+export PATH="${HOME}/.local/bin:${PATH}"
+codex --version
+```
+
+### B. OpenCode CLI
 [OpenCode](https://opencode.ai) 是一個輕量、模組化且支援 OpenAI 相容協議（相容國網中心 Medusa API）的終端 AI 工具。
 
 * **安裝指令**：
@@ -127,12 +158,12 @@ bash install_vscode_extensions.sh
   ```
 * **預設安裝路徑**：`~/.opencode/bin/opencode`
 
-### B. Antigravity CLI (`agy`)
+### C. Antigravity CLI (`agy`)
 Google DeepMind 出品的 Antigravity CLI 專精於複雜專案推理與多代理人排程除錯：
 * **路徑**：`~/.local/bin/agy`
 * **驗證**：`agy --version`
 
-### C. 一鍵配置 PATH
+### D. 一鍵配置 PATH
 執行本章隨附的設定腳本，自動將 `~/.opencode/bin` 與 `~/.local/bin` 加入 `~/.bashrc`：
 ```bash
 cd 02-vscode-and-ai-tools/scripts
@@ -142,7 +173,7 @@ source ~/.bashrc
 
 ---
 
-## 5. 國網中心地端大模型 (Medusa / GenAI API) 設定實務
+## 6. 國網中心地端大模型 (Medusa / GenAI API) 設定實務
 
 國網中心提供專屬的地端大模型推論服務（**Medusa / GenAI Portal**），讓研究人員可以直接調用高效能開源大模型，無需自行租用昂貴的商業 API！
 
@@ -207,7 +238,7 @@ cp 02-vscode-and-ai-tools/templates/opencode.json ~/.config/opencode/opencode.js
 
 ---
 
-## 6. 國網中心支援模型清單與場景推薦
+## 7. 國網中心支援模型清單與場景推薦
 
 | 模型識別名稱 | 參數量 | 特點與專長領域 | 推薦應用場景 |
 | :--- | :---: | :--- | :--- |
@@ -218,7 +249,7 @@ cp 02-vscode-and-ai-tools/templates/opencode.json ~/.config/opencode/opencode.js
 
 ---
 
-## 7. 超算專屬 AI Agent 治理守則：AGENTS.md 實務
+## 8. 超算專屬 AI Agent 治理守則：AGENTS.md 實務
 
 當您在 VS Code 中使用 AI 助手（如 OpenCode、Cline、Roo Code、Cursor 等）時，**AI 預設並不知道超級電腦的多人共用規範**，可能會給出危險的建議（例如建議您執行 `sudo apt install` 或在 `$HOME` 下載 50GB 模型導致 Inode 爆量）。
 
@@ -233,7 +264,7 @@ cp 02-vscode-and-ai-tools/templates/opencode.json ~/.config/opencode/opencode.js
 
 ---
 
-## 8. 初學者動手實戰練習 (Hands-on Labs 1 ~ 3)
+## 9. 初學者動手實戰練習 (Hands-on Labs 1 ~ 4)
 
 ### 🧪 練習 1：在本地 VS Code 開啟遠端工作區
 1. 依照第 2 節步驟，在您個人筆電打開 VS Code。
@@ -244,31 +275,45 @@ cp 02-vscode-and-ai-tools/templates/opencode.json ~/.config/opencode/opencode.js
 
 ---
 
-### 🧪 練習 2：測試 OpenCode CLI 與模型連線
+### 🧪 練習 2：Gemini 與 Codex 雙工具對話比較
+以同一個任務測試兩個工具：請它們解釋 `sbatch` 腳本中的 `--account`、`--partition`、`--mem`，並要求提出一個安全的修改方案。
+
+- Gemini：在本機開啟 [Gemini](https://gemini.google.com/)，貼上相同 prompt 與小段腳本。
+- Codex：在 repository 目錄執行：
+  ```bash
+  codex "請先閱讀本專案的 AGENTS.md，說明這支 Slurm 腳本的風險，但先不要修改檔案。"
+  ```
+
+比較兩份回答的假設、資源建議與安全檢查，不直接複製任何一方的指令。
+
+---
+
+### 🧪 練習 3：測試 OpenCode CLI 與模型連線
 1. 在 VS Code 整合終端中執行：
    ```bash
    opencode models
    ```
-   確認您設定的 Provider 與模型清單正常列出。
 2. 測試向國網地端大模型提問：
    ```bash
    opencode run "請用一句話說明為什麼在 HPC 上不能使用 sudo 指令？"
    ```
-3. 觀察終端機中 AI 的即時回答，確認 API 串接無誤！
+3. 觀察終端機中 AI 的回答，並與練習 2 的 Gemini/Codex 結果比較。
 
 ---
 
-### 🧪 練習 3：召喚 AI 助手為您解讀超算狀態
-在終端機中執行：
+### 🧪 練習 4：三方結果驗證與人工作業
+先讓 Gemini、Codex 或 OpenCode 提出方案，再由學生手動執行：
+
 ```bash
-# 讓 AI 幫忙分析當前節點負載
-sinfo | opencode run "這是我在 Nano4 查詢到的 sinfo 資訊，請用繁體中文幫我重點整理目前有哪些可用分區？"
+sinfo
+bash -n path/to/job.slurm
+sbatch --test-only --account="<PROJECT_ID>" path/to/job.slurm
 ```
-觀察 AI 如何自動化解析超算資源，成為您的即時分析秘書！
 
+記錄哪個工具的建議被採用、哪些建議被拒絕，以及實際驗證結果。
 ---
 
-## 9. 常見踩坑與連線排錯 (FAQ)
+## 10. 常見踩坑與連線排錯 (FAQ)
 
 ### Q1：VS Code Remote-SSH 連線時卡在「Waiting for 2FA...」？
 * **原因**：VS Code 在連線時，終端驗證提示有時會縮在視窗頂部或終端輸出分頁中。
