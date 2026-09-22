@@ -430,19 +430,41 @@ cd 01-nano4-ssh-and-2fa/scripts
 
 ### B. 晶創26 `/work` 最佳實踐
 
-在晶創26上使用 `uv` 時，請務必將快取與虛擬環境建置於高速工作區（`/work/$USER`）：
+如果登入後找不到 `uv`，先在登入節點以使用者權限安裝。官方安裝程式會把執行檔放在 `~/.local/bin`；不需要、也不應該使用 `sudo`：
 
 ```bash
-# 1. 將快取導向 /work (建議加入 ~/.bashrc)
+# 1. 讓本次 shell 可以找到 ~/.local/bin 裡的程式
+export PATH="${HOME}/.local/bin:${PATH}"
+
+# 2. 若系統尚未提供 uv，安裝至 ~/.local/bin
+if ! command -v uv >/dev/null 2>&1; then
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    export PATH="${HOME}/.local/bin:${PATH}"
+fi
+
+uv --version
+```
+
+若希望每次登入都自動套用 PATH，可將下列設定加入 `~/.bashrc`，再重新載入：
+
+```bash
+printf '\nexport PATH="${HOME}/.local/bin:${PATH}"\n' >> ~/.bashrc
+source ~/.bashrc
+```
+
+接著在晶創26上使用 `uv` 時，務必將快取與虛擬環境建置於高速工作區（`/work/$USER`）：
+
+```bash
+# 3. 將快取導向 /work (建議加入 ~/.bashrc)
 export UV_CACHE_DIR="/work/${USER}/.uv_cache"
 
-# 2. 在 /work 建立專屬虛擬環境 (秒級建立！)
+# 4. 在 /work 建立專屬虛擬環境 (秒級建立！)
 uv venv /work/${USER}/my_ai_env
 
-# 3. 安裝常用深度學習與資料處理套件
+# 5. 安裝常用深度學習與資料處理套件
 uv pip install --python /work/${USER}/my_ai_env/bin/python torch torchvision torchaudio numpy pandas rich
 
-# 4. 啟動環境
+# 6. 啟動環境
 source /work/${USER}/my_ai_env/bin/activate
 ```
 
