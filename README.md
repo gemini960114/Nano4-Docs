@@ -115,9 +115,10 @@ Nano4 與傳統超算叢集（如 Taiwania 1 / F1）相比，具備以下重大�
 
 本教學深度整合了國網中心官方指南與實戰驗證，相關手冊請參閱：
 * [晶創26 (Nano4) 使用者操作手冊 (TWCC / HackMD)](https://man.twcc.ai/@nano4-manual/documentation)
-* [Nano4 登入與傳輸節點連線指引](https://man.twcc.ai/@nano4-manual/SJuKzVlwbx)
-* [Nano4 雙因子認證 (2FA) 設定手冊](https://man.twcc.ai/@nano4-manual/ry1hWDlPbl)
-* [Nano4 Slurm 排程使用說明](https://man.twcc.ai/@nano4-manual/BydP-_lvZg)
-* [Nano4 佇列規格與分區清單 (Partitions)](https://man.twcc.ai/@nano4-manual/B1zWMYxv-l)
-* [Nano4 儲存空間與 WekaFS 說明](https://man.twcc.ai/@nano4-manual/rydOv6-Dbl)
-* [Nano4 軟體環境與 Modules 說明](https://man.twcc.ai/@nano4-manual/Hkayr3zvWl)
+* [晶創26系統架構及規格](https://man.twcc.ai/@nano4-manual/SJuKzVlwbx)
+* [Nano4 登入與傳輸節點](https://man.twcc.ai/@nano4-manual/BydP-_lvZg)
+* [Nano4 雙因子認證 (2FA) 設定（iService）](https://iservice.nchc.org.tw/nchc_service/nchc_service_qa_single.php?qa_code=774)
+* [Nano4 Slurm 佇列與資源規格](https://man.twcc.ai/@nano4-manual/SJM_FuxDWe)
+* [Nano4 Slurm Job 提交與管理範例](https://man.twcc.ai/@nano4-manual/BkRXxZ_JMg)
+* [Nano4 儲存資源與目錄位置（WekaFS）](https://man.twcc.ai/@nano4-manual/ry1hWDlPbl)
+* [Nano4 軟體環境模組（Lmod）基本說明](https://man.twcc.ai/@nano4-manual/BJyI6dgw-g)
