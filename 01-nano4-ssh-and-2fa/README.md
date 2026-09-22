@@ -662,28 +662,44 @@ cd 01-nano4-ssh-and-2fa/scripts
 
 **目標**：學會如何撰寫標準 `.slurm` 腳本、提交作業 (`sbatch`)、追蹤排程 (`squeue`)、查看日誌輸出與分析運算效率 (`seff`)。
 
-本章節已隨附現成的初學者作業範本 [`01-nano4-ssh-and-2fa/scripts/sample_first_job.slurm`](./scripts/sample_first_job.slurm)。
+本章節已隨附兩套現成的初學者作業範本：
+* **純 CPU 生醫主力佇列**：[`01-nano4-ssh-and-2fa/scripts/sample_first_cpu_job.slurm`](./scripts/sample_first_cpu_job.slurm)（**專門針對生醫 CPU 分區 `ngs62g`**）
+* **NVIDIA H200 GPU 佇列**：[`01-nano4-ssh-and-2fa/scripts/sample_first_job.slurm`](./scripts/sample_first_job.slurm)（針對 GPU 測試分區 `dev`）
 
-1. **查看並複製作業範本到您的工作區**：
+#### 🚀 選擇 A：提交至生醫專屬 CPU 佇列 (`ngs62g`)【推薦生醫專案學員】
+生醫資訊工具（如 FastQC、BWA、SAMtools、QIIME 2 等）通常依賴多核心 CPU 與適量記憶體：
+
+1. **複製 CPU 範本至您的工作區**：
    ```bash
-   cp 01-nano4-ssh-and-2fa/scripts/sample_first_job.slurm /work/$USER/my_first_job.slurm
+   cp 01-nano4-ssh-and-2fa/scripts/sample_first_cpu_job.slurm /work/$USER/my_first_cpu_job.slurm
    cd /work/$USER
    ```
-2. **編輯修改計畫代號 (`--account`)**：
-   使用 nano 或 vim 開啟 `my_first_job.slurm`，將 `YOUR_PROJECT_ID` 替換為您的有效計畫代碼（例如您在 `wallet` 查到的 `GOV113021` 或 `MST109178`）：
+2. **檢視腳本內容與關鍵參數**：
    ```bash
-   nano my_first_job.slurm
+   cat my_first_cpu_job.slurm
    ```
-   *(若使用純 CPU 生醫計算，可將 `#SBATCH --partition=dev` 改為 `ngstest`，並移除 `--gres=gpu:1`)*
-3. **提交作業至 Slurm 排程隊列**：
+   * 關鍵參數解析：
+     - `#SBATCH --account=GOV115088`：生醫專案代號。
+     - `#SBATCH --partition=ngs62g`：**Nano4 生醫專屬 CPU 佇列**。
+     - `#SBATCH --cpus-per-task=4`：分配 4 顆 CPU 核心。
+     - `#SBATCH --mem=16G`：⚠️ **`ngs62g` 關鍵必填！** 上限 62G，漏填會被排程器阻斷。
+     - *(純 CPU 佇列嚴禁加上 `--gres=gpu:1`)*
+3. **提交作業**：
    ```bash
-   sbatch my_first_job.slurm
+   sbatch my_first_cpu_job.slurm
    ```
    **終端機回應**：
    ```text
-   Submitted batch job 421815
+   Submitted batch job 422203
    ```
-   *(請記下這組 Job ID，例如 `421815`)*
+
+#### 🚀 選擇 B：提交至 H200 GPU 佇列 (`dev`)【通用 AI 專案學員】
+1. **複製 GPU 範本至工作區並提交**：
+   ```bash
+   cp 01-nano4-ssh-and-2fa/scripts/sample_first_job.slurm /work/$USER/my_first_gpu_job.slurm
+   sbatch --account=YOUR_PROJECT_ID /work/$USER/my_first_gpu_job.slurm
+   ```
+
 4. **追蹤作業即時狀態**：
    ```bash
    squeue --me
@@ -691,11 +707,11 @@ cd 01-nano4-ssh-and-2fa/scripts
    * `ST` 為 `PD` (Pending) 表示排隊中；為 `R` (Running) 表示正在計算節點狂飆運算！
 5. **作業完成後，查看輸出日誌**：
    ```bash
-   cat first_hpc_job-421815.out
+   cat first_cpu_job-*.out
    ```
 6. **透過 `seff` 分析作業資源效益 (國網推薦優化技巧)**：
    ```bash
-   seff 421815
+   seff <JOB_ID>
    ```
    * 系統會印出 CPU 利用率 (CPU Utilized) 與記憶體利用率 (Memory Efficiency)，讓您精準掌握資源！
 
@@ -705,25 +721,34 @@ cd 01-nano4-ssh-and-2fa/scripts
 
 **目標**：初學者在開發測試時，往往不想每改一行程式就提交一次 `sbatch`。透過互動式申請，可以直接「登入進計算節點」即時除錯！
 
-1. **申請 1 台 H200 運算節點 (使用 `dev` 測試佇列，時限 30 分鐘)**：
-   ```bash
-   salloc --account=YOUR_PROJECT_ID --partition=dev --nodes=1 --gres=gpu:1 -t 00:30:00
-   ```
-2. **申請成功後，終端機提示符號會改變**：
+#### 模式 1：申請純 CPU 生醫計算節點 (`ngs62g`)
+適合生醫管線腳本微型除錯、Python 程式驗證：
+```bash
+salloc --account=GOV115088 --partition=ngs62g --nodes=1 --cpus-per-task=4 --mem=16G -t 00:30:00
+```
+
+#### 模式 2：申請 NVIDIA H200 GPU 測試節點 (`dev`)
+適合深度學習模型推論、CUDA 程式除錯：
+```bash
+salloc --account=GOV113021 --partition=dev --nodes=1 --gres=gpu:1 --cpus-per-task=12 --mem=64G -t 00:30:00
+```
+
+#### 進入節點與退出操作：
+1. **申請成功後，終端機提示符號會改變**：
    ```text
    salloc: Granted job allocation 421820
-   salloc: Nodes 25a-hgpn030 are ready for job
+   salloc: Nodes 25a-cpn01 are ready for job
    [user@25a-lgn01 salloc_421820 ~]$
    ```
-3. **直接下達指令操作運算節點**：
+2. **直接下達指令操作運算節點**：
    ```bash
-   # 檢查分配到的節點 GPU 狀態
-   srun nvidia-smi
+   # 檢查分配到的節點資訊
+   srun hostname
    
    # 或直接進入計算節點互動 Shell
    srun --pty bash
    ```
-4. **完成測試後，務必退出釋放資源（停止計費）**：
+3. **完成測試後，務必退出釋放資源（停止計費）**：
    ```bash
    exit
    ```

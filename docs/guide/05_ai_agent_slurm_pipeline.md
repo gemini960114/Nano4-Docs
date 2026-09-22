@@ -103,18 +103,29 @@ cd 05-ai-agent-slurm-pipeline/case_b_online
 sbatch run_online_pipeline.slurm
 ```
 
-**Slurm 核心關鍵程式碼：**
-```bash
-# 1. 驗證計算節點對外網路連通性 (無須任何 Proxy)
-curl -s -I --connect-timeout 5 https://data.qiime2.org >/dev/null
-echo "✅ 外網直連成功！"
+**Slurm 核心關鍵配置與程式碼：**
+* **生醫純 CPU 分區配置**：
+  ```bash
+  #SBATCH --account=GOV115088           # 生醫專案代號
+  #SBATCH --job-name=qc_online          # 作業名稱
+  #SBATCH --partition=ngs62g            # Nano4 生醫專屬 CPU 佇列
+  #SBATCH --nodes=1                     # 1 台節點
+  #SBATCH --cpus-per-task=4             # 4 核心多線程
+  #SBATCH --mem=16G                     # 【關鍵必填】記憶體大小 (ngs62g 上限 62G)
+  #SBATCH --time=00:30:00               # 執行時間上限
+  ```
+* **計算節點直連外網實行管線**：
+  ```bash
+  # 1. 驗證計算節點對外網路連通性 (無須任何 Proxy)
+  curl -s -I --connect-timeout 5 https://data.qiime2.org >/dev/null
+  echo "✅ 外網直連成功！"
 
-# 2. 計算節點內部直接向外網下載資料
-curl -sSL "https://data.qiime2.org/..." -o dynamic_sample.fastq.gz
+  # 2. 計算節點內部直接向外網下載資料
+  curl -sSL "https://data.qiime2.org/..." -o dynamic_sample.fastq.gz
 
-# 3. 下載完成後立即啟動 FastQC 與 MultiQC
-multiqc fastqc_out/ -o multiqc_out/
-```
+  # 3. 下載完成後立即啟動 FastQC 與 MultiQC
+  multiqc fastqc_out/ -o multiqc_out/
+  ```
 
 ---
 

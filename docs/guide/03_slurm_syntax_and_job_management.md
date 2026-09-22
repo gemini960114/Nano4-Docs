@@ -173,8 +173,10 @@ graph TD
 ```
 
 1. **單機多執行緒程式（Python multiprocessing, FastQC, OpenMP）**：
-   * 範例：申請 1 節點、跑 1 個行程、使用 8 個執行緒、配給 32GB 記憶體。
+   * 範例：申請 1 節點、跑 1 個行程、使用 8 個執行緒、配給 32GB 記憶體（生醫純 CPU 分區 `ngs62g`）。
    ```bash
+   #SBATCH --account=GOV115088
+   #SBATCH --partition=ngs62g
    #SBATCH --nodes=1
    #SBATCH --ntasks-per-node=1
    #SBATCH --cpus-per-task=8
