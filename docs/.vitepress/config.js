@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitepress'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 
-export default defineConfig({
+export default withMermaid(defineConfig({
   title: "國網晶創26 (Nano4) HPC 教學手冊",
   description: "以 VS Code Remote-SSH 與 AI Agent 為核心工作台的超級電腦全流程實戰指南",
   head: [
@@ -77,4 +78,4 @@ export default defineConfig({
       copyright: 'Copyright © 2026 NCHC Nano4 Tutorial'
     }
   }
-})
+}))
