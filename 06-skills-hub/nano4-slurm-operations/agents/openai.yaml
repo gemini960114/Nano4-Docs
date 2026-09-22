@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nano4 Slurm Operations"
+  short_description: "Nano4 計畫、wallet、partition 與 Slurm 安全操作"
+  default_prompt: "Use $nano4-slurm-operations to validate my project, partition, and resources before submitting a Slurm job."

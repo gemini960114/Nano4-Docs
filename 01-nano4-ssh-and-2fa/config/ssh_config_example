@@ -1,0 +1,28 @@
+# ==============================================================================
+# 晶創26 (Nano4) 本地端 SSH 設定範本
+# 請將本內容加入至您「個人本機電腦」的 ~/.ssh/config 檔案中 (若檔案不存在請自行建立)
+# 建立後即可在本地終端機直接輸入：ssh nano4
+# ==============================================================================
+
+# 晶創26 (Nano4) x86_64 登入節點 (預設連線)
+Host nano4
+    HostName nano4.nchc.org.tw
+    User YOUR_ISERVICE_ACCOUNT
+    Port 22
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+
+# 晶創26 (Nano4) 高速資料傳輸節點 (DTN) - 專供 SFTP / SCP / rsync 大檔案傳輸使用
+# ⚠️ 注意：Nano4 資料傳輸服務運行於 Port 2222，且不開放互動式 Shell
+Host nano4-dtn
+    HostName nano4.nchc.org.tw
+    User YOUR_ISERVICE_ACCOUNT
+    Port 2222
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+
+# 備用設定：直連指定內部登入節點 (若需指定特定節點除錯，須在內網或已跳板環境)
+# Host nano4-lgn01
+#     HostName 25a-lgn01
+#     User YOUR_ISERVICE_ACCOUNT
+#     Port 22

@@ -1,14 +1,14 @@
 {
-  "name": "f1-docs",
+  "name": "nano4-docs",
   "version": "1.0.0",
   "type": "module",
-  "description": "國網中心創進一號 (Taiwania 1 / f1) 高效能運算實戰教學手冊",
+  "description": "國網中心晶創26 (Nano4) 高效能運算實戰教學手冊",
   "scripts": {
     "docs:dev": "vitepress dev docs --host",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
   "devDependencies": {
-    "vitepress": "^1.0.2"
+    "vitepress": "^1.6.4"
   }
 }
