@@ -8,7 +8,7 @@ export default defineConfig({
     ['link', { rel: 'shortcut icon', type: 'image/x-icon', href: 'https://www.nchc.org.tw/img/favicon.ico' }],
     ['meta', { name: 'theme-color', content: '#0284c7' }]
   ],
-  base: '/F1-docs/',
+  base: '/Nano4-Docs/',
   ignoreDeadLinks: true,
   themeConfig: {
     logo: 'https://www.nchc.org.tw/img/favicon.ico',
@@ -68,7 +68,7 @@ export default defineConfig({
       provider: 'local'
     },
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/gemini960114/F1-docs' }
+      { icon: 'github', link: 'https://github.com/gemini960114/Nano4-Docs' }
     ],
     footer: {
       message: '本教學手冊深度整合國網中心官方指南與實務踩坑經驗，實際配置請以各服務官方資訊為準。',

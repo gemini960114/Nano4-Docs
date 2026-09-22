@@ -86,7 +86,7 @@
 
 ### 步驟 1：下載示範 FASTQ 資料
 ```bash
-cd /work/c00cjz00/class/20260924/F1-docs/04-ai-assisted-bio-pipeline/scripts
+cd 04-ai-assisted-bio-pipeline/scripts
 bash download_demo_fastq.sh
 ```
 此腳本會自動準備 4 組示範樣本（`sample_01_R1.fastq.gz` ~ `sample_04_R1.fastq.gz`）。
@@ -99,7 +99,7 @@ bash run_fastqc_multiqc.sh
 ```text
 ========================================================
 🔬 [1/3] 檢查 FASTQ 原始資料與質控工具...
-MultiQC 執行檔: /work/c00cjz00/.venv/bin/multiqc
+MultiQC 執行檔: /work/${USER}/.venv/bin/multiqc
 ========================================================
 🧬 [2/3] 執行 FastQC 品質控制分析...
 ========================================================

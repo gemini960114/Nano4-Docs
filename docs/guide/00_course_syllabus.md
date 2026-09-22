@@ -1,4 +1,4 @@
-# 晶創26 (Nano4) HPC 實戰教學系列手冊 (課程大綱與導覽)
+# 晶創26 (Nano4) HPC 實戰教學系列手冊 (HPC Tutorial Series)
 ### —— 以 VS Code Remote-SSH 與 AI Agent 為核心工作台的超級電腦全流程實戰指南
 
 歡迎來到國網中心**晶創26（Nano4 / `nano4.nchc.org.tw`）**超級電腦實戰教學系列手冊！本教學專為在國家高速網路與計算中心（NCHC）最新旗艦級超算環境中的使用者、生醫研究人員與 AI 開發者量身打造。
@@ -16,13 +16,13 @@
 
 | 章節編號 | 教學主題 | 說明與適用場景 | 核心工作台角色 | 快速連結 |
 | :---: | :--- | :--- | :--- | :---: |
-| **01** | **晶創26登入、雙因子認證與環境管理** | 登入節點連線 (`nano4.nchc.org.tw:22`)、IDExpert 2FA、專屬 DTN 埠號 (`Port 2222`) 傳檔、WekaFS 高速儲存架構 (`/home` vs `/work`) 與極速 Python 套件管理 `uv`。 | **超算地基**<br>初始化 `$HOME` 與建立 `/work` Python 虛擬環境 | [前往章節](./01_nano4_ssh_and_2fa) |
-| **02** | **VS Code Remote-SSH 與 AI 開發工具鏈** | 本機 VS Code 免密碼連線設定、整合 OpenCode CLI 串接國網 Medusa 地端大模型、Antigravity CLI，並導入專屬 **`AGENTS.md`** 系統治理規範。 | **開發大腦**<br>本地 IDE 無縫連線，召喚 AI 助理協同程式設計 | [前往章節](./02_vscode_and_ai_tools) |
-| **03** | **Slurm 語法精講與超級電腦作業調度實務** | 全面掌握 Nano4 雙架構分區：H200 (`dev`/`8gpus`)、GB200 NVL72 (`gb200-dev`)、專屬生醫分區 (`ngstest`/`ngs62g`/`ngs6t`)；解析 `wallet` 額度、`--mem` 關鍵防呆與 `seff` 效能分析。 | **調度指揮所**<br>語法高亮編寫排程、內建終端派送與資源除錯 | [前往章節](./03_slurm_syntax_and_job_management) |
-| **04** | **AI 輔助生醫管線 (FASTQ 質控微型實作)** | 以生醫 FASTQ 質控為具象化案例（架構全領域通用），在 VS Code 內引導 AI 編寫分析管線、登入節點微型測試，並透過連接埠轉送在瀏覽器即時預覽 MultiQC 互動報告。 | **微型原型實踐**<br>小數據原型開發、邏輯驗證與報告即時轉送預覽 | [前往章節](./04_ai_assisted_bio_pipeline) |
-| **05** | **AI Agent 自動化排程 (重構生醫管線至 Slurm)** | 【全系列集大成】引導 AI Agent 自動將登入節點分析管線重構為生產級 Slurm 批次作業：實作「事前下載離線運算 (Case A)」與「計算節點外網直連動態下載 (Case B)」雙架構！ | **全流程自動化**<br>AI 排程重構、直接連網批次運算與成果交付 | [前往章節](./05_ai_agent_slurm_pipeline) |
-| **06** | **Nano4 AI Agent 技能總匯庫 (Skills Hub)** | 將 Nano4 領域知識打包為 AI Agent 專家技能 (`nano4-slurm-operations`, `slurm-job-advisor`, `ai-agent-slurm-pipeline`)，支援 `wallet` 預檢與 `sbatch --test-only` 防呆。 | **專家技能庫**<br>掛載超算領域專家技能，賦予 AI 即時作戰能力 | [前往章節](./06_skills_hub) |
-| **附錄** | **HPC 專屬 AI Agent 治理守則 (AGENTS.md)** | 全工作區通用系統守則，規範嚴禁 sudo、WekaFS `/work` 儲存分層、module purge、ngs62g 記憶體限制與日誌萬用命名。 | **系統憲法**<br>防止 AI 產生危險指令與超算違規行為 | [查看守則](./agents_governance) |
+| **01** | **晶創26登入、雙因子認證與環境管理** | 登入節點連線 (`nano4.nchc.org.tw:22`)、IDExpert 2FA、專屬 DTN 埠號 (`Port 2222`) 傳檔、WekaFS 高速儲存架構 (`/home` vs `/work`) 與極速 Python 套件管理 `uv`。 | **超算地基**<br>初始化 `$HOME` 與建立 `/work` Python 虛擬環境 | [前往章節](./01-nano4-ssh-and-2fa/) |
+| **02** | **VS Code Remote-SSH 與 AI 開發工具鏈** | 本機 VS Code 免密碼連線設定、整合 OpenCode CLI 串接國網 Medusa 地端大模型、Antigravity CLI，並導入專屬 **`AGENTS.md`** 系統治理規範。 | **開發大腦**<br>本地 IDE 無縫連線，召喚 AI 助理協同程式設計 | [前往章節](./02-vscode-and-ai-tools/) |
+| **03** | **Slurm 語法精講與超級電腦作業調度實務** | 全面掌握 Nano4 雙架構分區：H200 (`dev`/`8gpus`)、GB200 NVL72 (`gb200-dev`)、專屬生醫分區 (`ngstest`/`ngs62g`/`ngs6t`)；解析 `wallet` 額度、`--mem` 關鍵防呆與 `seff` 效能分析。 | **調度指揮所**<br>語法高亮編寫排程、內建終端派送與資源除錯 | [前往章節](./03-slurm-syntax-and-job-management/) |
+| **04** | **AI 輔助生醫管線 (FASTQ 質控微型實作)** | 以生醫 FASTQ 質控為具象化案例（架構全領域通用），在 VS Code 內引導 AI 編寫分析管線、登入節點微型測試，並透過連接埠轉送在瀏覽器即時預覽 MultiQC 互動報告。 | **微型原型實踐**<br>小數據原型開發、邏輯驗證與報告即時轉送預覽 | [前往章節](./04-ai-assisted-bio-pipeline/) |
+| **05** | **AI Agent 自動化排程 (重構生醫管線至 Slurm)** | 【全系列集大成】引導 AI Agent 自動將登入節點分析管線重構為生產級 Slurm 批次作業：實作「事前下載離線運算 (Case A)」與「計算節點外網直連動態下載 (Case B)」雙架構！ | **全流程自動化**<br>AI 排程重構、直接連網批次運算與成果交付 | [前往章節](./05-ai-agent-slurm-pipeline/) |
+| **06** | **Nano4 AI Agent 技能總匯庫 (Skills Hub)** | 將 Nano4 領域知識打包為 AI Agent 專家技能 (`nano4-slurm-operations`, `slurm-job-advisor`, `ai-agent-slurm-pipeline`)，支援 `wallet` 預檢與 `sbatch --test-only` 防呆。 | **專家技能庫**<br>掛載超算領域專家技能，賦予 AI 即時作戰能力 | [前往章節](./06-skills-hub/) |
+| **附錄** | **HPC 專屬 AI Agent 治理守則 (AGENTS.md)** | 全工作區通用系統守則，規範嚴禁 sudo、WekaFS `/work` 儲存分層、module purge、ngs62g 記憶體限制與日誌萬用命名。 | **系統憲法**<br>防止 AI 產生危險指令與超算違規行為 | [查看守則](./AGENTS.md) |
 
 ---
 
@@ -64,3 +64,55 @@ flowchart TD
     class C3,C4 highlight;
     class C5,C6 capstone;
 ```
+
+---
+
+## 🖥️ 晶創26 (Nano4) 硬體與網路架構特徵
+
+Nano4 與傳統超算叢集（如 Taiwania 1 / F1）相比，具備以下重大升級與特徵：
+
+```text
+[ 外部網際網路 Internet (GitHub, Hugging Face, NCBI, PyPI) ]
+       ▲                                 ▲
+       │ (外網連線)                       │ (★ 原生外網直連 Direct Internet)
+┌──────┴──────────────────────────┐      │
+│  登入節點 (25a-lgn01~05)        │      │
+│  • 216 核 Intel Xeon, 503GB RAM │      │
+│  • 供程式編寫、微型測試、作業提交│      │
+└──────┬──────────────────────────┘      │
+       │                                 │
+       │ (高頻寬 WekaFS 共享檔案系統: /work/${USER})
+       │                                 │
+┌──────┴─────────────────────────────────┴──┐
+│  計算節點 (Compute Nodes)                 │
+│  • NVIDIA H200 (141GB) 節點: 25a-hgpn*    │
+│  • NVIDIA GB200 NVL72 節點: 25a-ggpn*     │
+│  • 生醫專屬 CPU / 6.2TB 大記憶體: 25a-cpn*/mpn*│
+│  • ★ 計算節點自帶外網直連，無需 HTTP Proxy  │
+└───────────────────────────────────────────┘
+```
+
+1. **外網直連能力**：計算節點原生具備外網連線能力，執行深度學習任務（Hugging Face、WandB）或資料拉取時，無需再啟動複雜的 Login Node Proxy 守護行程！
+2. **高速 WekaFS 儲存**：專用高速磁區掛載於 **`/work/${USER}`**（提供高達 1.5TB 額度），速度遠超傳統 NFS，請務必將大型資料集、模型與虛擬環境建置於此。
+3. **專用資料傳輸節點 (DTN)**：檔案傳輸專用通訊埠為 **Port 2222**，透過 SFTP / SCP 傳檔可享有最大頻寬且不干擾登入連線。
+
+---
+
+## 🌐 線上閱讀與 GitHub Pages (Online Documentation)
+
+本教學手冊已整合 VitePress 與 GitHub Actions 自動部署，可直接透過瀏覽器線上閱讀：
+* 📖 **線上教學手冊 (GitHub Pages)**：[https://gemini960114.github.io/Nano4-Docs/](https://gemini960114.github.io/Nano4-Docs/)
+* 📦 **GitHub 專案原始碼**：[https://github.com/gemini960114/Nano4-Docs](https://github.com/gemini960114/Nano4-Docs)
+
+---
+
+## 🔗 國網中心官方參考技術文件
+
+本教學深度整合了國網中心官方指南與實戰驗證，相關手冊請參閱：
+* [晶創26 (Nano4) 使用者操作手冊 (TWCC / HackMD)](https://man.twcc.ai/@nano4-manual/documentation)
+* [Nano4 登入與傳輸節點連線指引](https://man.twcc.ai/@nano4-manual/SJuKzVlwbx)
+* [Nano4 雙因子認證 (2FA) 設定手冊](https://man.twcc.ai/@nano4-manual/ry1hWDlPbl)
+* [Nano4 Slurm 排程使用說明](https://man.twcc.ai/@nano4-manual/BydP-_lvZg)
+* [Nano4 佇列規格與分區清單 (Partitions)](https://man.twcc.ai/@nano4-manual/B1zWMYxv-l)
+* [Nano4 儲存空間與 WekaFS 說明](https://man.twcc.ai/@nano4-manual/rydOv6-Dbl)
+* [Nano4 軟體環境與 Modules 說明](https://man.twcc.ai/@nano4-manual/Hkayr3zvWl)

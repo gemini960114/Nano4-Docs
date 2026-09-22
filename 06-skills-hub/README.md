@@ -23,7 +23,7 @@
 在 Nano4 登入節點上執行隨附的同步腳本：
 
 ```bash
-cd /work/c00cjz00/class/20260924/F1-docs/06-skills-hub
+cd 06-skills-hub
 bash sync_skills.sh
 ```
 

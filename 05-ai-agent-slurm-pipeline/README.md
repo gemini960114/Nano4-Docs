@@ -76,7 +76,7 @@ flowchart TD
 ### 步驟 1：在登入節點準備好資料
 在登入節點執行下載腳本，將資料存入共享目錄：
 ```bash
-cd /work/c00cjz00/class/20260924/F1-docs/05-ai-agent-slurm-pipeline/case_a_offline
+cd 05-ai-agent-slurm-pipeline/case_a_offline
 bash 01_download_on_login_node.sh
 ```
 
@@ -99,7 +99,7 @@ sbatch 02_submit_offline_qc.slurm
 
 ### 提交外網直連動態下載與質控作業
 ```bash
-cd /work/c00cjz00/class/20260924/F1-docs/05-ai-agent-slurm-pipeline/case_b_online
+cd 05-ai-agent-slurm-pipeline/case_b_online
 sbatch run_online_pipeline.slurm
 ```
 

@@ -98,6 +98,14 @@ Nano4 與傳統超算叢集（如 Taiwania 1 / F1）相比，具備以下重大�
 
 ---
 
+## 🌐 線上閱讀與 GitHub Pages (Online Documentation)
+
+本教學手冊已整合 VitePress 與 GitHub Actions 自動部署，可直接透過瀏覽器線上閱讀：
+* 📖 **線上教學手冊 (GitHub Pages)**：[https://gemini960114.github.io/Nano4-Docs/](https://gemini960114.github.io/Nano4-Docs/)
+* 📦 **GitHub 專案原始碼**：[https://github.com/gemini960114/Nano4-Docs](https://github.com/gemini960114/Nano4-Docs)
+
+---
+
 ## 🔗 國網中心官方參考技術文件
 
 本教學深度整合了國網中心官方指南與實戰驗證，相關手冊請參閱：

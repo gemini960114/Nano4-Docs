@@ -76,7 +76,7 @@ Slurm: dev, 8gpus, 16gpus, 32gpus, 64gpus       Slurm: gb200-dev, gb200-r1, gb20
    - 前往 [國網中心 iService 會員系統](https://iservice.nchc.org.tw/nchc_service/index.php) 註冊帳號。
    - 申請或加入具備晶創26計算額度的計畫（取得計畫代號，如 `GOV113021`、`MST109178` 等）。
 2. **啟用主機帳號與設定密碼**：
-   - 在 iService 系統中建立 Linux 主機帳號（例如 `c00cjz00`），並設定強固密碼（英文大小寫、數字、特殊符號）。
+   - 在 iService 系統中建立 Linux 主機帳號（例如 `<YOUR_USERNAME>`），並設定強固密碼（英文大小寫、數字、特殊符號）。
 3. **下載並綁定雙因子（2FA）App —— IDExpert**：
    - 晶創26強制要求雙因子認證以確保超算資安。
    - 請在手機 App Store / Google Play 下載安裝 **IDExpert**。
@@ -224,7 +224,7 @@ cd 01-nano4-ssh-and-2fa/scripts
 
 [1] 節點與系統資訊：
 • 當前主機名稱 (Hostname) : 25a-lgn01
-• 登入使用者 (User)        : c00cjz00
+• 登入使用者 (User)        : <YOUR_USERNAME>
 • 作業系統版本 (OS)        : Red Hat Enterprise Linux 9.6 (Plow)
 • CPU 核心數 (Cores)       : 216 核心 (Intel(R) Xeon(R) Platinum 8480+)
 • 系統總記憶體 (Memory)    : 503Gi
@@ -235,9 +235,9 @@ PROJECT_ID: GOV113021, PROJECT_NAME: LLM Taskforce Foundation 測試計畫, SU_B
 PROJECT_ID: MST109178, PROJECT_NAME: 國家生醫數位資料與分析運算雲端服務平台, SU_BALANCE: 3090359.398
 
 [3] WekaFS 高速儲存空間確認 (/home vs /work)：
-• 家目錄 ($HOME)           : /home/c00cjz00 (容量: 100G, 剩餘: 68G)
+• 家目錄 ($HOME)           : /home/<YOUR_USERNAME> (容量: 100G, 剩餘: 68G)
   ↳ 適用: 個人原始碼、Git 倉庫、設定檔 (請留意 Inode 額度)
-• 高速暫存工作目錄 (/work)  : /work/c00cjz00 (容量: 1.5T, 剩餘: 290G)
+• 高速暫存工作目錄 (/work)  : /work/<YOUR_USERNAME> (容量: 1.5T, 剩餘: 290G)
   ↳ 適用: 模型權重、大資料集、uv 虛擬環境 (MST 預設 1.5TB / GOV預設 100GB，無備份)
 • 計畫共用目錄 (/project)   : 已掛載 (依計畫合約申請配置)
 
