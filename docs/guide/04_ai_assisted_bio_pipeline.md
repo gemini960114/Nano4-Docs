@@ -57,7 +57,7 @@
 4. 使用 MultiQC 彙整 `./fastqc_out/` 下的所有分析數據，生成 `./multiqc_out/multiqc_report.html`。
 5. 包含完善的錯誤處理（set -euo pipefail），並在結尾輸出報告路徑。
 ```
-*(完整提示詞可見 [`prompts/ai_prompt_bio_pipeline.md`](./prompts/ai_prompt_bio_pipeline.md))*
+*(完整提示詞可見 [`prompts/ai_prompt_bio_pipeline.md`](https://github.com/gemini960114/Nano4-Docs/blob/main/04-ai-assisted-bio-pipeline/prompts/ai_prompt_bio_pipeline.md))*
 
 ---
 
@@ -153,7 +153,8 @@ bash view_multiqc_report.sh
 **然而，在真實科研專案中：**
 * 真實樣本文庫通常有 **數十到數千個樣本**。
 * 每個 FASTQ 壓縮檔動輒 **數百 MB 到數十 GB**。
-* 若直接在登入節點執行大型 FastQC、BWA 比對、SAMtools 排序或 QIIME 2 DADA2 去噪，會佔用高達數十個 CPU 核心與幾百 GB 記憶體，導致整台登入節點卡死，**會被系統管理員強制中止行程（`kill -9`）甚至暫停帳號權限**！
+* 若直接在登入節點執行大型 FastQC、BWA 比對、SAMtools 排序或 QIIME 2 DADA2 去噪，會佔用高達數十個 CPU 核心與幾百 GB 記憶體，導致整台登入節點卡死。
+* **國網中心官方安全鐵律**：登入節點上執行超過 5 分鐘的重度運算，系統守護程式將會**自動無預警強制清除該用戶的所有行程（Killed）**！
 
 因此，我們必須學習如何使用 **AI Agent** 將這套在登入節點驗證完成的生醫分析流程，自動重構為 **Slurm 批次作業腳本**，並派送到 Nano4 的 `ngs62g` 或專屬計算節點大規模平行運算！
 
@@ -163,4 +164,4 @@ bash view_multiqc_report.sh
 > * 在 **第 03 章**，您已經學會了 Nano4 的 Slurm 語法、H200/NGS 佇列與 `wallet` 計費規則。  
 > * 在 **第 05 章**，我們將迎接全系列集大成的高潮：**透過 AI Agent（如 OpenCode CLI / Antigravity）自動將本章的 Shell 質控流程重構成符合 Nano4 規範的 Slurm 生產級管線**！
 
-👉 **下一課**：[第 05 章：AI Agent 自動化 Slurm 排程重構與批次派送實戰](../05-ai-agent-slurm-pipeline/)
+👉 **下一課**：[第 05 章：AI Agent 自動化 Slurm 排程重構與批次派送實戰](./05_ai_agent_slurm_pipeline)

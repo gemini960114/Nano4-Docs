@@ -269,6 +269,27 @@ PROJECT_ID: MST109178, PROJECT_NAME: 國家生醫數位資料與分析運算雲�
 | **`/work/$USER`**<br>(⚠️ **是 `/work` 不是 `/work1`**) | 5.5 PB | **MST: 1.5 TB** 🚀<br>GOV/ENT/ACD: 100 GB<br>TRI: 50 GB | **200 TB** | **高速運算主戰場**！模型權重、大資料集、Python 虛擬環境 (`uv venv`)、運算暫存與產出。<br>⚠️ **不提供備份服務**，重要研究資料需定期下載備份！ |
 | **`/project`** | 專案制 | 預設 0 TB | 300 TB | **跨成員計畫共享資料庫**（需由計畫主持人向國網額外簽約申請）。 |
 
+#### 🔍 官方專用儲存配額查詢指令：`hfsquota`
+在超級電腦上執行 `df -h` 只能看到全叢集數 PB 的檔案系統總容量，無法精準得知個人帳號的使用量與上限。  
+國網中心為高速檔案系統（HFS）提供了官方查詢指令 **`hfsquota`**：
+
+```bash
+# 查詢個人 /home 與 /work 的容量使用量與 Hard Limit 硬限制
+hfsquota
+```
+
+**輸出範例：**
+```text
+PATH                 USED      HARD LIMIT  USAGE %  STATUS
+/home/c00cjz00    499,712 B 107,374,182,400 B       0  ACTIVE
+/work/c00cjz00  2,240,512 B 107,374,182,400 B       0  ACTIVE
+```
+
+> [!TIP]
+> **🌐 iService 網頁端 HFS 空間管理門戶 (Nano4 / Nano5 共用)**  
+> 國網中心的晶創系列（Nano4 與 Nano5）底層採用共用之高速檔案系統 HFS 架構。  
+> 您可隨時登入 [iService 計算資源服務網](https://iservice.nchc.org.tw/nchc_service/index.php) ➔ 點選 **會員中心** ➔ **「設定高速檔案系統 HFS (Nano5/Nano4共用)」**，進入 **HFS User Portal** 網頁查看即時空間配額、使用紀錄與申請擴充！
+
 > [!CAUTION]
 > **官方系統守則與安全警示：**
 > 1. **切勿將資料存入 `/tmp`**：官方明文規定，登入節點、傳輸節點與計算節點之 `/tmp` 均屬系統暫存，隨時可能被自動清理，且可能危及節點穩定性。
@@ -735,8 +756,12 @@ cd 01-nano4-ssh-and-2fa/scripts
 * **原因**：超算是數百人共用的 Linux 叢集，一般使用者不具備 root 權限以確保系統穩定與資安。
 * **解法**：軟體切換請使用 `ml load` (Lmod)；Python 套件請使用 `uv venv` 安裝於 `/work`；複雜系統依賴請使用 Apptainer / Singularity 容器。
 
+### Q7：在登入節點上執行 Python 測試程式，跑一陣子後連線中斷或程序被殺死 (Killed)？
+* **原因**：**登入節點硬性安全防護機制**！國網官方明訂：**「為避免登入節點過載卡死，用戶在登入節點運行超過 5 分鐘的 GPU process 或重度運算程序，系統將會自動清除該用戶的所有 process！」**
+* **解法**：超過 5 分鐘或需使用 GPU 的任務，切勿直接在登入節點執行！請使用 `salloc` 申請互動式計算節點除錯，或撰寫批次腳本透過 `sbatch` 派送至 Slurm 佇列！
+
 ---
 
 恭喜您！完成本章後，您已經熟練掌握了晶創26（Nano4）的登入連線、Port 2222 高速傳輸、WekaFS 儲存空間規劃、Lmod 模組、Apptainer 容器化、極速 `uv` Python 環境、NGS 生醫運算佇列與 Slurm 排程調度的完整技能！  
-👉 **下一步**：進入後續章節，學習如何運用 AI 開發工具鏈與自動化 Slurm 運算管線！
+👉 **下一步**：進入 **[第 02 章：VS Code Remote-SSH 與 AI 開發工具鏈](../02-vscode-and-ai-tools/)**，學習如何打造現代化遠端 AI 工作台！
 

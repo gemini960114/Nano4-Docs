@@ -35,10 +35,10 @@ bash sync_skills.sh
 
 ```bash
 # 1. 檢視倉庫內所有可用技能
-npx -y skills add gemini960114/F1-docs -l
+npx -y skills add gemini960114/Nano4-Docs -l
 
 # 2. 一鍵全域安裝所有技能 (~/.agents/skills/)
-npx -y skills add gemini960114/F1-docs -g -y
+npx -y skills add gemini960114/Nano4-Docs -g -y
 ```
 
 ---

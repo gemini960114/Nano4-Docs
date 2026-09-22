@@ -222,12 +222,13 @@ cp 02-vscode-and-ai-tools/templates/opencode.json ~/.config/opencode/opencode.js
 
 當您在 VS Code 中使用 AI 助手（如 OpenCode、Cline、Roo Code、Cursor 等）時，**AI 預設並不知道超級電腦的多人共用規範**，可能會給出危險的建議（例如建議您執行 `sudo apt install` 或在 `$HOME` 下載 50GB 模型導致 Inode 爆量）。
 
-為了解決這個痛點，本專案在根目錄建立了 **[`AGENTS.md`](../AGENTS.md)** 系統守則！
+為了解決這個痛點，本專案在根目錄建立了 **[`AGENTS.md`](./agents_governance)** 系統守則！
 
 ### 🛡️ AGENTS.md 在 Nano4 的核心防護原則：
 1. **嚴禁 `sudo`**：明確告知 AI 當前為無 root 權限之多用戶環境，任何軟體需求改以 Lmod 模組或 `uv` 虛擬環境解決。
-2. **高速目錄強制導向**：所有大資料集、模型與虛擬環境一律強制寫入 `/work/$USER`，禁止塞爆 `$HOME`。
-3. **Slurm 作業標準**：指示 AI 寫出的 `.slurm` 腳本執行內容第一行必須加入 `module purge`，日誌格式一律使用 `%x-%j.out`。
+2. **高速目錄強制導向**：所有大資料集、模型與虛擬環境一律強制寫入 `/work/$USER`，禁止塞爆 `$HOME` 或寫入無備份之 `/tmp`。
+3. **登入節點行為限制**：嚴禁在登入節點執行超過 5 分鐘之重度或 GPU 運算（系統將自動清除進程），凡運算任務必須封裝為 Slurm 批次作業。
+4. **Slurm 作業標準**：指示 AI 寫出的 `.slurm` 腳本執行內容第一行必須加入 `module purge`，日誌格式一律使用 `%x-%j.out`。
 4. **直通外網認知**：告知 AI 晶創26計算節點原生具備外網，不要再產生舊系統過時的 HTTP Proxy 穿透指令。
 
 ---
@@ -286,4 +287,4 @@ sinfo | opencode run "這是我在 Nano4 查詢到的 sinfo 資訊，請用繁�
 ---
 
 恭喜您！現在您已經擁有了全功能、具備語法高亮、直通遠端工作區且自帶 AI 助理的現代化超算開發環境！  
-👉 **下一步**：進入 **[第 03 章：晶創26 Slurm 語法精講與超級電腦作業調度實務](../03-slurm-syntax-and-job-management/)**，學習如何精準調度數百張 H200 與 GB200 算力！
+👉 **下一步**：進入 **[第 03 章：晶創26 Slurm 語法精講與超級電腦作業調度實務](./03_slurm_syntax_and_job_management)**，學習如何精準調度數百張 H200 與 GB200 算力！

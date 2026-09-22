@@ -19,6 +19,7 @@
   - [B. 流水線相依性作業 (Job Dependencies)](#b-流水線相依性作業-job-dependencies)
   - [C. NVIDIA H200 GPU 資源申請](#c-nvidia-h200-gpu-資源申請)
   - [D. 互動式除錯與即時開發 (`salloc` + `srun`)](#d-互動式除錯與即時開發-salloc-srun)
+  - [E. 單節點 vs 跨節點 GPU 分散式運算架構與 Benchmark 迷思](#e-單節點-vs-跨節點-gpu-分散式運算架構與-benchmark-迷思)
 - [6. 作業監控、效能分析 (seff) 與資源除錯](#_6-作業監控、效能分析-seff-與資源除錯)
 - [7. HPC 容器化技術：Singularity / Apptainer 實務](#_7-hpc-容器化技術-singularity-apptainer-實務)
 - [8. 初學者循序漸進實作演練 (Hands-on Labs)](#_8-初學者循序漸進實作演練-hands-on-labs)
@@ -257,6 +258,71 @@ salloc --account=GOV113021 --partition=dev --nodes=1 --cpus-per-task=12 --gres=g
 
 ---
 
+### E. 單節點 vs 跨節點 GPU 分散式運算架構與 Benchmark 迷思
+
+在深度學習或大數據運算中，初學者常有一個直覺迷思：「**節點開越多、機器數量越多，運算速度一定越快？**」  
+答案是：**完全不一定！如果配置不當，跨節點反而會大幅拖慢運算速度！**
+
+#### 1. 硬體架構與通訊成本本質
+
+| 比較維度 | 單節點運算 (Single-Node) | 跨節點分散式運算 (Multi-Node / Distributed) |
+| :--- | :--- | :--- |
+| **物理機器** | 所有 GPU/CPU 位於同一台物理主機內 | 計算分散於 2 台或以上的獨立伺服器 |
+| **記憶體架構** | **共用記憶體 (Shared Memory)**<br>透過主機板內部 NVLink / PCIe 匯流排互聯 | **分散式記憶體 (Distributed Memory)**<br>每個節點有獨立記憶體，跨機存取必須透過網路線 |
+| **通訊成本** | 晶片內直通，延遲僅微秒級，頻寬高達數百 GB/s | 透過 InfiniBand (IB 400Gb/s) 網路線打包傳遞，**通訊延遲比晶片內存取慢數十到數百倍**！ |
+
+#### 2. 國網中心官方真實 Benchmark 警世數據 (實測對比)
+
+以下為國網中心晶創超算環境官方實測 PyTorch DDP 訓練之真實數據：
+
+| 運算規模場景 | 單節點配置 | 跨節點配置 | 效能差異與深度剖析 |
+| :--- | :--- | :--- | :--- |
+| **小型運算**<br>(小型模型 / 小 Batch) | **單節點 2 顆 GPU**<br>耗時：**13 秒** | **2 節點各 1 顆 GPU**<br>耗時：**88 秒** | 💥 **跨節點慢了近 7 倍！**<br>因為小任務的計算時間太短，全部時間都耗費在節點間的網路交握與梯度同步通訊開銷（Communication Overhead）。 |
+| **大型運算**<br>(大型模型 / 大 Batch) | 單節點 8 顆 GPU<br>耗時：**78 秒** | **2 節點各 4 顆 GPU**<br>耗時：**29 秒** | 🚀 **跨節點加速 2.7 倍！**<br>當單一步驟的矩陣計算強度遠大於傳輸開銷時，分散式並行運算才能真正發揮強大加速效益！ |
+
+#### 3. 實務選擇黃金準則
+1. **優先使用單節點運算**：  
+   Nano4 的 H200 節點單台即具備 **8 張 H200 GPU（共 1,128GB HBM3e 顯存）與 2TB 系統記憶體**。若模型與資料能容納於單一節點內，**請 100% 優先使用單節點（1~8 GPUs）**，點數最省、通訊零損耗、速度最快！
+2. **何時才需要跨節點？**  
+   - 單節點記憶體真的爆了（如百億/千億參數 LLM 全量微調、超大規模氣象/流體模擬）。
+   - 運算時間長達數週以上，且演算法通訊強度低、易於資料平行切分。
+
+#### 4. 標準跨節點 PyTorch DDP / `torchrun` Slurm 腳本範本
+跨節點訓練時，Slurm 必須動態取得主節點（Master Node）的 IP 位址與通訊埠：
+
+```bash
+#!/bin/bash
+#SBATCH --account=GOV113021
+#SBATCH --job-name=multi_node_ddp
+#SBATCH --partition=dev
+#SBATCH --nodes=2
+#SBATCH --gpus-per-node=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=12
+#SBATCH --time=01:00:00
+#SBATCH --output=%x-%j.out
+#SBATCH --error=%x-%j.err
+
+module purge
+module load singularity
+
+# 1. 動態取得第一個計算節點作為 Master 節點 IP
+MASTER_ADDR=$(scontrol show hostnames $SLURM_JOB_NODELIST | head -n1)
+MASTER_PORT=29500
+
+echo "Master Node Address: ${MASTER_ADDR}:${MASTER_PORT}"
+
+# 2. 透過 srun 同時在所有節點啟動 torchrun
+srun singularity exec --nv /work/${USER}/pytorch.sif torchrun \
+    --nnodes=$SLURM_NNODES \
+    --nproc_per_node=1 \
+    --rdzv_backend=c10d \
+    --rdzv_endpoint=${MASTER_ADDR}:${MASTER_PORT} \
+    train_distributed.py
+```
+
+---
+
 ## 6. 作業監控、效能分析 (seff) 與資源除錯
 
 ### A. 常用排程管理指令表
@@ -282,7 +348,29 @@ salloc --account=GOV113021 --partition=dev --nodes=1 --cpus-per-task=12 --gres=g
 
 ---
 
-### B. 核心效能診斷神器：`seff` (避免浪費計畫點數)
+### B. 作業狀態代碼完整速查 (Job State Codes)
+
+在透過 `squeue` 或 `sacct` 查詢作業時，系統會顯示狀態縮寫。以下為國網中心超算常用狀態碼與排錯指引：
+
+| 狀態縮寫 | 完整狀態名 | 說明與排錯指引 |
+| :---: | :--- | :--- |
+| **`PD`** | **PENDING** | **等待中**：作業正在排隊等待資源分配。可查看 `NODELIST(REASON)` 得知排隊原因（如 Priority 或 Resources）。 |
+| **`R`** | **RUNNING** | **執行中**：作業已分配到計算節點並正在運算。 |
+| **`CF`** | **CONFIGURING** | **配置中**：資源已分配，節點正在載入環境與初始化（通常轉瞬即逝）。 |
+| **`CG`** | **COMPLETING** | **完成中**：作業主體已結束，系統正在執行尾端清理或等待跨節點進程同步退出。 |
+| **`CD`** | **COMPLETED** | **已完成**：作業所有步驟皆正常結束，ExitCode 為 0。 |
+| **`F`** | **FAILED** | **失敗中止**：程式執行發生非 0 錯誤退出。請檢視 `%x-%j.err` 查看 Python 或 Shell 報錯訊息。 |
+| **`TO`** | **TIMEOUT** | **逾時終止**：作業執行時間超過了 `#SBATCH --time` 所設定的時間上限。請加大時間或最佳化程式。 |
+| **`CA`** | **CANCELLED** | **已取消**：使用者透過 `scancel` 主動取消，或管理員排程維護中止。 |
+| **`NF`** | **NODE_FAIL** | **節點硬體故障**：非使用者腳本問題！計算節點底層硬體異常，請向國網客服通報重新派送。 |
+| **`BF`** | **BOOT_FAIL** | **節點開機失敗**：節點初始化硬體失敗，非使用者問題。 |
+| **`PR`** | **PREEMPTED** | **資源被強佔**：佇列資源被更高優先等級之系統任務或預約作業強佔。 |
+| **`SE`** | **SPECIAL_EXIT**| **特殊退出重排**：作業因特定環境訊號退出並重新排隊。 |
+| **`ST`** | **STOPPED** | **已暫停**：作業收到 `SIGSTOP` 訊號暫停，仍保留原本資源配額。 |
+
+---
+
+### C. 核心效能診斷神器：`seff` (避免浪費計畫點數)
 
 作業執行完畢後，執行官方效能分析工具：
 ```bash

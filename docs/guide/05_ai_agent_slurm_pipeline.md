@@ -40,7 +40,7 @@
 1. 案例 A：事前資料下載 / 離線運算模式 (資料已在 /work 高速目錄就緒，計算節點純內網多核平行處理)。
 2. 案例 B：外網直連 / 動態下載模式 (利用 Nano4 計算節點 Direct Internet 存取能力，即時抓取遠端資料並質控)。
 ```
-*(完整提示詞可參考 [`prompts/ai_prompt_convert_to_slurm.md`](./prompts/ai_prompt_convert_to_slurm.md))*
+*(完整提示詞可參考 [`prompts/ai_prompt_convert_to_slurm.md`](https://github.com/gemini960114/Nano4-Docs/blob/main/05-ai-agent-slurm-pipeline/prompts/ai_prompt_convert_to_slurm.md))*
 
 ---
 
@@ -162,4 +162,4 @@ seff <JOB_ID>
 
 在最後的 **第 06 章** 中，我們將探索專為 AI Agent 設計的 **Skills Hub (技能庫)**，讓您的 AI 助手能自動調度叢集專屬的 Advisor 技能，成為真正能自動排程與維運的超級電腦專家！
 
-👉 **下一課**：[第 06 章：AI Agent 技能庫中心 — Skills Hub 架構與客製擴充指南](../06-skills-hub/)
+👉 **下一課**：[第 06 章：AI Agent 技能庫中心 — Skills Hub 架構與客製擴充指南](./06_skills_hub)

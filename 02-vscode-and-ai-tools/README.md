@@ -226,9 +226,10 @@ cp 02-vscode-and-ai-tools/templates/opencode.json ~/.config/opencode/opencode.js
 
 ### 🛡️ AGENTS.md 在 Nano4 的核心防護原則：
 1. **嚴禁 `sudo`**：明確告知 AI 當前為無 root 權限之多用戶環境，任何軟體需求改以 Lmod 模組或 `uv` 虛擬環境解決。
-2. **高速目錄強制導向**：所有大資料集、模型與虛擬環境一律強制寫入 `/work/$USER`，禁止塞爆 `$HOME`。
-3. **Slurm 作業標準**：指示 AI 寫出的 `.slurm` 腳本執行內容第一行必須加入 `module purge`，日誌格式一律使用 `%x-%j.out`。
-4. **直通外網認知**：告知 AI 晶創26計算節點原生具備外網，不要再產生舊系統過時的 HTTP Proxy 穿透指令。
+2. **高速目錄強制導向**：所有大資料集、模型與虛擬環境一律強制寫入 `/work/$USER`，禁止塞爆 `$HOME` 或寫入無備份之 `/tmp`。
+3. **登入節點行為限制**：嚴禁在登入節點執行超過 5 分鐘之重度或 GPU 運算（系統將自動清除進程），凡運算任務必須封裝為 Slurm 批次作業。
+4. **Slurm 作業標準**：指示 AI 寫出的 `.slurm` 腳本執行內容第一行必須加入 `module purge`，日誌格式一律使用 `%x-%j.out`。
+5. **直通外網認知**：告知 AI 晶創26計算節點原生具備外網，不要再產生舊系統過時的 HTTP Proxy 穿透指令。
 
 ---
 

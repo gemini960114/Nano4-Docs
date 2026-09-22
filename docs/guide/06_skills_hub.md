@@ -10,9 +10,9 @@
 
 | 技能名稱 | 核心功能 | 適用場景 |
 | :--- | :--- | :--- |
-| **[`nano4-slurm-operations`](./nano4-slurm-operations/)** | • 執行唯讀 preflight 檢查<br>• 驗證 `wallet` 專案與 Slurm association<br>• 檢查生醫專案 (`GOV115088`) 與 `ngs*` 佇列政策相容性 | 準備派送作業、查詢專案權限或確認佇列政策時 |
-| **[`slurm-job-advisor`](./slurm-job-advisor/)** | • 引導式 4 步問答挖掘運算需求<br>• Nano4 硬體約束防呆（`ngs62g` 漏填 `--mem` 攔截、`dev` 需 `--gres=gpu:1`）<br>• `sbatch --test-only` 免扣點模擬預檢 | 需要規劃、配置、診斷或撰寫 Slurm 排程腳本時 |
-| **[`ai-agent-slurm-pipeline`](./ai-agent-slurm-pipeline/)** | • 互動式腳本自動重構為 Slurm 批次管線<br>• 高速離線 (Case A) vs 外網直連 (Case B) 架構選型<br>• 多階段相依管線自動串接 (`--dependency=afterok:`) | 將 VS Code / 登入節點執行的資料分析流程派送至計算節點時 |
+| **[`nano4-slurm-operations`](https://github.com/gemini960114/Nano4-Docs/tree/main/06-skills-hub/nano4-slurm-operations)** | • 執行唯讀 preflight 檢查<br>• 驗證 `wallet` 專案與 Slurm association<br>• 檢查生醫專案 (`GOV115088`) 與 `ngs*` 佇列政策相容性 | 準備派送作業、查詢專案權限或確認佇列政策時 |
+| **[`slurm-job-advisor`](https://github.com/gemini960114/Nano4-Docs/tree/main/06-skills-hub/slurm-job-advisor)** | • 引導式 4 步問答挖掘運算需求<br>• Nano4 硬體約束防呆（`ngs62g` 漏填 `--mem` 攔截、`dev` 需 `--gres=gpu:1`）<br>• `sbatch --test-only` 免扣點模擬預檢 | 需要規劃、配置、診斷或撰寫 Slurm 排程腳本時 |
+| **[`ai-agent-slurm-pipeline`](https://github.com/gemini960114/Nano4-Docs/tree/main/06-skills-hub/ai-agent-slurm-pipeline)** | • 互動式腳本自動重構為 Slurm 批次管線<br>• 高速離線 (Case A) vs 外網直連 (Case B) 架構選型<br>• 多階段相依管線自動串接 (`--dependency=afterok:`) | 將 VS Code / 登入節點執行的資料分析流程派送至計算節點時 |
 
 ---
 
@@ -35,10 +35,10 @@ bash sync_skills.sh
 
 ```bash
 # 1. 檢視倉庫內所有可用技能
-npx -y skills add gemini960114/F1-docs -l
+npx -y skills add gemini960114/Nano4-Docs -l
 
 # 2. 一鍵全域安裝所有技能 (~/.agents/skills/)
-npx -y skills add gemini960114/F1-docs -g -y
+npx -y skills add gemini960114/Nano4-Docs -g -y
 ```
 
 ---
@@ -70,3 +70,7 @@ AI Agent 偵測到掛載的 `slurm-job-advisor` 技能後，將自動進行以�
 2. **主動防呆**：為生醫任務推薦 `ngs62g` 分區，並**主動加入 `#SBATCH --mem=16G`**，防止初學者漏寫導致的 `QOSMaxMemoryPerJob` 卡死。
 3. **自動使用萬用日誌格式**：`#SBATCH --output=%x-%j.out`，避免子目錄不存在的崩潰問題。
 4. **自動調用 `sbatch --test-only`** 進行免扣點模擬預檢，確認 100% 能在排程器中排隊後才回覆給使用者！
+
+---
+
+👉 **回到總覽**：[課程總綱與學習地圖 (00_course_syllabus)](./00_course_syllabus)
