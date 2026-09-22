@@ -76,26 +76,22 @@ flowchart TD
 
 Nano4 與傳統超算叢集（如 Taiwania 1 / F1）相比，具備以下重大升級與特徵：
 
-```text
-[ 外部網際網路 Internet (GitHub, Hugging Face, NCBI, PyPI) ]
-       ▲                                 ▲
-       │ (外網連線)                       │ (★ 原生外網直連 Direct Internet)
-┌──────┴──────────────────────────┐      │
-│  登入節點 (25a-lgn01~05)        │      │
-│  • 216 核 Intel Xeon, 503GB RAM │      │
-│  • 供程式編寫、微型測試、作業提交│      │
-└──────┬──────────────────────────┘      │
-       │                                 │
-       │ (高頻寬 WekaFS 共享檔案系統: /work/${USER})
-       │                                 │
-┌──────┴─────────────────────────────────┴──┐
-│  計算節點 (Compute Nodes)                 │
-│  • NVIDIA H200 (141GB) 節點: 25a-hgpn*    │
-│  • NVIDIA GB200 NVL72 節點: 25a-ggpn*     │
-│  • 生醫專屬 CPU / 6.2TB 大記憶體: 25a-cpn*/mpn*│
-│  • ★ 計算節點自帶外網直連，無需 HTTP Proxy  │
-└───────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    internet["外部網際網路<br/>GitHub · Hugging Face · NCBI · PyPI"]
+    login["登入節點<br/>25a-lgn01~05 · x86_64<br/>216 核心 · 503 GB RAM"]
+    compute["計算節點<br/>H200 · GB200 · NGS CPU/大記憶體<br/>原生外網直連，不需 HTTP Proxy"]
+    weka[("WekaFS 高速共享儲存<br/>/work/${USER}")]
+    dtn["資料傳輸節點<br/>SFTP / SCP · Port 2222"]
+
+    internet -->|SSH / 外網連線| login
+    internet -->|★ 原生外網直連| compute
+    login -->|Slurm 作業提交| compute
+    login <-->|高速共享檔案| weka
+    compute <-->|高速共享檔案| weka
+    dtn <-->|SFTP / SCP| weka
 ```
+
 
 1. **外網直連能力**：計算節點原生具備外網連線能力，執行深度學習任務（Hugging Face、WandB）或資料拉取時，無需再啟動複雜的 Login Node Proxy 守護行程！
 2. **高速 WekaFS 儲存**：專用高速磁區掛載於 **`/work/${USER}`**（提供高達 1.5TB 額度），速度遠超傳統 NFS，請務必將大型資料集、模型與虛擬環境建置於此。

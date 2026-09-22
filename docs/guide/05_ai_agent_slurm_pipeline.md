@@ -131,11 +131,11 @@ sbatch --account="${BIO_PROJECT_ID}" run_online_pipeline.slurm
 * **計算節點直連外網實行管線**：
   ```bash
   # 1. 驗證計算節點對外網路連通性 (無須任何 Proxy)
-  curl -s -I --connect-timeout 5 https://data.qiime2.org >/dev/null
+  curl -s -I --connect-timeout 5 https://docs.qiime2.org/ >/dev/null
   echo "✅ 外網直連成功！"
 
   # 2. 計算節點內部直接向外網下載資料
-  curl -sSL "https://data.qiime2.org/..." -o dynamic_sample.fastq.gz
+  curl -sSL "https://data.qiime2.org/2024.5/tutorials/moving-pictures/emp-single-end-sequences/sequences.fastq.gz" -o dynamic_sample.fastq.gz
 
   # 3. 下載完成後立即啟動 FastQC 與 MultiQC
   multiqc fastqc_out/ -o multiqc_out/

@@ -38,7 +38,7 @@ module purge 2>/dev/null || true
 
 # 1. 【Nano4 特色】驗證計算節點對外網路連通性 (無須 Proxy 隧道，節點自帶外網)
 echo "==> [步驟 1/3] 測試 Nano4 計算節點外網直連連線..."
-if curl -s -I --connect-timeout 5 https://data.qiime2.org >/dev/null; then
+if curl -s -I --connect-timeout 5 https://docs.qiime2.org/ >/dev/null; then
     echo "✅ 外網直連成功！(Nano4 計算節點具備 Direct Internet 存取能力)"
 else
     echo "⚠️ 外網連線逾時，將使用本機暫存資料..."

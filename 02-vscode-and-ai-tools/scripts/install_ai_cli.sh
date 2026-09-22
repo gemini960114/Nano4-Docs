@@ -20,7 +20,7 @@ elif [ -x "${HOME}/.opencode/bin/opencode" ]; then
     echo "✅ 偵測到 ${HOME}/.opencode/bin/opencode"
 else
     echo "正在下載並安裝 OpenCode..."
-    curl -fsSL https://opencode.ai/install.sh | bash
+    curl -fsSL https://opencode.ai/install | bash
 fi
 
 # 3. 檢查 Antigravity CLI (agy)

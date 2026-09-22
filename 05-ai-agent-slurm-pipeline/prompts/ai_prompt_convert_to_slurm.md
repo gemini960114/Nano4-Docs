@@ -21,7 +21,7 @@
 
 【版本二：外網直連 / 動態下載模式】
 - Nano4 計算節點具備外網直連能力 (Direct Internet Access)，無需設定 HTTP Proxy。
-- Slurm 腳本在開頭檢查網路連通性（curl -I https://data.qiime2.org）。
+- Slurm 腳本在開頭檢查網路連通性（curl -I https://docs.qiime2.org/）。
 - 在計算節點上即時透過外網下載 FASTQ 資料（或 Hugging Face 模型），接著立即進行 FastQC 與 MultiQC 分析。
 - 加入嚴謹的錯誤處理 (set -euo pipefail) 與執行完成日誌。
 

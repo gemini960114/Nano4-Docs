@@ -131,7 +131,7 @@ bash install_vscode_extensions.sh
 
 * **安裝指令**：
   ```bash
-  curl -fsSL https://opencode.ai/install.sh | bash
+  curl -fsSL https://opencode.ai/install | bash
   ```
 * **預設安裝路徑**：`~/.opencode/bin/opencode`
 
