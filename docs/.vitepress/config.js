@@ -35,6 +35,7 @@ export default withMermaid(defineConfig({
         ]
       },
       { text: 'AI 規範 (AGENTS.md)', link: '/guide/agents_governance' },
+      { text: '課程規劃', link: '/guide/course_plan' },
       { text: 'Nano4 官方手冊', link: 'https://man.twcc.ai/@nano4-manual/documentation' },
       { text: 'GP1 生醫節點說明', link: 'https://man.twcc.ai/xOYzPATVS_aDlbuqMrwhyg' }
     ],
@@ -70,7 +71,8 @@ export default withMermaid(defineConfig({
       {
         text: '📜 規範與參考',
         items: [
-          { text: '🛡️ Nano4 專屬 AGENTS.md 治理守則', link: '/guide/agents_governance' }
+          { text: '🛡️ Nano4 專屬 AGENTS.md 治理守則', link: '/guide/agents_governance' },
+          { text: '🗓️ 課程規劃（講師版）', link: '/guide/course_plan' }
         ]
       }
     ],

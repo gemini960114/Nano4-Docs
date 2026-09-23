@@ -5,6 +5,7 @@
 //   ../NN-chapter/        -> ./NN_chapter_page   (other chapter pages)
 //   ../AGENTS.md          -> ./agents_governance
 //   ../README.md          -> ./00_course_syllabus
+//   ../COURSE_PLAN.md     -> ./course_plan
 //   ./file-in-chapter     -> GitHub blob URL      (tree URL when it ends in /)
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -41,6 +42,7 @@ function fromChapter(dir, target) {
   if (/^(https?:|mailto:|#)/.test(target)) return undefined
   if (target === '../AGENTS.md') return './agents_governance'
   if (target === '../README.md') return './00_course_syllabus'
+  if (target === '../COURSE_PLAN.md') return './course_plan'
   const page = chapterPage(target, '\\.\\./')
   if (page) return page
   if (target.startsWith('./')) {
@@ -54,6 +56,7 @@ function fromChapter(dir, target) {
 function fromRoot(target) {
   if (/^(https?:|mailto:|#)/.test(target)) return undefined
   if (target === './AGENTS.md') return './agents_governance'
+  if (target === './COURSE_PLAN.md') return './course_plan'
   return chapterPage(target, '\\./')
 }
 
@@ -69,3 +72,4 @@ for (const [dir, page] of Object.entries(CHAPTERS)) {
 
 write('00_course_syllabus', rewriteLinks(readFileSync(join(ROOT, 'README.md'), 'utf8'), fromRoot))
 write('agents_governance', readFileSync(join(ROOT, 'AGENTS.md'), 'utf8'))
+write('course_plan', rewriteLinks(readFileSync(join(ROOT, 'COURSE_PLAN.md'), 'utf8'), fromRoot))
