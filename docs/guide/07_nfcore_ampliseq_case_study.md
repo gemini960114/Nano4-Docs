@@ -99,6 +99,10 @@ Control/MSEW、litter、dam、sex 與時間點都直接來自作者 metadata，�
 └── work-real/
 ```
 
+
+> [!WARNING]
+> `/work/${USER}/nfcore-ampliseq-course/` 是本案例的**短期運算工作區**，不是永久保存位置，也沒有備份。學生完成分析後，至少要保留 `data/` 的來源紀錄、`metadata/`、`provenance/`、pipeline 版本／命令、Slurm Job ID 與必要的 `results-*`；再依 GP1 官方規範移到長期儲存或核准的備份位置。先用 `hfsquota` 確認配額，避免 FASTQ、container cache 與 Nextflow work 佔滿 `/work`。
+
 ## 3. 第一階段：學生手動操作
 
 > [!IMPORTANT]

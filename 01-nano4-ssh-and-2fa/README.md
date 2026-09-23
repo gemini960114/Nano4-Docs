@@ -319,6 +319,31 @@ PATH                 USED      HARD LIMIT  USAGE %  STATUS
 
 ---
 
+
+### 官方 GP1 儲存政策：把「暫存」與「保存」分開
+
+本課程依國網中心 [GP1 生醫核心設施官方說明](https://man.twcc.ai/xOYzPATVS_aDlbuqMrwhyg#%E9%AB%98%E9%80%9F%E8%A8%88%E7%AE%97%E5%84%B2%E5%AD%98%E7%A9%BA%E9%96%93) 的原則配置資料：
+
+| 用途 | 路徑／服務 | 課程規則 |
+| :--- | :--- | :--- |
+| 程式碼與小型設定 | `$HOME`（`/home/$USER`） | 放 Git repository、腳本與設定；不要放 FASTQ、模型或大量快取。 |
+| 運算暫存 | `/work/$USER` | 放 FASTQ、Nextflow work、container/uv cache 與暫存結果；**沒有備份**，預設權限通常是 `700`。 |
+| 長期保存與共享 | GP1-4 大容量儲存服務 | 分析完成後移出 `/work`；依官方服務使用 S3/SSL 或 Aspera 傳輸，並依研究資料規範管理。 |
+
+官方頁面列出的 `/work` 數值是計畫與申請條件的說明，不代表每個帳號都固定擁有相同容量；實際上限以 `hfsquota` 為準。新帳號可能先取得 100 GB，擴充至 1500 GB 以上可能產生費用，請先確認計畫與配額，不要把 1.5 TB 或 6.5 TB 當成保證值。
+
+```bash
+# 登入後確認實際配額（不要用 df -h 代替）
+hfsquota
+
+# 確認 /work 的權限與目前使用量
+stat -c '%A %n' /work/$USER
+du -sh /work/$USER/* 2>/dev/null | sort -h | tail
+```
+
+> [!WARNING]
+> `/work` 是短期高速工作區，不是備份區。正式資料流程應在 `provenance/` 保存 manifest、metadata、primer、參數、版本與 Slurm Job ID；分析完成後，將必要的結果與 provenance 複製到 GP1-4 大容量儲存或研究團隊核准的備份位置。不要使用 `chmod -R 777`，也不要把個資或未授權資料放到共享路徑。
+
 ## 7. HPC 軟體環境管理：Environment Modules / Lmod (ml/module)
 
 > 參考官方技術手冊：[Modules 基本說明](https://man.twcc.ai/@nano4-manual/BJyI6dgw-g)
