@@ -1,25 +1,33 @@
-# HPC 實戰指南：VS Code Remote-SSH、AI 開發工具鏈與國網地端大模型配置
+# 第 02 章：VS Code Remote-SSH、AI 開發工具鏈與國網地端大模型配置
 
 歡迎來到第 02 章！在第 01 章中，您已經掌握了登入節點 SSH 連線、雙因子認證（2FA）、WekaFS 高速儲存架構（`/home` vs `/work`）與極速 `uv` Python 環境。
 
-但如果每次寫程式都得使用黑底白字的文字終端機（如 vim 或 nano），對於初學者來說開發門檻較高。在晶創26（Nano4）環境中，**最主流、最流暢且最推薦的現代化開發方式，就是使用您個人電腦上的 Visual Studio Code 透過「Remote - SSH」擴充套件直連 Nano4**！
+但如果每次寫程式都得使用黑底白字的文字終端機（如 vim 或 nano），對於初學者來說開發門檻較高。在晶創26（Nano4）環境中，**最主流、最流暢且最推薦的現代化開發方式，就是使用您個人電腦上的 Visual Studio Code（或以 VS Code 為基礎、內建 AI Agent 的 Google Antigravity）透過「Remote - SSH」直連 Nano4**！
 
-本章將帶您在個人電腦打造直通超級電腦的圖形化開發工作台，並在遠端環境中配置 **AI 開發工具鏈（ChatGPT、Gemini、Codex CLI、OpenCode CLI、Antigravity CLI 與國網 Medusa 地端大模型 API）**，以及導入超算專屬的 **`AGENTS.md`** 治理守則，讓 AI 成為您探索超算的隨身神隊友！
+本章將帶您在個人電腦打造直通超級電腦的圖形化開發工作台，並在遠端環境中配置 **AI 開發工具鏈（Antigravity、ChatGPT、Gemini、Codex CLI、OpenCode CLI 與國網 Medusa 地端大模型 API）**，以及導入超算專屬的 **`AGENTS.md`** 治理守則，讓 AI 成為您探索超算的隨身神隊友！
 
 ---
 
+
+> [!NOTE]
+> 本章指令預設已完成第 01 章的 repository clone。若重新開啟終端機，先回到教材根目錄：
+>
+> ```bash
+> cd "$HOME/Nano4-Docs"
+> ```
+
 ## 📌 目錄 (Table of Contents)
-- [1. 為什麼推薦 VS Code Remote-SSH？(終結黑底終端機)](#_1-為什麼推薦-vs-code-remote-ssh-終結黑底終端機)
-- [2. 本地電腦 VS Code Remote-SSH 連線實戰 (3 分鐘速成)](#_2-本地電腦-vs-code-remote-ssh-連線實戰-3-分鐘速成)
-- [3. 遠端工作區必備擴充套件安裝 (Python, Jupyter, AI)](#_3-遠端工作區必備擴充套件安裝-python-jupyter-ai)
-- [4. AI 工具選擇與雙工具操作練習](#_4-ai-工具選擇與雙工具操作練習)
-- [5. 終端 AI 命令行工具配置：Codex、OpenCode 與 Antigravity](#_5-終端-ai-命令行工具配置-codex-opencode-與-antigravity)
-- [6. 國網中心地端大模型 (Medusa / GenAI API) 設定實務](#_6-國網中心地端大模型-medusa-genai-api-設定實務)
-- [7. 國網中心支援模型清單與場景推薦](#_7-國網中心支援模型清單與場景推薦)
-- [8. 超算專屬 AI Agent 治理守則：AGENTS.md 實務](#_8-超算專屬-ai-agent-治理守則-agents-md-實務)
-- [9. 初學者動手實戰練習 (Hands-on Labs 1 ~ 4)](#_9-初學者動手實戰練習-hands-on-labs-1-4)
-- [10. 多登入節點與 Agent session 清理](#_10-多登入節點與-agent-session-清理)
-- [11. 常見踩坑與連線排錯 (FAQ)](#_11-常見踩坑與連線排錯-faq)
+- [1. 為什麼推薦 VS Code Remote-SSH？(終結黑底終端機)](#1-為什麼推薦-vs-code-remote-ssh終結黑底終端機)
+- [2. 本地電腦 VS Code Remote-SSH 連線實戰 (3 分鐘速成)](#2-本地電腦-vs-code-remote-ssh-連線實戰-3-分鐘速成)
+- [3. 遠端工作區必備擴充套件安裝 (Python, Jupyter, AI)](#3-遠端工作區必備擴充套件安裝-python-jupyter-ai)
+- [4. AI 工具選擇與雙工具操作練習](#4-ai-工具選擇與雙工具操作練習)
+- [5. 終端 AI 命令行工具配置：Codex、OpenCode 與 Antigravity](#5-終端-ai-命令行工具配置codexopencode-與-antigravity)
+- [6. 國網中心地端大模型 (Medusa / GenAI API) 設定實務](#6-國網中心地端大模型-medusa--genai-api-設定實務)
+- [7. 國網中心支援模型清單與場景推薦](#7-國網中心支援模型清單與場景推薦)
+- [8. 超算專屬 AI Agent 治理守則：AGENTS.md 實務](#8-超算專屬-ai-agent-治理守則agentsmd-實務)
+- [9. 初學者動手實戰練習 (Hands-on Labs 1 ~ 4)](#9-初學者動手實戰練習-hands-on-labs-1--4)
+- [10. 多登入節點與 Agent session 清理](#10-多登入節點與-agent-session-清理)
+- [11. 常見踩坑與連線排錯 (FAQ)](#11-常見踩坑與連線排錯-faq)
 
 ---
 
@@ -31,7 +39,7 @@
 1. **本地流暢度，超算核心算力**：VS Code 的介面渲染在您個人本機執行，毫無網頁版延遲；所有檔案讀寫、語法檢查與終端命令則 100% 運行在 Nano4 遠端。
 2. **完整滑鼠與視窗操作**：左側是遠端檔案總管，支援拖曳上傳、點擊開啟；右側是強大的代碼編輯器與 Markdown 即時預覽。
 3. **無縫整合終端機**：按下 **``Ctrl + ` ``** 即可在下方開啟遠端 Bash 終端分頁，直接提交 Slurm 作業。
-4. **Jupyter Notebook 原生互動支援**：直接在 VS Code 裡點開 `.ipynb`，選擇第 01 章在 `/work` 建立好的 Python Kernel，立即享受互動式資料分析與繪圖！
+4. **Jupyter Notebook 原生互動支援**：直接在 VS Code 裡點開 `.ipynb`，選擇第 01 章在 `/work` 建立好的 Python 環境作為 Kernel（需先安裝 `ipykernel`，見本章 FAQ Q3），即可進行互動式資料分析與繪圖。
 5. **AI 插件完全解放**：可無縫掛載 GitHub Copilot、Cline、Roo Code 或國網地端大模型，直接在編輯器內請 AI 寫代碼與 Slurm 批次腳本。
 
 ```text
@@ -42,7 +50,7 @@
 [ 晶創26 (Nano4) 登入節點 (25a-lgn01~05) ]
    ├─ VS Code Server (背景常駐運行)
    ├─ WekaFS 高速工作區 (/work/$USER)
-   ├─ Python 虛擬環境 (~/.venv 或 /work/$USER/...)
+   ├─ Python 虛擬環境 (/work/$USER/...，不放在 $HOME)
    └─ Slurm 調度命令列 (sbatch, salloc, squeue)
 ```
 
@@ -55,9 +63,15 @@
 2. 開啟 VS Code，按下快捷鍵 `Ctrl + Shift + X`（macOS 為 `Cmd + Shift + X`）開啟擴充套件市場。
 3. 搜尋 **`Remote - SSH`**（由 Microsoft 官方發行），點擊 **Install (安裝)**。
 
+> [!TIP]
+> **使用 Google Antigravity（本課程推薦）**：Antigravity 以 VS Code 為基礎，介面、快捷鍵與 Remote-SSH 連線方式都與 VS Code 相同，並內建 AI Agent，可直接在連上 Nano4 的遠端工作區裡請 AI 讀程式、寫 Slurm 腳本。
+> 1. 前往 [Antigravity 官網](https://antigravity.google/) 下載安裝，並以 Google 帳號登入。
+> 2. 在擴充套件面板確認已有 Remote-SSH 套件（若已內建則略過安裝）。
+> 3. 之後的步驟 B–D 與 VS Code 完全相同。首次連線時，Antigravity 會在 Nano4 的 `~/.antigravity-ide-server` 安裝伺服器端（VS Code 則是 `~/.vscode-server`）。
+
 ### 步驟 B：確認本機 SSH Config 已配置
 在第 01 章中，我們已經在您本機的 `~/.ssh/config` 中加入了 `nano4` 設定：
-```sshconfig
+```ssh-config
 Host nano4
     HostName nano4.nchc.org.tw
     User your_account
@@ -84,7 +98,76 @@ Host nano4
    ```text
    /work/your_account
    ```
+   （教材 repository 位於 `/home/your_account/Nano4-Docs`；第 04 章要瀏覽教材檔案時，可用 File ➔ Open Folder 另外開啟這個資料夾。）
 3. 按下確定，您就能在 VS Code 左側清單中看到所有遠端檔案與目錄！
+
+### 步驟 E（強烈建議）：用 ssh-proxy 只做一次 2FA 認證
+
+Nano4 的**每一條新 SSH 連線**都要輸入密碼與 OTP。VS Code / Antigravity 的 Remote-SSH 在「連線」、「Open Folder 選目錄」、「切換資料夾或重新載入視窗」時都會開新連線，所以同一堂課可能要認證好幾次。
+
+[`ssh-proxy`](https://github.com/gemini960114/ssh-proxy) 是在**您個人電腦上**執行的小工具：它先用密碼 + OTP 連上 Nano4 並保持連線，再在本機 `127.0.0.1:2222` 開一個入口。之後 VS Code / Antigravity 改連 `nano4-proxy`，所有連線都走這條已認證的通道，不必再輸入 OTP。
+
+```text
+VS Code / Antigravity / 終端機
+        │  連 nano4-proxy（不需 OTP）
+        ▼
+127.0.0.1:2222   ← ssh-proxy（在您的電腦上執行，視窗保持開著）
+        │  已完成密碼 + OTP 的連線
+        ▼
+nano4.nchc.org.tw:22
+```
+
+**1. 下載執行檔**（[Releases 頁面](https://github.com/gemini960114/ssh-proxy/releases/latest)，免安裝 Python）：
+
+| 您的電腦 | 下載檔案 |
+| :--- | :--- |
+| Windows 10 / 11 | `ssh-proxy-windows-x64.exe` |
+| macOS Apple Silicon (M1–M4) | `ssh-proxy-macos-arm64` |
+| Linux x64 | `ssh-proxy-linux-x64` |
+
+Intel Mac 沒有預先編譯的檔案，請依 ssh-proxy README 的「Run from Source with uv」方式執行。
+
+**2. 在本機 `~/.ssh/config` 加入 proxy 專用的主機**（保留第 01 章的 `Host nano4`，ssh-proxy 會從它讀取主機名稱與帳號）：
+
+```ssh-config
+Host nano4-proxy
+    HostName 127.0.0.1
+    Port 2222
+    User your_account
+    # 本機 proxy 每次啟動都會產生新的暫時金鑰；這兩行只能用在這個 127.0.0.1 別名，
+    # 絕對不要加到 nano4 或其他遠端主機
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+    LogLevel ERROR
+    ServerAliveInterval 30
+    ServerAliveCountMax 3
+```
+
+**3. 啟動 proxy，完成一次認證**（在本機終端機 / PowerShell 執行，並讓這個視窗保持開著）：
+
+```bash
+# Windows (PowerShell)
+.\ssh-proxy-windows-x64.exe nano4
+
+# macOS Apple Silicon（第一次需加執行權限並解除下載隔離）
+chmod +x ssh-proxy-macos-arm64
+xattr -d com.apple.quarantine ssh-proxy-macos-arm64
+./ssh-proxy-macos-arm64 nano4
+```
+
+- 第一次連線會顯示 Nano4 的主機金鑰指紋，確認後輸入完整的 `yes`；之後依提示輸入密碼與 OTP。
+- 若之後出現 `REMOTE HOST IDENTIFICATION HAS CHANGED`，proxy 會在送出密碼前停止；請先向國網中心確認，不要直接刪除舊金鑰。
+
+**4. 改連 `nano4-proxy`**：
+
+- 終端機：`ssh nano4-proxy`，應直接進入 Nano4，不再要求 OTP。
+- VS Code / Antigravity：`Connect to Host...` 時選 **`nano4-proxy`**（不是 `nano4`），之後 Open Folder、切換資料夾都不必再認證。
+
+**5. 使用注意**
+
+- 預設**沒有任何連線 60 分鐘**或**總執行 8 小時**後，proxy 會自動停止；整天的課程可在啟動時加上 `--max-lifetime 10h`。proxy 停止後 VS Code 會斷線，重新啟動 proxy（再認證一次）並重新連線即可。
+- 只在**自己的電腦**上使用：proxy 在執行期間，同一台電腦上的其他程式也能透過它連進您的帳號。使用共用電腦或離開座位前，請在 proxy 視窗按 `Ctrl+C` 停止。
+- 若出現 `Address already in use`，表示已有另一個 proxy 在使用 2222 埠，請先關閉它。
 
 ---
 
@@ -110,7 +193,7 @@ Host nano4
 按下 **``Ctrl + ` ``** 開啟整合式終端機，執行本章隨附的安裝腳本：
 
 ```bash
-cd 02-vscode-and-ai-tools/scripts
+cd "$HOME/Nano4-Docs/02-vscode-and-ai-tools/scripts"
 bash install_vscode_extensions.sh
 ```
 
@@ -150,6 +233,8 @@ export PATH="${HOME}/.local/bin:${PATH}"
 codex --version
 ```
 
+首次執行 `codex` 會要求登入 ChatGPT / OpenAI 帳號，請依畫面指示在本機瀏覽器完成授權。因為 Codex 跑在遠端登入節點，瀏覽器授權完成後若無法回到終端機，請改用裝置碼（device code）登入，例如 `codex login --device-auth`，在本機瀏覽器輸入畫面上的代碼即可；沒有帳號的學員可改用 OpenCode + 國網 Medusa。
+
 ### B. OpenCode CLI
 [OpenCode](https://opencode.ai) 是一個輕量、模組化且支援 OpenAI 相容協議（相容國網中心 Medusa API）的終端 AI 工具。
 
@@ -160,14 +245,15 @@ codex --version
 * **預設安裝路徑**：`~/.opencode/bin/opencode`
 
 ### C. Antigravity CLI (`agy`)
-Google DeepMind 出品的 Antigravity CLI 專精於複雜專案推理與多代理人排程除錯：
-* **路徑**：`~/.local/bin/agy`
+Google 出品的 Antigravity CLI 專精於複雜專案推理與多代理人排程除錯。本教材**不提供** `agy` 的安裝程式：
+* **取得方式**：請依 Google Antigravity 官方說明下載，並以使用者權限放置於 `~/.local/bin/agy`（不需要 `sudo`）。
 * **驗證**：`agy --version`
+* 若尚未取得 `agy`，本章練習改用 Codex CLI 或 OpenCode CLI 即可，不影響後續章節。
 
 ### D. 一鍵配置 PATH
-執行本章隨附的設定腳本，自動將 `~/.opencode/bin` 與 `~/.local/bin` 加入 `~/.bashrc`：
+執行本章隨附的設定腳本：若尚未安裝 OpenCode 會自動安裝，並將 `~/.opencode/bin` 與 `~/.local/bin` 加入 `~/.bashrc`：
 ```bash
-cd 02-vscode-and-ai-tools/scripts
+cd "$HOME/Nano4-Docs/02-vscode-and-ai-tools/scripts"
 bash install_ai_cli.sh
 source ~/.bashrc
 ```
@@ -184,7 +270,7 @@ OpenCode 原生支援多個 Provider 配置。請將本章隨附的範本複製�
 
 ```bash
 mkdir -p ~/.config/opencode
-cp 02-vscode-and-ai-tools/templates/opencode.json ~/.config/opencode/opencode.json
+cp "$HOME/Nano4-Docs/02-vscode-and-ai-tools/templates/opencode.json" ~/.config/opencode/opencode.json
 ```
 
 ### B. 標準設定範本內容解析
@@ -236,17 +322,22 @@ cp 02-vscode-and-ai-tools/templates/opencode.json ~/.config/opencode/opencode.js
 
 > [!TIP]
 > 請使用 `nano ~/.config/opencode/opencode.json`，將 `YOUR_MEDUSA_PORTAL_KEY` 或 `YOUR_MEDUSA_INNER_KEY` 替換為您在國網 GenAI Portal 取得的個人 API Token！
+>
+> 範本預設模型是 `medusa-inner/gemma-4-26B-A4B-it`。若您只取得 Portal Key，請把最後一行改成 `"model": "medusa-portal/gpt-oss-120b"`；`medusa-inner` 需另外取得 Inner Key。
 
 ---
 
 ## 7. 國網中心支援模型清單與場景推薦
 
-| 模型識別名稱 | 參數量 | 特點與專長領域 | 推薦應用場景 |
+下表與本章 `opencode.json` 範本列出的模型一致（`provider/模型` 為 OpenCode 中的選用名稱）。實際可用清單以 `opencode models` 與 GenAI Portal 為準。
+
+| OpenCode 模型名稱 | 參數量 | 特點與專長領域 | 推薦應用場景 |
 | :--- | :---: | :--- | :--- |
-| **`Devstral-2-123B-Instruct`** | 123B | 針對程式碼生成、架構重構與 Bash 排程深度優化 | **HPC 首選**！編寫 Slurm 腳本與 Python 管線 |
-| **`gemma-4-26B-A4B-it`** | 26B | Google 輕量高智商模型，回應極速 | 日常問答、終端除錯與參數速查 |
-| **`Thanos3.5-397B-A17B`** | 397B | MoE 專家混合超大模型，繁體中文與邏輯推理極強 | 複雜科研邏輯分析、論文撰寫與全案架構 |
-| **`TAIDE/Llama3-TAIDE-LX-8B`** | 8B | 臺灣文化與本土用語適配模型 | 繁體中文公文、行政報告與中文資料處理 |
+| **`medusa-portal/Devstral-2-123B-Instruct-2512`** | 123B | 針對程式碼生成、架構重構與 Bash 排程優化 | **HPC 首選**！編寫 Slurm 腳本與 Python 管線 |
+| **`medusa-portal/gpt-oss-120b`** / **`medusa-inner/gpt-oss-120b`** | 120B | OpenAI 開放權重推理模型 | 腳本審查、錯誤診斷與步驟規劃 |
+| **`medusa-portal/Ministral-3-14B-Instruct-2512`** | 14B | Mistral 輕量模型，回應快 | 簡短問答與參數速查 |
+| **`medusa-inner/gemma-4-26B-A4B-it`**（範本預設） | 26B | Google 輕量 MoE 模型，回應極速 | 日常問答、終端除錯與參數速查 |
+| **`medusa-inner/Thanos3.5-397B-A17B`** | 397B | MoE 專家混合超大模型，繁體中文與邏輯推理強 | 複雜科研邏輯分析、論文撰寫與全案架構 |
 
 ---
 
@@ -279,10 +370,13 @@ cp 02-vscode-and-ai-tools/templates/opencode.json ~/.config/opencode/opencode.js
 ### 🧪 練習 2：Gemini 與 Codex 雙工具對話比較
 以同一個任務測試兩個工具：請它們解釋 `sbatch` 腳本中的 `--account`、`--partition`、`--mem`，並要求提出一個安全的修改方案。
 
-- Gemini：在本機開啟 [Gemini](https://gemini.google.com/)，貼上相同 prompt 與小段腳本。
-- Codex：在 repository 目錄執行：
+兩個工具都使用同一支範本：`03-slurm-syntax-and-job-management/templates/standard_cpu_job.slurm`。
+
+- Gemini：在本機開啟 [Gemini](https://gemini.google.com/)，貼上相同 prompt 與 `standard_cpu_job.slurm` 的內容（可先在 VS Code 開啟檔案後複製）。
+- Codex：在登入節點的教材目錄執行：
   ```bash
-  codex "請先閱讀本專案的 AGENTS.md，說明這支 Slurm 腳本的風險，但先不要修改檔案。"
+  cd "$HOME/Nano4-Docs"
+  codex "請先閱讀 AGENTS.md，說明 03-slurm-syntax-and-job-management/templates/standard_cpu_job.slurm 的風險，但先不要修改檔案。"
   ```
 
 比較兩份回答的假設、資源建議與安全檢查，不直接複製任何一方的指令。
@@ -306,23 +400,36 @@ cp 02-vscode-and-ai-tools/templates/opencode.json ~/.config/opencode/opencode.js
 先讓 Gemini、Codex 或 OpenCode 提出方案，再由學生手動執行：
 
 ```bash
-sinfo
-bash -n path/to/job.slurm
-sbatch --test-only --account="<PROJECT_ID>" path/to/job.slurm
+cd "$HOME/Nano4-Docs"
+sinfo -p ngs62g
+bash -n 03-slurm-syntax-and-job-management/templates/standard_cpu_job.slurm
+sbatch --test-only --account=GOV115088 03-slurm-syntax-and-job-management/templates/standard_cpu_job.slurm
 ```
 
+**預期結果**：`bash -n` 沒有任何輸出，代表 shell 語法正確；`--test-only` 顯示 `Job ... to start at ...`，代表帳號與分區組合可被接受（不會真的送出作業）。
+
+> `sbatch --test-only` **不會檢查 QoS 與官方規格**（例如 `ngs62g` 必須固定 `-c 8 --mem=62G`），這部分仍需自行對照第 01 章的佇列表。
+
 記錄哪個工具的建議被採用、哪些建議被拒絕，以及實際驗證結果。
+
 ---
 
 ## 10. 多登入節點與 Agent session 清理
 
 Nano4 登入節點可能把同一次 SSH/VS Code/Antigravity 連線分派到
-`25a-lgn01`～`25a-lgn05` 的不同主機。若舊主機上的 VS Code Server、Codex、Gemini、
-ChatGPT、Claude 或 Antigravity agent 沒有正常結束，重新連線到另一台主機時可能
+`25a-lgn01`～`25a-lgn05` 的不同主機。若舊主機上的 VS Code Server、Codex、OpenCode、
+Claude 或 Antigravity agent 沒有正常結束（本機網頁版的 ChatGPT / Gemini 不受影響），重新連線到另一台主機時可能
 看起來像「session 卡住」或無法接續原本的對話。
+
+> [!TIP]
+> 使用本章步驟 E 的 `ssh-proxy` 時，所有 VS Code / Antigravity / 終端機連線都走同一條已認證的連線，會固定在同一台登入節點上，比較不會遇到這個問題。
 
 本教材提供兩支清理腳本。它們只會處理**目前使用者自己的程序**，但會終止所有匹配的
 AI/IDE agent；執行前請先儲存檔案、結束不需要保留的工作，並確認沒有正在執行的分析。
+
+> [!WARNING]
+> 請從**一般 SSH 終端機**（例如 `ssh nano4`）執行，不要在 VS Code 整合終端機內執行：腳本會連同您目前使用的 VS Code Server 一起終止，造成立即斷線。
+> `kill_login.sh` 會從目前的登入節點以 SSH 連到其他四台登入節點；若出現密碼或 2FA 提示，請依畫面完成驗證，無法連線的主機會顯示警告並略過。
 
 ```bash
 cd "$HOME/Nano4-Docs"
@@ -332,7 +439,7 @@ chmod +x 02-vscode-and-ai-tools/scripts/kill.sh \
 # 只清理目前這台登入節點：會先列出匹配程序，再要求確認
 bash 02-vscode-and-ai-tools/scripts/kill.sh
 
-# 清理五台登入節點上的 stale agent（明確使用 --yes）
+# 清理五台登入節點上的 stale agent（不會再詢問確認，會直接執行）
 bash 02-vscode-and-ai-tools/scripts/kill_login.sh
 ```
 
@@ -359,9 +466,13 @@ bash 02-vscode-and-ai-tools/scripts/kill_login.sh
 * **原因**：未安裝遠端 Python / Jupyter 擴充套件，或尚未啟動虛擬環境。
 * **解法**：
   1. 確保已在遠端安裝 `ms-toolsai.jupyter` 與 `ms-python.python`。
-  2. 點擊 Notebook 右上角的「Select Kernel ➔ Python Environments」，選擇您在第 01 章建立的 `/work/$USER/lab_env` 或自訂環境路徑。
+  2. 確認虛擬環境已安裝 Jupyter kernel 套件（第 01 章的 `lab_env` 預設沒有）：
+     ```bash
+     uv pip install --python /work/${USER}/lab_env/bin/python ipykernel
+     ```
+  3. 點擊 Notebook 右上角的「Select Kernel ➔ Python Environments」，選擇 `/work/$USER/lab_env` 或自訂環境路徑。
 
 ---
 
 恭喜您！現在您已經擁有了全功能、具備語法高亮、直通遠端工作區且自帶 AI 助理的現代化超算開發環境！  
-👉 **下一步**：進入 **[第 03 章：晶創26 Slurm 語法精講與超級電腦作業調度實務](../03-slurm-syntax-and-job-management/)**，學習如何精準調度數百張 H200 與 GB200 算力！
+👉 **下一步**：進入 **[第 03 章：Slurm 語法與作業調度](../03-slurm-syntax-and-job-management/)**，學習如何撰寫 Slurm 批次腳本，把運算送到 `ngs62g` 生醫 CPU 節點！

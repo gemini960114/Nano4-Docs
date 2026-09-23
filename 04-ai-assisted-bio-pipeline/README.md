@@ -1,6 +1,6 @@
-# HPC 實戰指南：AI 輔助生醫管線 — FASTQ 下載與 FastQC / MultiQC 質控 (登入節點微型實作)
+# 第 04 章：AI 輔助生醫管線 — FASTQ 下載與 FastQC / MultiQC 質控 (登入節點微型實作)
 
-本教學手冊展示如何利用前幾章建立的 **VS Code Remote-SSH** 與 **AI 助手（OpenCode CLI / Antigravity CLI / Claude Code）**，引導 AI 撰寫自動化腳本，在 Nano4 登入節點上下載 FASTQ 生醫定序資料並執行 **FastQC** 與 **MultiQC** 品質控制分析。
+本教學手冊展示如何利用前幾章建立的 **VS Code Remote-SSH** 與 **AI 助手（Antigravity / Claude Code / OpenCode CLI）**，引導 AI 撰寫自動化腳本，在 Nano4 登入節點上下載 FASTQ 生醫定序資料並執行 **FastQC** 與 **MultiQC** 品質控制分析。
 
 > [!IMPORTANT]
 > **💡 跨領域通用學習聲明 (Case Study Disclaimer)**：  
@@ -10,23 +10,31 @@
 > 2. **如何在登入節點以微型資料快速驗證管線邏輯 (Prototyping)**  
 > 3. **如何利用 VS Code 連接埠轉送在瀏覽器預覽互動式報表**  
 > 
-> 這套「**數據拉取 ➔ 批次分析 ➔ 結果可視化**」的核心架構與思維，在所有科學運算領域皆**100% 完全通用**！
+> 這套「**數據拉取 ➔ 批次分析 ➔ 結果可視化**」的核心架構與思維，可延伸應用到多數科學運算領域。
 
 ---
 
+
+> [!NOTE]
+> 本章實作檔案位於教材 repository。若重新開啟終端機，先回到教材根目錄：
+>
+> ```bash
+> cd "$HOME/Nano4-Docs"
+> ```
+
 ## 📌 目錄 (Table of Contents)
-- [1. 生醫資訊前處理概念：FASTQ、FastQC 與 MultiQC](#_1-生醫資訊前處理概念-fastq、fastqc-與-multiqc)
-- [2. 請 AI Agent 撰寫分析腳本 (Prompt 提示詞技巧)](#_2-請-ai-agent-撰寫分析腳本-prompt-提示詞技巧)
-- [3. 檔案結構與腳本說明](#_3-檔案結構與腳本說明)
-- [4. 實戰操作：在 VS Code 整合終端機中執行質控流程](#_4-實戰操作-在-vs-code-整合終端機中執行質控流程)
-- [5. 檢視互動式報告：VS Code 連接埠轉送與本機預覽](#_5-檢視互動式報告-vs-code-連接埠轉送與本機預覽)
-- [6. 登入節點之限制與進入 Slurm 排程的必要性](#_6-登入節點之限制與進入-slurm-排程的必要性)
+- [1. 生醫資訊前處理概念：FASTQ、FastQC 與 MultiQC](#1-生醫資訊前處理概念fastqfastqc-與-multiqc)
+- [2. 請 AI Agent 撰寫分析腳本 (Prompt 提示詞技巧)](#2-請-ai-agent-撰寫分析腳本-prompt-提示詞技巧)
+- [3. 檔案結構與腳本說明](#3-檔案結構與腳本說明)
+- [4. 實戰操作：在 VS Code 整合終端機中執行質控流程](#4-實戰操作在-vs-code-整合終端機中執行質控流程)
+- [5. 檢視互動式報告：VS Code 連接埠轉送與本機預覽](#5-檢視互動式報告vs-code-連接埠轉送與本機預覽)
+- [6. 登入節點之限制與進入 Slurm 排程的必要性](#6-登入節點之限制與進入-slurm-排程的必要性)
 
 ---
 
 ## 1. 生醫資訊前處理概念：FASTQ、FastQC 與 MultiQC
 
-在生物資訊（Bioinformatics）與次世代定序（NGS / 總體基因體學 16S / 宏基因組）研究中：
+在生物資訊（Bioinformatics）與次世代定序（NGS、16S 擴增子定序、總體基因體學）研究中：
 
 1. **FASTQ 檔案**：定序儀（如 Illumina、PacBio、ONT）輸出的標準格式，每個 Read 由 4 行組成：
    * `@Header`：定序儀機型與座標資訊
@@ -44,7 +52,7 @@
 
 ## 2. 請 AI Agent 撰寫分析腳本 (Prompt 提示詞技巧)
 
-在 VS Code 中開啟 AI 助手（如 OpenCode 或 Antigravity），輸入具體、具備架構要求的提示詞：
+在 Antigravity 或 VS Code 中開啟 AI 助手（如 Antigravity 內建 Agent、Claude Code 或 OpenCode），輸入具體、具備架構要求的提示詞：
 
 ```text
 你是一位熟悉生物資訊分析與 Linux HPC 環境的工程師。
@@ -52,12 +60,14 @@
 
 請幫我編寫一個 Bash 腳本 `run_qc_pipeline.sh`，要求包含以下步驟：
 1. 自動下載 QIIME 2 Moving Pictures 的示範 FASTQ 資料，存放在 `./fastq_raw/`。
-2. 檢查 FastQC 與 MultiQC 是否已安裝，若無則自動調用 uv / 虛擬環境路徑載入。
+2. 使用 Nano4 官方模組 `module load biology/JDK/26.0.1 biology/FastQC/0.11.9 biology/MultiQC` 載入 FastQC 與 MultiQC，找不到時要明確報錯停止。
 3. 批次對 `./fastq_raw/` 下的所有 FASTQ 檔案執行 FastQC 分析，輸出至 `./fastqc_out/`。
 4. 使用 MultiQC 彙整 `./fastqc_out/` 下的所有分析數據，生成 `./multiqc_out/multiqc_report.html`。
 5. 包含完善的錯誤處理（set -euo pipefail），並在結尾輸出報告路徑。
 ```
 *(完整提示詞可見 [`prompts/ai_prompt_bio_pipeline.md`](./prompts/ai_prompt_bio_pipeline.md))*
+
+> 這是示範用 prompt，讓你練習如何向 AI 描述需求。下面第 4 節的實作請使用本章已提供、驗證過的 `run_fastqc_multiqc.sh`；你可以拿 AI 產生的 `run_qc_pipeline.sh` 和它比較差異。
 
 ---
 
@@ -86,13 +96,13 @@
 
 ### 步驟 1：下載示範 FASTQ 資料
 ```bash
-cd 04-ai-assisted-bio-pipeline/scripts
+cd "$HOME/Nano4-Docs/04-ai-assisted-bio-pipeline/scripts"
 bash download_demo_fastq.sh
 ```
-此腳本會自動準備 4 組示範樣本（`sample_01_R1.fastq.gz` ~ `sample_04_R1.fastq.gz`）。
+repository 已附 4 組示範樣本（`sample_01_R1.fastq.gz` ~ `sample_04_R1.fastq.gz`，各 1000 條 reads），此腳本會直接沿用；若檔案不存在，才會下載 QIIME 2 Moving Pictures 資料並重新拆分。
 
-> [!WARNING]
-> 本章腳本若找不到 FastQC，會產生「示範用」FastQC 格式檔案讓 MultiQC 流程可以教學演示；這些不是實際 FastQC 結果，不能拿來做研究判讀。正式資料必須使用真正的 FastQC 或容器化執行環境。
+> [!NOTE]
+> 質控腳本會以 `module load biology/JDK/26.0.1 biology/FastQC/0.11.9 biology/MultiQC` 載入 Nano4 官方模組，執行真正的 FastQC 與 MultiQC。4 個微型樣本在登入節點只需數秒、使用 4 核心，符合登入節點微型測試規範。
 
 ### 步驟 2：執行質控管線
 ```bash
@@ -102,10 +112,14 @@ bash run_fastqc_multiqc.sh
 ```text
 ========================================================
 🔬 [1/3] 檢查 FASTQ 原始資料與質控工具...
-MultiQC 執行檔: /work/${USER}/.venv/bin/multiqc
+FastQC 執行檔 : /work/envstack/apps/application/biology/FastQC/fastqc_v0.11.9/bin/fastqc
+MultiQC 執行檔: /work/envstack/apps/application/biology/MultiQC/multiqc_v1.35/bin/multiqc
 ========================================================
 🧬 [2/3] 執行 FastQC 品質控制分析...
 ========================================================
+Analysis complete for sample_01_R1.fastq.gz
+...
+Analysis complete for sample_04_R1.fastq.gz
 📊 [3/3] 執行 MultiQC 彙整產生單一 HTML 報告...
 ========================================================
 /// MultiQC 🔍 v1.35
@@ -116,6 +130,8 @@ MultiQC 執行檔: /work/${USER}/.venv/bin/multiqc
 🎉 質控管線執行完畢！
 MultiQC 報告位置: demo_data/multiqc_out/multiqc_report.html
 ```
+
+> 實際畫面中的報告路徑會顯示為完整的絕對路徑（例如 `/home/<帳號>/Nano4-Docs/04-ai-assisted-bio-pipeline/scripts/../demo_data/multiqc_out/multiqc_report.html`），指的是同一個檔案。
 
 ---
 
@@ -144,8 +160,13 @@ bash view_multiqc_report.sh
 ```
 點擊連結即可直接在個人電腦瀏覽器中操作互動式圖表、縮放品質曲線、下載統計圖檔！
 
+看完報告後，請關閉在登入節點背景執行的預覽服務：
+```bash
+tmux kill-session -t svc-multiqc-report
+```
+
 ### 方式 B：VS Code 檔案總管直接下載
-在 VS Code 左側檔案總管展開 `04-ai-assisted-bio-pipeline/demo_data/multiqc_out/`，在 `multiqc_report.html` 按右鍵 ➔ 選擇 **「下載... (Download...)」**，存至筆電桌面雙擊打開！
+在 VS Code 以 File ➔ Open Folder 開啟 `/home/<您的帳號>/Nano4-Docs`，於左側檔案總管展開 `04-ai-assisted-bio-pipeline/demo_data/multiqc_out/`，在 `multiqc_report.html` 按右鍵 ➔ 選擇 **「下載... (Download...)」**，存至筆電桌面雙擊打開！
 
 ---
 
@@ -159,12 +180,12 @@ bash view_multiqc_report.sh
 * 若直接在登入節點執行大型 FastQC、BWA 比對、SAMtools 排序或 QIIME 2 DADA2 去噪，會佔用高達數十個 CPU 核心與幾百 GB 記憶體，導致整台登入節點卡死。
 * **國網中心官方安全鐵律**：登入節點上執行超過 5 分鐘的重度運算，系統守護程式將會**自動無預警強制清除該用戶的所有行程（Killed）**！
 
-因此，我們必須學習如何使用 **AI Agent** 將這套在登入節點驗證完成的生醫分析流程，自動重構為 **Slurm 批次作業腳本**，並派送到 Nano4 的 `ngs62g` 或專屬計算節點大規模平行運算！
+因此，我們必須學習如何使用 **AI Agent** 將這套在登入節點驗證完成的生醫分析流程，自動重構為 **Slurm 批次作業腳本**，並派送到 Nano4 的 `ngs62g` 計算節點執行（本課程唯一使用的佇列，每個作業固定 `-c 8 --mem=62G`）！
 
 ---
 
 > 💡 **學習脈絡導讀 (Roadmap)**：  
-> * 在 **第 03 章**，您已經學會了 Nano4 的 Slurm 語法、H200/NGS 佇列與 `wallet` 計費規則。  
-> * 在 **第 05 章**，我們將迎接全系列集大成的高潮：**透過 AI Agent（如 OpenCode CLI / Antigravity）自動將本章的 Shell 質控流程重構成符合 Nano4 規範的 Slurm 生產級管線**！
+> * 在 **第 03 章**，您已經學會了 Nano4 的 Slurm 語法、`ngs62g` 佇列規格與 `wallet` 計費規則。  
+> * 在 **第 05 章**，我們將**透過 AI Agent（如 Antigravity / Claude Code / OpenCode CLI）自動將本章的 Shell 質控流程重構成符合 Nano4 規範的 Slurm 生產級管線**！
 
-👉 **下一課**：[第 05 章：AI Agent 自動化 Slurm 排程重構與批次派送實戰](../05-ai-agent-slurm-pipeline/)
+👉 **下一課**：[第 05 章：AI Agent 自動化 Slurm 排程](../05-ai-agent-slurm-pipeline/)

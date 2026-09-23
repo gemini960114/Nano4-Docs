@@ -15,8 +15,8 @@ echo ""
 echo "========================================================"
 echo "🖥️ [2/2] Nano4 常用排程分區 (Partitions) 即時狀態:"
 echo "========================================================"
-echo ">> H200 / GB200 GPU 分區 與 NGS 生醫計算分區:"
-sinfo -p dev,8gpus,gb200-dev,ngstest,ngs62g,ngs250g -o "%.14P %.10a %.10l %.10D %.12F %N" 2>/dev/null || sinfo -s
+echo ">> 本課程使用的 NGS 生醫 CPU 分區 (GOV115088 → ngs62g) 與參考用 GPU 分區:"
+sinfo -p ngs62g,ngs250g,dev,gb200-dev -o "%.14P %.10a %.10l %.10D %.12F %N" 2>/dev/null || sinfo -s
 
 echo ""
 echo "========================================================"

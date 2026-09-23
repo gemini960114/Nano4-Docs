@@ -19,6 +19,9 @@
 
 set -euo pipefail
 
+# 國網官方規範：執行內容第一行清空模組避免污染，再依需求載入對應環境
+module purge
+
 echo "=========================================================="
 echo "作業啟動時間 : $(date)"
 echo "執行節點主機 : $(hostname -s)"
@@ -26,8 +29,6 @@ echo "Slurm 作業ID : ${SLURM_JOB_ID}"
 echo "分配 GPU 資源: ${CUDA_VISIBLE_DEVICES:-'未指定'}"
 echo "=========================================================="
 
-# 1. 國網官方規範：第一行清空模組
-module purge
 
 # 2. 檢查 NVIDIA H200 GPU 狀態
 if command -v nvidia-smi &>/dev/null; then

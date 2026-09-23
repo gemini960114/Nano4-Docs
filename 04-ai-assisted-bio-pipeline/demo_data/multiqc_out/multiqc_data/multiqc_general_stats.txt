@@ -1,5 +1,0 @@
-Sample	fastqc-percent_duplicates	fastqc-percent_gc	fastqc-avg_sequence_length	fastqc-median_sequence_length	fastqc-percent_fails	fastqc-total_sequences
-sample_01_R1	0	51.0	0	0	0.0	0.001
-sample_02_R1	0	51.0	0	0	0.0	0.001
-sample_03_R1	0	51.0	0	0	0.0	0.001
-sample_04_R1	0	51.0	0	0	0.0	0.001

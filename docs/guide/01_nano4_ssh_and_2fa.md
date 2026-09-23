@@ -1,35 +1,41 @@
-# HPC 實戰指南：晶創26 (Nano4) 遠端連線、雙因子認證與環境配置 (SSH, 2FA & Environment)
+# 第 01 章：晶創26 (Nano4) 遠端連線、雙因子認證與環境配置 (SSH, 2FA & Environment)
 
 歡迎來到高效能運算（HPC）的第一課！在開始使用超級電腦強大的 GPU/CPU 算力、搭建開發環境或提交 Slurm 排程前，第一道關卡就是：**如何安全連線進入國家高速網路與計算中心（NCHC）新一代 AI 超級電腦——晶創26（Nano4 / `nano4.nchc.org.tw`）**。
 
-本教學專門為初次使用國網中心晶創26主機的研究員、工程師與學生設計，詳細解析叢集架構、雙因子認證（2FA）、高速檔案傳輸（SFTP Port 2222）、WekaFS 儲存空間規劃、Lmod 模組、Apptainer 容器與極速 Python 套件管理技巧。
+本教學專門為初次使用國網中心晶創26（Nano4）GP1 生醫節點的研究員與學生設計，詳細解析叢集架構、雙因子認證（2FA）、高速檔案傳輸（SFTP Port 2222）、WekaFS 儲存空間規劃、Lmod 模組、Apptainer 容器與極速 Python 套件管理技巧。
 
 > [!TIP]
 > **🎯 本章在全系列中的定位：雲端超算工作台的核心地基 (Core Foundation)**  
 > 在晶創26（Nano4）環境中，系統不提供網頁版 Code-Server，主要透過 **終端機 SSH** 或本機 **VS Code Remote-SSH** 連線進行開發與排程調度。  
 > 學習本章有兩大核心關鍵：  
 > 1. **帳號家目錄初始化**：國網中心官方規定，首次啟用主機帳號時，**必須先經由 SSH 登入登入節點（`nano4.nchc.org.tw`）一次**，系統才會自動建立您的 `$HOME` 家目錄；若未執行此步驟，後續所有批次作業皆無法正常派送。  
-> 2. **打造高吞吐運算環境**：利用 `uv` 在 `/work` 高速儲存區（WekaFS，注意：Nano4 高速區為 `/work`，非舊機器的 `/work1`！）建立虛擬環境，作為所有 Slurm 作業與 AI 任務的底層核心。  
+> 2. **打造高吞吐運算環境**：利用 `uv` 在 `/work` 高速儲存區（WekaFS，注意：Nano4 高速區為 `/work`，非舊機器的 `/work1`！）建立虛擬環境，作為所有 Slurm 作業與分析任務的底層環境。  
 > 
-> 🚀 **Nano4 獨家升級優勢**：不同於舊型 HPC 叢集計算節點完全隔離無網，**晶創26（Nano4）的計算節點已具備原生外網連線能力（Direct Internet Access）**！您的批次作業在計算節點上可直接進行 `git clone`、`pip install`、下載 Hugging Face 模型或串接 Weights & Biases (wandb)，大幅簡化超算工作流！
+> 🚀 **Nano4 獨家升級優勢**：不同於舊型 HPC 叢集計算節點完全隔離無網，**晶創26（Nano4）的計算節點已具備原生外網連線能力（Direct Internet Access）**！您的批次作業在計算節點上可直接進行 `git clone`、`pip install`、從 NCBI/ENA 下載定序資料或拉取容器映像，大幅簡化生醫分析工作流！
+
+> [!IMPORTANT]
+> **本次課程採 CPU-only 配置，課程計畫為 `GOV115088`（國網生技醫藥高效能運算推廣與應用計畫）。**
+> `GOV115088` 在 NGS CPU 佇列中**只允許使用 `ngs62g`**（官方規格：每個作業固定申請 **`-c 8 --mem=62G`**，不可自行增減；最長 4 天）；
+> 除 `ngs62g` 以外的所有 `ngs*` 佇列（例如 `ngstest`、`ngs8g`～`ngs32g`、`ngs125g`～`ngs1000g`、`ngs248c`/`ngs496c`、`ngscourse*`、大記憶體 `ngs1500g`～`ngs6t` 與 `ngs1gpu`～`ngs8gpu`）僅開放 `MST109178` 等生醫計畫。
+> 本章提到的 H200 / GB200 內容僅供認識叢集架構，本次課程不申請 GPU。
 
 ---
 
 ## 📌 目錄 (Table of Contents)
-- [1. 叢集前門：晶創26 前端與資料傳輸架構 (SSH:22 vs SFTP:2222)](#_1-叢集前門-晶創26-前端與資料傳輸架構-ssh-22-vs-sftp-2222)
-- [2. 前置準備：iService 申請晶創26計畫與 IDExpert 2FA 綁定](#_2-前置準備-iservice-申請晶創26計畫與-idexpert-2fa-綁定)
-- [3. SSH 登入實戰與三種雙因子驗證方式](#_3-ssh-登入實戰與三種雙因子驗證方式)
-- [3-C. 取得課程教材 repository](#_3-c-取得課程教材-repository)
-- [4. 極速登入技巧：設定本地端 SSH Config](#_4-極速登入技巧-設定本地端-ssh-config)
-- [5. 大檔案傳輸必備：資料傳輸節點 (DTN Port 2222) 實作](#_5-大檔案傳輸必備-資料傳輸節點-dtn-port-2222-實作)
-- [6. 從台灣杉三號（T3）搬遷資料到 Nano4](#_6-從台灣杉三號t3-搬遷資料到-nano4)
-- [7. 登入後第一步：環境健檢與三大儲存空間架構 (/home vs /work vs /project)](#_7-登入後第一步-環境健檢與三大儲存空間架構-home-vs-work-vs-project)
-- [8. HPC 軟體環境管理：Environment Modules / Lmod (ml/module)](#_8-hpc-軟體環境管理-environment-modules-lmod-ml-module)
-- [9. HPC 容器化運算：Singularity / Apptainer 實務](#_9-hpc-容器化運算-singularity-apptainer-實務)
-- [10. 現代極速 Python 套件管理：uv 實務 (解決 Inode 爆量痛點)](#_10-現代極速-python-套件管理-uv-實務-解決-inode-爆量痛點)
-- [11. 晶創26 Slurm 資源管理與完整佇列速查 (H200, GB200 與 NGS 生醫運算)](#_11-晶創26-slurm-資源管理與完整佇列速查-h200-gb200-與-ngs-生醫運算)
-- [12. 初學者實戰演練：從零開始的 6 個 HPC 入門練習 (Beginner Hands-on Labs)](#_12-初學者實戰演練-從零開始的-6-個-hpc-入門練習-beginner-hands-on-labs)
-- [13. 連線與環境常見踩坑與排錯 (FAQ)](#_13-連線與環境常見踩坑與排錯-faq)
+- [1. 叢集前門：晶創26 前端與資料傳輸架構 (SSH:22 vs SFTP:2222)](#1-叢集前門晶創26-前端與資料傳輸架構-ssh22-vs-sftp2222)
+- [2. 前置準備：iService 申請晶創26計畫與 IDExpert 2FA 綁定](#2-前置準備iservice-申請晶創26計畫與-idexpert-2fa-綁定)
+- [3. SSH 登入實戰與三種雙因子驗證方式](#3-ssh-登入實戰與三種雙因子驗證方式)
+- [3-C. 取得課程教材 repository](#c-取得課程教材-repository)
+- [4. 極速登入技巧：設定本地端 SSH Config](#4-極速登入技巧設定本地端-ssh-config)
+- [5. 大檔案傳輸必備：資料傳輸節點 (DTN Port 2222) 實作](#5-大檔案傳輸必備資料傳輸節點-dtn-port-2222-實作)
+- [6. 從台灣杉三號（T3）搬遷資料到 Nano4](#6-從台灣杉三號t3搬遷資料到-nano4)
+- [7. 登入後第一步：環境健檢與三大儲存空間架構 (/home vs /work vs /project)](#7-登入後第一步環境健檢與三大儲存空間架構-home-vs-work-vs-project)
+- [8. HPC 軟體環境管理：Environment Modules / Lmod (ml/module)](#8-hpc-軟體環境管理environment-modules--lmod-mlmodule)
+- [9. HPC 容器化運算：Singularity / Apptainer 實務](#9-hpc-容器化運算singularity--apptainer-實務)
+- [10. 現代極速 Python 套件管理：uv 實務 (解決 Inode 爆量痛點)](#10-現代極速-python-套件管理uv-實務-解決-inode-爆量痛點)
+- [11. 晶創26 Slurm 資源管理與完整佇列速查 (H200, GB200 與 NGS 生醫運算)](#11-晶創26-slurm-資源管理與完整佇列速查-h200-gb200-與-ngs-生醫運算)
+- [12. 初學者實戰演練：從零開始的 6 個 HPC 入門練習 (Beginner Hands-on Labs)](#12-初學者實戰演練從零開始的-6-個-hpc-入門練習-beginner-hands-on-labs)
+- [13. 連線與環境常見踩坑與排錯 (FAQ)](#13-連線與環境常見踩坑與排錯-faq)
 
 ---
 
@@ -76,7 +82,7 @@ Slurm: dev, 8gpus, 16gpus, 32gpus, 64gpus       Slurm: gb200-dev, gb200-r1, gb20
 
 1. **註冊 iService 會員並加入計畫**：
    - 前往 [國網中心 iService 會員系統](https://iservice.nchc.org.tw/nchc_service/index.php) 註冊帳號。
-   - 申請或加入具備晶創26計算額度的計畫（取得計畫代號，如 `GOV113021`、`MST109178` 等）。
+   - 申請或加入具備晶創26計算額度的計畫（取得計畫代號；本課程使用 **`GOV115088`**，其他計畫代號形式如 `GOV113021`、`MST109178`）。
 2. **啟用主機帳號與設定密碼**：
    - 在 iService 系統中建立 Linux 主機帳號（例如 `<YOUR_USERNAME>`），並設定強固密碼（英文大小寫、數字、特殊符號）。
 3. **下載並綁定雙因子（2FA）App —— IDExpert**：
@@ -135,7 +141,7 @@ cd "$HOME/Nano4-Docs"
 git status --short
 ```
 
-後續章節的 `cd 01-...`、`cd 02-...` 等命令，都以 `$HOME/Nano4-Docs` 為目前工作目錄；若重新開啟終端機，請先執行：
+後續章節的命令大多使用絕對路徑（如 `cd "$HOME/Nano4-Docs/03-..."`）；少數相對路徑命令需先位於 `$HOME/Nano4-Docs`。重新開啟終端機時，請先執行：
 
 ```bash
 cd "$HOME/Nano4-Docs"
@@ -152,7 +158,7 @@ cd "$HOME/Nano4-Docs"
    nano ~/.ssh/config
    ```
 2. 貼上下列設定（本教學隨附完整範本：[`config/ssh_config_example`](https://github.com/gemini960114/Nano4-Docs/blob/main/01-nano4-ssh-and-2fa/config/ssh_config_example)）：
-   ```sshconfig
+   ```ssh-config
    # 晶創26 (Nano4) 登入節點 (x86_64 架構)
    Host nano4
        HostName nano4.nchc.org.tw
@@ -175,6 +181,9 @@ cd "$HOME/Nano4-Docs"
    ssh nano4
    ```
    只需輸入一個指令，即刻進入 2FA 驗證流程！
+
+> [!TIP]
+> 每一條新的 SSH 連線都要重新輸入密碼與 OTP。若使用 VS Code / Antigravity Remote-SSH（連線、選目錄、切換資料夾都會重新認證），請搭配[第 02 章步驟 E 的 `ssh-proxy`](./02_vscode_and_ai_tools#步驟-e強烈建議用-ssh-proxy-只做一次-2fa-認證)，只需認證一次。
 
 ---
 
@@ -233,10 +242,16 @@ rsync -avzP -e "ssh -p 2222" your_account@nano4.nchc.org.tw:/work/your_account/c
 
 ## 6. 從台灣杉三號（T3）搬遷資料到 Nano4
 
-如果原本使用 `t3-c4.nchc.org.tw`，建議先登入 Nano4，再由 Nano4 主動連回 T3；資料先放在 `/work/$USER` 的暫存搬遷目錄，不要直接覆寫 Nano4 的 `$HOME`。
+如果原本使用 `t3-c4.nchc.org.tw`，建議先登入 Nano4，再由 Nano4 主動連回 T3；資料先放在 `/work/$USER` 的暫存搬遷目錄，不要直接覆寫 Nano4 的 `$HOME`。以下指令中的 `<T3帳號>`（連同 `< >` 一起）請換成 **T3 的帳號**（例如 `alice@t3-c4.nchc.org.tw:/home/alice/`）；`$USER` 則是 Nano4 帳號，不用改。
+
+> [!WARNING]
+> 本節指令在 Nano4 **登入節點**執行。資料量大（數 GB 以上）或預估超過 5 分鐘時，請在 `tmux` 內執行並先向管理者確認可用的傳輸方式，避免被登入節點的程序清理機制中斷。
 
 > [!IMPORTANT]
 > 本節假設 T3 帳號可以由 Nano4 以 SSH 連線。若連線被網路政策、2FA 或主機維護阻擋，請改用國網核准的資料傳輸節點或向管理者確認，不要反覆重試造成帳號鎖定。大型搬遷前先用 `hfsquota` 確認 Nano4 `/work` 剩餘容量。
+
+<details>
+<summary><b>展開：T3 → Nano4 搬遷步驟 A–D（僅原本使用台灣杉三號的學員需要）</b></summary>
 
 ### A. 先做小範圍 dry-run
 
@@ -246,11 +261,11 @@ mkdir -p /work/$USER/t3-home-backup
 
 # 只預覽，不會寫入資料；替換成實際 T3 帳號
 rsync -avHSn --info=progress2 \
-  t3-c4.nchc.org.tw:/home/你的帳號/ \
+  <T3帳號>@t3-c4.nchc.org.tw:/home/<T3帳號>/ \
   /work/$USER/t3-home-backup/
 ```
 
-來源路徑最後的 `/` 代表同步「目錄內容」。不要改成 `/home/你的帳號/*`，因為 shell 的 `*` 會漏掉 `.bashrc`、`.ssh`、`.config` 等隱藏檔案。
+來源路徑最後的 `/` 代表同步「目錄內容」。不要改成 `/home/<T3帳號>/*`，因為 shell 的 `*` 會漏掉 `.bashrc`、`.ssh`、`.config` 等隱藏檔案。
 
 ### B. 搬遷 T3 的 `$HOME`
 
@@ -258,7 +273,7 @@ rsync -avHSn --info=progress2 \
 
 ```bash
 rsync -avHS --partial --info=progress2 \
-  t3-c4.nchc.org.tw:/home/你的帳號/ \
+  <T3帳號>@t3-c4.nchc.org.tw:/home/<T3帳號>/ \
   /work/$USER/t3-home-backup/
 ```
 
@@ -267,12 +282,12 @@ rsync -avHS --partial --info=progress2 \
 ```bash
 mkdir -p /work/$USER/t3-work-backup
 rsync -avHSn --info=progress2 \
-  t3-c4.nchc.org.tw:/work/你的帳號/ \
+  <T3帳號>@t3-c4.nchc.org.tw:/work/<T3帳號>/ \
   /work/$USER/t3-work-backup/
 
 # 預覽確認後再移除 -n 執行正式同步
 rsync -avHS --partial --info=progress2 \
-  t3-c4.nchc.org.tw:/work/你的帳號/ \
+  <T3帳號>@t3-c4.nchc.org.tw:/work/<T3帳號>/ \
   /work/$USER/t3-work-backup/
 ```
 
@@ -280,24 +295,27 @@ rsync -avHS --partial --info=progress2 \
 
 ```bash
 # 查看兩個搬遷目錄的大小
- du -sh /work/$USER/t3-home-backup /work/$USER/t3-work-backup
+du -sh /work/$USER/t3-home-backup /work/$USER/t3-work-backup
 
 # 需要完整 checksum 驗證時使用；大型資料集會花較久時間
+# -n 代表只比對不寫入：輸出清單為空即表示兩邊內容一致。切勿移除 -n，否則 --delete 會刪除檔案
 rsync -nrc --delete \
-  t3-c4.nchc.org.tw:/work/你的帳號/ \
+  <T3帳號>@t3-c4.nchc.org.tw:/work/<T3帳號>/ \
   /work/$USER/t3-work-backup/
 ```
 
 - `rsync` 只複製資料，不會刪除 T3 原始檔；確認 Nano4 結果前不要清理 T3。
 - `.ssh`、token、設定檔可能包含敏感憑證；搬到 `/work` 後不要分享，也不要把舊 `.ssh` 直接覆蓋 Nano4 的 `$HOME/.ssh`。
-- `/work` 沒有備份且可能是短期工作區；完成搬遷後，依 GP1 官方規範將長期保存資料移到核准的 GP1-4 大容量儲存服務。
+- `/work` 沒有備份且可能是短期工作區；完成搬遷後，將長期保存資料移到國網 GP1-4 大容量儲存服務（見第 7 節「官方 GP1 儲存政策」）。
+
+</details>
 
 ## 7. 登入後第一步：環境健檢與三大儲存空間架構 (/home vs /work vs /project)
 
 登入成功後，請執行本章隨附的一鍵健康檢查腳本：
 
 ```bash
-cd 01-nano4-ssh-and-2fa/scripts
+cd "$HOME/Nano4-Docs/01-nano4-ssh-and-2fa/scripts"
 ./quick_healthcheck.sh
 ```
 
@@ -332,12 +350,12 @@ PROJECT_ID: MST109178, PROJECT_NAME: 國家生醫數位資料與分析運算雲�
 ✅ Python uv 極速套件管理器已就緒: uv 0.12.17 (x86_64-unknown-linux-gnu)
 
 [5] Slurm 資源調度系統 (佇列概況)：
-• H200 GPU 佇列   : dev (4h測試), 8gpus/16gpus (48h), 32gpus/64gpus (24h)
-• GB200 NVL72 佇列: gb200-dev (2h開發除錯), gb200-r1 (24h), gb200-r2 (12h)
-• NGS CPU 佇列    : ngstest, ngs8g ~ ngs1000g, ngs1500g ~ ngs6t (大記憶體)
+• GP1 NGS CPU 佇列: ngs62g (本課程 GOV115088，固定 -c 8 --mem=62G，96h)
+                    其他 ngs* 佇列僅開放 MST109178 等生醫平台計畫
+• GPU 佇列 (參考) : H200 dev/8gpus…、GB200 gb200-dev/r1/r2
 
 [6] 登入節點外網連通性測試：
-✅ 外網連線正常 (Hugging Face 連通)
+✅ 外網連線正常 (NCBI 連通)
 ✅ 外網連線正常 (GitHub 連通)
 ==========================================================
 ```
@@ -366,8 +384,8 @@ hfsquota
 **輸出範例：**
 ```text
 PATH                 USED      HARD LIMIT  USAGE %  STATUS
-/home/c00cjz00    499,712 B 107,374,182,400 B       0  ACTIVE
-/work/c00cjz00  2,240,512 B 107,374,182,400 B       0  ACTIVE
+/home/<YOUR_USERNAME>    499,712 B 107,374,182,400 B       0  ACTIVE
+/work/<YOUR_USERNAME>  2,240,512 B 107,374,182,400 B       0  ACTIVE
 ```
 
 > [!TIP]
@@ -393,7 +411,7 @@ PATH                 USED      HARD LIMIT  USAGE %  STATUS
 | 運算暫存 | `/work/$USER` | 放 FASTQ、Nextflow work、container/uv cache 與暫存結果；**沒有備份**，預設權限通常是 `700`。 |
 | 長期保存與共享 | GP1-4 大容量儲存服務 | 分析完成後移出 `/work`；依官方服務使用 S3/SSL 或 Aspera 傳輸，並依研究資料規範管理。 |
 
-官方頁面列出的 `/work` 數值是計畫與申請條件的說明，不代表每個帳號都固定擁有相同容量；實際上限以 `hfsquota` 為準。新帳號可能先取得 100 GB，擴充至 1500 GB 以上可能產生費用，請先確認計畫與配額，不要把 1.5 TB 或 6.5 TB 當成保證值。
+官方頁面列出的 `/work` 數值是計畫與申請條件的說明，不代表每個帳號都固定擁有相同容量；實際上限以 `hfsquota` 為準。新帳號可能先取得 100 GB，擴充至 1500 GB 以上可能產生費用，請先確認計畫與配額，不要把官方頁面上的 1.5 TB 或其他數值當成保證值。
 
 ```bash
 # 登入後確認實際配額（不要用 df -h 代替）
@@ -444,22 +462,24 @@ du -sh /work/$USER/* 2>/dev/null | sort -h | tail
 > 
 > ```bash
 > #!/bin/bash
-> #SBATCH -A GOV113021
-> #SBATCH -p dev
-> #SBATCH --gres=gpu:1
+> #SBATCH -A GOV115088
+> #SBATCH -p ngs62g
+> #SBATCH --cpus-per-task=8
+> #SBATCH --mem=62G
 > 
 > # 🌟 第一黃金法則：徹底清空登入端雜亂環境
 > module purge
 > 
-> # 階層式載入相依套件
+> # 依 Job 需求載入模組 (本課程生醫工具位於 biology/ 階層)
 > module load gcc/11.5
-> module load cuda/12.6
-> module load openmpi/5.0.10-cuda12.6
+> module load biology/JDK/26.0.1 biology/FastQC/0.11.9 biology/MultiQC
 > ```
+>
+> GPU 作業（本次課程不使用）則是在 H200 分區加上 `--gres=gpu:1`，並載入 `cuda/12.6`、`openmpi/5.0.10-cuda12.6` 等模組。
 
 執行示範腳本親自體驗模組切換：
 ```bash
-cd 01-nano4-ssh-and-2fa/scripts
+cd "$HOME/Nano4-Docs/01-nano4-ssh-and-2fa/scripts"
 ./demo_modules.sh
 ```
 
@@ -489,19 +509,19 @@ export SINGULARITY_CACHEDIR="/work/${USER}/.singularity_cache"
 # 1. 執行 Docker Hub 映像檔（自動快取轉換為 SIF）
 apptainer exec docker://alpine cat /etc/os-release
 
-# 2. 啟用 GPU 支援執行 PyTorch 容器
+# 2.（GPU 參考，本次課程不操作）啟用 GPU 支援執行 PyTorch 容器
 apptainer exec --nv docker://pytorch/pytorch:latest python -c "import torch; print('CUDA 可用:', torch.cuda.is_available())"
 
-# 3. 預先建置獨立 SIF 映像檔至 /work (建議於排程作業使用)
+# 3.（參考，本次課程不操作；數 GB 映像請在 Slurm 作業中建置，勿在登入節點執行）預先建置獨立 SIF 映像檔至 /work
 apptainer build /work/${USER}/my_pytorch.sif docker://pytorch/pytorch:latest
 
-# 4. 掛載高速工作區目錄執行訓練腳本
+# 4.（GPU 參考，本次課程不操作）掛載高速工作區目錄執行訓練腳本
 apptainer exec --nv --bind /work/${USER}:/workspace /work/${USER}/my_pytorch.sif python /workspace/train.py
 ```
 
 執行本章隨附的容器示範腳本：
 ```bash
-cd 01-nano4-ssh-and-2fa/scripts
+cd "$HOME/Nano4-Docs/01-nano4-ssh-and-2fa/scripts"
 ./demo_singularity.sh
 ```
 
@@ -546,11 +566,12 @@ source ~/.bashrc
 # 3. 將快取導向 /work (建議加入 ~/.bashrc)
 export UV_CACHE_DIR="/work/${USER}/.uv_cache"
 
-# 4. 在 /work 建立專屬虛擬環境 (秒級建立！)
+# 4. 在 /work 建立專屬虛擬環境 (通常幾秒內完成)
 uv venv /work/${USER}/my_ai_env
 
-# 5. 安裝常用深度學習與資料處理套件
-uv pip install --python /work/${USER}/my_ai_env/bin/python torch torchvision torchaudio numpy pandas rich
+# 5. 安裝常用資料處理套件
+uv pip install --python /work/${USER}/my_ai_env/bin/python numpy pandas rich
+# (PyTorch 等 GPU 套件動輒數 GB，僅供參考，本次 CPU-only 課程不安裝)
 
 # 6. 啟動環境
 source /work/${USER}/my_ai_env/bin/activate
@@ -558,12 +579,12 @@ source /work/${USER}/my_ai_env/bin/activate
 
 > [!WARNING]
 > **⚠️ 晶創26 雙架構核心注意：登入節點 (x86_64) vs GB200 (Arm aarch64)**  
-> 登入節點建立的 Python 虛擬環境為 **x86_64 架構**，只能在登入節點與 H200 節點（`dev`, `8gpus` 等）運行！  
+> 登入節點建立的 Python 虛擬環境為 **x86_64 架構**，只能在登入節點、NGS CPU 節點（本課程的 `ngs62g`，`25a-cpn*`）與 H200 節點（`dev`, `8gpus` 等）運行！  
 > **若您的作業要在 GB200 節點運行，請勿共用此環境！** 您必須先透過 `salloc` 或 `srun` 進入 `gb200-dev` 節點後，再為 Arm 建立獨立的虛擬環境（如 `/work/${USER}/venv-aarch64`）。
 
-執行示範腳本體驗 1 秒建立環境：
+執行示範腳本，體驗快速建立環境：
 ```bash
-cd 01-nano4-ssh-and-2fa/scripts
+cd "$HOME/Nano4-Docs/01-nano4-ssh-and-2fa/scripts"
 ./demo_uv.sh
 ```
 
@@ -578,6 +599,9 @@ cd 01-nano4-ssh-and-2fa/scripts
 ---
 
 ### A. 晶創26 完整 Slurm 佇列清單
+
+<details>
+<summary><b>參考：H200 與 GB200 GPU 佇列（本次 CPU-only 課程不使用，點此展開）</b></summary>
 
 #### 1. NVIDIA H200 佇列 (通用 AI / 深度學習 / x86_64 架構)
 *硬體：220 部節點 (`25a-hgpn*`)，雙路 Intel Xeon 8480+ (112核), 2TB 記憶體, 8x H200 (141GB HBM3e)*  
@@ -603,45 +627,57 @@ cd 01-nano4-ssh-and-2fa/scripts
 | **`gb200-r1`** | 32 | 16 | **24 小時 (1天)** | 機櫃內 16~32 卡超高速 NVLink 訓練 |
 | **`gb200-r2`** | 72 | 32 | **12 小時** | 機櫃內 32~72 卡滿櫃 NVLink 極致訓練 |
 
----
-
-#### 3. NGS 次世代定序與 CPU 計算佇列 (生醫專用節點群 `25a-cpn[01-18]`)
-*硬體：13 部高密度節點，每節點 128 CPU 核心，1,031 GB (~1TB) 記憶體，專門提供給生醫管線與純 CPU 分析*
-
-| 佇列名稱 (Partition) | 記憶體上限 | 最長執行時間 | 節點限制 | 適用任務與說明 |
-| :--- | :---: | :---: | :---: | :--- |
-| **`ngstest`** | 節點全量 | **10 分鐘** | 1 節點 | **極速測試**！專供檢查生醫腳本語法、路徑與小規模測試 |
-| **`ngsconsole`** | 節點全量 | **無限制 (infinite)** | 1 節點 | **互動式 Shell 控制台**，適合長時間互動分析 |
-| **`ngs8g`** | 8 GB | **48 小時 (2天)** | 1 節點 | 輕量比對、SAM/BAM 格式轉換、質控分析 (FastQC) |
-| **`ngs16g`** | 16 GB | **48 小時 (2天)** | 1 節點 | 中型轉錄組比對 (STAR / HISAT2) |
-| **`ngs32g`** | 32 GB | **96 小時 (4天)** | 1 節點 | 外顯子定序 (WES) 變異偵測 (GATK Variant Calling) |
-| **`ngs62g`** | 62 GB | **96 小時 (4天)** | 1 節點 | 全基因組定序 (WGS) 中長型變異分析 |
-| **`ngs125g`** | 125 GB | **無限制 (infinite)** | 1 節點 | 大型單細胞 RNA-seq (Seurat/Scanpy) 矩陣運算 |
-| **`ngs250g`** | 250 GB | **無限制 (infinite)** | 1 節點 | 總體基因體學 (Metagenomics) 大型分類比對 (Kraken2) |
-| **`ngs500g`** | 500 GB | **無限制 (infinite)** | 1 節點 | 超大型癌症基因體與結構變異 (SV) 分析 |
-| **`ngs1000g`** | 1,000 GB (1TB) | **無限制 (infinite)** | 1 節點 | 滿節點 1TB 記憶體大型生醫資料庫建置 |
-| **`ngs248c`** | 節點全量 | **無限制 (infinite)** | 獨佔節點 | 248 核心專用獨佔多執行緒高通量運算 |
-| **`ngs496c`** | 節點全量 | **無限制 (infinite)** | 跨節點獨佔 | 496 核心跨節點 MPI 大規模平行分析 |
-| **`ngscourse8g`** | 8 GB | **2 小時** | 1 節點 | 🎓 國網官方教育訓練專用 (8G 快速實習) |
-| **`ngscourse32g`** | 32 GB | **4 小時** | 1 節點 | 🎓 國網官方教育訓練專用 (32G 實務演練) |
-| **`ngscourse125g`** | 125 GB | **24 小時 (1天)** | 1 節點 | 🎓 國網官方教育訓練專用 (125G 綜合大作業) |
+</details>
 
 ---
+
+#### 3. NGS 次世代定序與 CPU 計算佇列 (生醫專用節點群 `25a-cpn[01-10,16-18]`)
+*硬體：13 部高密度節點，每節點 128 CPU 核心（Slurm 可排程 124 核心），1,031 GB (~1TB) 記憶體，專門提供給生醫管線與純 CPU 分析*
+
+> [!IMPORTANT]
+> **國網官方規定：每個佇列必須依表中的「CPU × 記憶體」固定搭配申請**（例如 `ngs62g` 一律 `-c 8 --mem=62G`），
+> 「為確保記憶體與核心數能有效且充分利用，參數設定必須符合排程與記憶體核心數搭配與限制」。計費以核心小時計算。
+> 參考：[GP1 生醫專用節點使用說明 — Partition(Queue) 資源設定](https://man.twcc.ai/xOYzPATVS_aDlbuqMrwhyg)
+> 下表「計畫」欄：✅ 表示本課程計畫 `GOV115088` 可用；其餘佇列僅開放 `MST109178`、`ENT109430`。
+> 以 `scontrol show partition <名稱>` 與 `sacctmgr show qos p_<名稱>` 可隨時查核最新設定。
+
+| 佇列名稱 (Partition) | 核心數搭配 (`-c`) | 記憶體配置 (`--mem`) | 最長執行時間 | 計畫 | 適用任務與說明 |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **`ngstest`** | 1 核心 | 8 GB | **10 分鐘** | MST | **極速測試**！專供檢查生醫腳本語法、路徑與小規模測試 |
+| **`ngsconsole`** | 1 核心 | 8 GB | **無限制 (infinite)** | MST | **互動式 Shell 控制台**，適合長時間互動分析 |
+| **`ngs8g`** | 1 核心 | 8 GB | **48 小時 (2天)** | MST | 輕量比對、SAM/BAM 格式轉換、單執行緒質控 |
+| **`ngs16g`** | 2 核心 | 16 GB | **48 小時 (2天)** | MST | 中型轉錄組比對 (STAR / HISAT2) |
+| **`ngs32g`** | 4 核心 | 32 GB | **96 小時 (4天)** | MST | 外顯子定序 (WES) 變異偵測 (GATK Variant Calling) |
+| **`ngs62g`** | **8 核心** | **62 GB** | **96 小時 (4天)** | ✅ **GOV115088** | **本課程主力佇列**：FASTQ 質控、擴增子分析、nf-core 子工作 |
+| **`ngs125g`** | 16 核心 | 125 GB | **無限制 (infinite)** | MST | 大型單細胞 RNA-seq (Seurat/Scanpy) 矩陣運算 |
+| **`ngs250g`** | 32 核心 | 250 GB | **無限制 (infinite)** | MST | 總體基因體學 (Metagenomics) 大型分類比對 (Kraken2) |
+| **`ngs500g`** | 64 核心 | 500 GB | **無限制 (infinite)** | MST | 超大型癌症基因體與結構變異 (SV) 分析 |
+| **`ngs1000g`** | 124 核心 | 1,000 GB (1TB) | **無限制 (infinite)** | MST | 滿節點 1TB 記憶體大型生醫資料庫建置 |
+| **`ngs248c`** | 248 核心 | 節點全量 | **無限制 (infinite)** | MST | 獨佔 2 台節點 (124×2) 的高通量多核運算 |
+| **`ngs496c`** | 496 核心 | 節點全量 | **無限制 (infinite)** | MST | 獨佔 4 台節點 (124×4) 的跨節點 MPI 大規模平行分析 |
+| **`ngscourse8g`** | 1 核心 | 8 GB | **2 小時** | MST | 🎓 國網官方教育訓練專用 (8G 快速實習) |
+| **`ngscourse32g`** | 4 核心 | 32 GB | **4 小時** | MST | 🎓 國網官方教育訓練專用 (32G 實務演練) |
+| **`ngscourse125g`** | 16 核心 | 125 GB | **24 小時 (1天)** | MST | 🎓 國網官方教育訓練專用 (125G 綜合大作業) |
+
+---
+
+<details>
+<summary><b>參考：NGS 巨型大記憶體與生醫 GPU 佇列（僅 MST109178 等生醫平台計畫，點此展開）</b></summary>
 
 #### 4. NGS 巨型超大記憶體節點 (Fat Memory 節點群 `25a-mpn[01-02]`)
-*硬體：2 部巨型節點，每節點 128 CPU 核心，**高達 6,224 GB (~6.2 TB) 實體記憶體**！*
+*硬體：2 部巨型節點，每節點 128 CPU 核心，**高達 6,224 GB (~6.2 TB) 實體記憶體**！（僅開放 `MST109178` 等生醫計畫）*
 
-| 佇列名稱 (Partition) | 記憶體上限 | 最長執行時間 | 核心用途與適用領域 |
-| :--- | :---: | :---: | :--- |
-| **`ngs1500g`** | 1.5 TB | **無限制 (infinite)** | 大型真菌/植物基因組從頭組裝 (De Novo Genome Assembly) |
-| **`ngs2t`** | 2.0 TB | **無限制 (infinite)** | 哺乳類動物超高深度定序資料重組 |
-| **`ngs3t`** | 3.0 TB | **無限制 (infinite)** | 人類泛基因組 (Pan-genome) 索引建置與複雜圖結構分析 |
-| **`ngs6t`** | **6.0 TB** 🚀 | **無限制 (infinite)** | **全國頂級 6TB 極致大記憶體**！大型多倍體物種 (小麥/甘蔗) 全基因體重組 |
+| 佇列名稱 (Partition) | 核心數搭配 (`-c`) | 記憶體配置 (`--mem`) | 最長執行時間 | 核心用途與適用領域 |
+| :--- | :---: | :---: | :---: | :--- |
+| **`ngs1500g`** | 32 核心 | 1.5 TB | **無限制 (infinite)** | 大型真菌/植物基因組從頭組裝 (De Novo Genome Assembly) |
+| **`ngs2t`** | 42 核心 | 2.0 TB | **無限制 (infinite)** | 哺乳類動物超高深度定序資料重組 |
+| **`ngs3t`** | 64 核心 | 3.0 TB | **無限制 (infinite)** | 人類泛基因組 (Pan-genome) 索引建置與複雜圖結構分析 |
+| **`ngs6t`** | 124 核心 | **6.0 TB** 🚀 | **無限制 (infinite)** | **全國頂級 6TB 極致大記憶體**！大型多倍體物種 (小麥/甘蔗) 全基因體重組 |
 
 ---
 
 #### 5. NGS 生醫專屬 GPU 加速佇列 (節點群 `25a-hgpn[175-177]`)
-*硬體：3 部節點，配備 8 張 NVIDIA H200 GPU 與高速 InfiniBand*
+*硬體：3 部節點，配備 8 張 NVIDIA H200 GPU 與高速 InfiniBand（僅開放 `MST109178` 等生醫計畫；本次課程不使用）*
 
 | 佇列名稱 (Partition) | 申請 GPU 數 | 最長執行時間 | 核心用途與軟體支援 |
 | :--- | :---: | :---: | :--- |
@@ -649,6 +685,8 @@ cd 01-nano4-ssh-and-2fa/scripts
 | **`ngs2gpu`** | 2 GPU | **14 天 (336 小時)** | 中型生醫圖形神經網路 (GNN) 分子動力學模擬 |
 | **`ngs4gpu`** | 4 GPU | **14 天 (336 小時)** | GROMACS、Amber 分子動力學多卡加速 |
 | **`ngs8gpu`** | 8 GPU | **14 天 (336 小時)** | **NVIDIA Clara Parabricks**（全基因組二代定序流程由 30 小時壓縮至 30 分鐘！） |
+
+</details>
 
 ---
 
@@ -684,15 +722,15 @@ cd 01-nano4-ssh-and-2fa/scripts
    # 3. 查詢當前所在的工作目錄路徑
    pwd
    
-   # 4. 查詢個人在 WekaFS 高速工作目錄 (/work) 的空間使用量
-   df -h /work/$USER
+   # 4. 查詢個人 /home 與 /work 的配額與使用量 (不要用 df -h，它只顯示整個叢集的容量)
+   hfsquota
    ```
 2. 執行本章一鍵健檢腳本：
    ```bash
-   cd 01-nano4-ssh-and-2fa/scripts
+   cd "$HOME/Nano4-Docs/01-nano4-ssh-and-2fa/scripts"
    ./quick_healthcheck.sh
    ```
-   **觀察重點**：確認您的 SU 錢包點數 (`wallet`) 是否正常顯示，以及 `/home` 與 `/work` 配額是否已就緒。
+   **觀察重點**：確認 `wallet` 列出本課程計畫 `GOV115088`（上方範例輸出的 GOV113021 / MST109178 僅為示意），`/work` 的實際配額以 `hfsquota` 為準（GOV 計畫常見為 100 GB）。
 
 ---
 
@@ -737,8 +775,9 @@ cd 01-nano4-ssh-and-2fa/scripts
    # 驗證編譯器
    gcc --version | head -n 1
    ```
-2. **寫一段最簡單的 C 語言程式**：
+2. **寫一段最簡單的 C 語言程式**（先切到 `/work`，避免把編譯產物留在課程 repo 裡）：
    ```bash
+   cd /work/$USER
    cat << 'EOF' > hello.c
    #include <stdio.h>
    int main() {
@@ -752,7 +791,7 @@ cd 01-nano4-ssh-and-2fa/scripts
    gcc hello.c -o hello
    ./hello
    ```
-4. **載入 CUDA 模組確認 GPU 編譯器**：
+4. **（參考，本次課程可跳過）載入 CUDA 模組確認 GPU 編譯器**：
    ```bash
    ml load cuda/12.6
    nvcc --version
@@ -760,7 +799,7 @@ cd 01-nano4-ssh-and-2fa/scripts
 
 ---
 
-### 🧪 練習 4：三秒打造現代 Python 運算環境 (`uv`)
+### 🧪 練習 4：快速建立現代 Python 運算環境 (`uv`)
 
 **目標**：不再苦等 Conda 安裝，使用 `uv` 在 `/work` 高速區秒建獨立虛擬環境。
 
@@ -772,7 +811,7 @@ cd 01-nano4-ssh-and-2fa/scripts
    ```bash
    uv venv /work/${USER}/lab_env
    ```
-3. **秒級安裝常用套件**：
+3. **快速安裝常用套件**：
    ```bash
    uv pip install --python /work/${USER}/lab_env/bin/python rich requests
    ```
@@ -795,15 +834,15 @@ cd 01-nano4-ssh-and-2fa/scripts
 **目標**：學會如何撰寫標準 `.slurm` 腳本、提交作業 (`sbatch`)、追蹤排程 (`squeue`)、查看日誌輸出與分析運算效率 (`seff`)。
 
 本章節已隨附兩套現成的初學者作業範本：
-* **純 CPU 生醫主力佇列**：[`01-nano4-ssh-and-2fa/scripts/sample_first_cpu_job.slurm`](https://github.com/gemini960114/Nano4-Docs/blob/main/01-nano4-ssh-and-2fa/scripts/sample_first_cpu_job.slurm)（**專門針對生醫 CPU 分區 `ngs62g`**）
-* **NVIDIA H200 GPU 佇列**：[`01-nano4-ssh-and-2fa/scripts/sample_first_job.slurm`](https://github.com/gemini960114/Nano4-Docs/blob/main/01-nano4-ssh-and-2fa/scripts/sample_first_job.slurm)（針對 GPU 測試分區 `dev`）
+* **純 CPU 生醫主力佇列**：[`01-nano4-ssh-and-2fa/scripts/sample_first_cpu_job.slurm`](https://github.com/gemini960114/Nano4-Docs/blob/main/01-nano4-ssh-and-2fa/scripts/sample_first_cpu_job.slurm)（**專門針對生醫 CPU 分區 `ngs62g`，本課程使用**）
+* **NVIDIA H200 GPU 佇列**：[`01-nano4-ssh-and-2fa/scripts/sample_first_job.slurm`](https://github.com/gemini960114/Nano4-Docs/blob/main/01-nano4-ssh-and-2fa/scripts/sample_first_job.slurm)（針對 GPU 測試分區 `dev`，僅供參考）
 
-#### 🚀 選擇 A：提交至生醫專屬 CPU 佇列 (`ngs62g`)【推薦生醫專案學員】
+#### 🚀 步驟 A：提交至生醫專屬 CPU 佇列 (`ngs62g`)【本課程使用】
 生醫資訊工具（如 FastQC、BWA、SAMtools、QIIME 2 等）通常依賴多核心 CPU 與適量記憶體：
 
 1. **複製 CPU 範本至您的工作區**：
    ```bash
-   cp 01-nano4-ssh-and-2fa/scripts/sample_first_cpu_job.slurm /work/$USER/my_first_cpu_job.slurm
+   cp "$HOME/Nano4-Docs/01-nano4-ssh-and-2fa/scripts/sample_first_cpu_job.slurm" /work/$USER/my_first_cpu_job.slurm
    cd /work/$USER
    ```
 2. **檢視腳本內容與關鍵參數**：
@@ -811,10 +850,10 @@ cd 01-nano4-ssh-and-2fa/scripts
    cat my_first_cpu_job.slurm
    ```
    * 關鍵參數解析：
-     - `#SBATCH --account=GOV115088`：生醫專案代號。
+     - `#SBATCH --account=GOV115088`：本課程計畫代號（國網生技醫藥高效能運算推廣與應用計畫）。
      - `#SBATCH --partition=ngs62g`：**Nano4 生醫專屬 CPU 佇列**。
-     - `#SBATCH --cpus-per-task=4`：分配 4 顆 CPU 核心。
-     - `#SBATCH --mem=16G`：⚠️ **`ngs62g` 關鍵必填！** 上限 62G，漏填會被排程器阻斷。
+     - `#SBATCH --cpus-per-task=8`：分配 8 顆 CPU 核心。
+     - `#SBATCH --mem=62G`：⚠️ **`ngs62g` 關鍵必填！** 國網官方規定 `ngs62g` 必須以 **`-c 8 --mem=62G`** 搭配申請。
      - *(純 CPU 佇列嚴禁加上 `--gres=gpu:1`)*
 3. **提交作業**：
    ```bash
@@ -825,13 +864,19 @@ cd 01-nano4-ssh-and-2fa/scripts
    Submitted batch job 422203
    ```
 
-#### 🚀 選擇 B：提交至 H200 GPU 佇列 (`dev`)【通用 AI 專案學員】
-1. **複製 GPU 範本至工作區並提交**：
-   ```bash
-   cp 01-nano4-ssh-and-2fa/scripts/sample_first_job.slurm /work/$USER/my_first_gpu_job.slurm
-   sbatch --account=YOUR_PROJECT_ID /work/$USER/my_first_gpu_job.slurm
-   ```
+<details>
+<summary><b>參考：H200 GPU 佇列 (dev) 提交方式【本次課程不操作】</b></summary>
 
+#### 📎 參考：H200 GPU 佇列 (`dev`)【本次課程不操作】
+一般 AI 計畫（如 `GOV113021`）日後可用 GPU 範本，提交方式如下：
+```bash
+cp "$HOME/Nano4-Docs/01-nano4-ssh-and-2fa/scripts/sample_first_job.slurm" /work/$USER/my_first_gpu_job.slurm
+sbatch --account=<YOUR_GPU_PROJECT_ID> /work/$USER/my_first_gpu_job.slurm
+```
+
+</details>
+
+#### 🔎 步驟 B：追蹤作業與分析效能
 4. **追蹤作業即時狀態**：
    ```bash
    squeue --me
@@ -856,35 +901,38 @@ cd 01-nano4-ssh-and-2fa/scripts
 #### 模式 1：申請純 CPU 生醫計算節點 (`ngs62g`)
 適合生醫管線腳本微型除錯、Python 程式驗證：
 ```bash
-salloc --account=GOV115088 --partition=ngs62g --nodes=1 --cpus-per-task=4 --mem=16G -t 00:30:00
+salloc --account=GOV115088 --partition=ngs62g --nodes=1 --cpus-per-task=8 --mem=62G -t 00:30:00 srun --pty /bin/bash
 ```
 
-#### 模式 2：申請 NVIDIA H200 GPU 測試節點 (`dev`)
-適合深度學習模型推論、CUDA 程式除錯：
+<details>
+<summary><b>參考：模式 2 — 申請 H200 GPU 測試節點 (dev)【本次課程不操作】</b></summary>
+
+#### 模式 2（參考，本次課程不操作）：申請 NVIDIA H200 GPU 測試節點 (`dev`)
+適合深度學習模型推論、CUDA 程式除錯，需使用一般 AI 計畫：
 ```bash
 salloc --account=GOV113021 --partition=dev --nodes=1 --gres=gpu:1 --cpus-per-task=12 --mem=64G -t 00:30:00
 ```
 
+</details>
+
 #### 進入節點與退出操作：
-1. **申請成功後，終端機提示符號會改變**：
+1. **申請成功後，會直接進入計算節點的 Shell**（指令最後的 `srun --pty /bin/bash` 負責這一步）：
    ```text
    salloc: Granted job allocation 421820
    salloc: Nodes 25a-cpn01 are ready for job
-   [user@25a-lgn01 salloc_421820 ~]$
+   [user@25a-cpn01 ~]$
    ```
-2. **直接下達指令操作運算節點**：
+   * 若排隊中，畫面會停在 `salloc: Pending job allocation ...`，屬正常現象，等待即可。
+2. **確認自己真的在計算節點上**：
    ```bash
-   # 檢查分配到的節點資訊
-   srun hostname
-   
-   # 或直接進入計算節點互動 Shell
-   srun --pty bash
+   hostname    # 應顯示 25a-cpn*；若顯示 25a-lgn* 表示仍在登入節點
+   nproc       # 應顯示 8 (申請的核心數)
    ```
 3. **完成測試後，務必退出釋放資源（停止計費）**：
    ```bash
    exit
    ```
-   *(離開互動 Shell 後，Job 即刻結束，不再扣除計畫 SU 點數)*
+   *(提示符號回到 `25a-lgn*` 後，執行一次 `squeue --me`：清單中沒有這個作業，才代表資源已釋放)*
 
 ---
 
@@ -902,12 +950,14 @@ salloc --account=GOV113021 --partition=dev --nodes=1 --gres=gpu:1 --cpus-per-tas
 * **解法**：手動打開手機 **IDExpert App**，進入畫面後授權請求通常會立刻彈出。若依然未收到，可按 `Ctrl+C` 中斷，重新執行 `ssh nano4` 並改選 **1. Mobile APP OTP** 輸入 6 位動態碼。
 
 ### Q4：在 GB200 上執行程式時出現 `cannot execute binary file: Exec format error`？
+> 本題為 GPU 參考情境，本次 CPU-only 課程不會遇到。
+
 * **原因**：該程式是在登入節點（x86_64）上編譯或安裝的，無法直接在 GB200（Arm aarch64）上執行！
 * **解法**：使用 `srun -A <PROJECT> -p gb200-dev -N1 --gres=gpu:1 -t 02:00:00 --pty bash` 進入 GB200 節點，重新執行編譯或建立 Arm 獨立 Python 虛擬環境。
 
 ### Q5：終端機提示 `Disk quota exceeded` 無法寫入檔案？
 * **原因**：家目錄（`/home`）容量或 Inode 數量已達上限（預設 100GB）。
-* **解法**：執行 `df -h $HOME` 檢查剩餘空間。將大型套件、模型權重與暫存檔移至高速工作區 `/work/$USER`。
+* **解法**：執行 `hfsquota` 檢查個人配額與使用量（`df -h` 只會顯示整個叢集的容量）。將大型套件、模型權重與暫存檔移至高速工作區 `/work/$USER`。
 
 ### Q6：為什麼在超算上執行 `sudo apt install` 會被拒絕？
 * **原因**：超算是數百人共用的 Linux 叢集，一般使用者不具備 root 權限以確保系統穩定與資安。
@@ -920,5 +970,5 @@ salloc --account=GOV113021 --partition=dev --nodes=1 --gres=gpu:1 --cpus-per-tas
 ---
 
 恭喜您！完成本章後，您已經熟練掌握了晶創26（Nano4）的登入連線、Port 2222 高速傳輸、WekaFS 儲存空間規劃、Lmod 模組、Apptainer 容器化、極速 `uv` Python 環境、NGS 生醫運算佇列與 Slurm 排程調度的完整技能！  
-👉 **下一步**：進入 **[第 02 章：VS Code Remote-SSH 與 AI 開發工具鏈](./02_vscode_and_ai_tools)**，學習如何打造現代化遠端 AI 工作台！
+👉 **下一步**：進入 **[第 02 章：VS Code Remote-SSH 與 AI 工具鏈](./02_vscode_and_ai_tools)**，學習如何打造現代化遠端 AI 工作台！
 

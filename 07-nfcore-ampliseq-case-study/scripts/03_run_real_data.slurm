@@ -2,13 +2,17 @@
 #SBATCH --job-name=ampliseq_real
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=4G
+#SBATCH --cpus-per-task=8             # ngs62g 官方規格：每個作業 8 核心
+#SBATCH --mem=62G                     # ngs62g 官方規格：每個作業 62 GB
 #SBATCH --time=96:00:00
 #SBATCH --output=%x-%j.out
 #SBATCH --error=%x-%j.err
 
-module purge
+# Submit from the chapter directory after 01 and 02 have succeeded:
+# export NFCORE_ACCOUNT=GOV115088 NFCORE_PARTITION=ngs62g
+# sbatch --account="${NFCORE_ACCOUNT}" --partition="${NFCORE_PARTITION}" \
+#     --export=ALL,NFCORE_ACCOUNT,NFCORE_PARTITION scripts/03_run_real_data.slurm
+
 set -euo pipefail
 
 : "${NFCORE_ACCOUNT:?Submit with NFCORE_ACCOUNT exported}"
@@ -26,31 +30,13 @@ for required_file in "${CONFIG}" "${SAMPLESHEET}" "${METADATA}"; do
         exit 1
     fi
 done
-command -v nextflow >/dev/null || {
-    echo 'ERROR: nextflow is not available on PATH' >&2
-    exit 1
-}
-command -v singularity >/dev/null || command -v apptainer >/dev/null || {
-    echo 'ERROR: neither singularity nor apptainer is available on PATH' >&2
-    exit 1
-}
 
-mkdir -p \
-    "${NFCORE_ROOT}/cache/nextflow" \
-    "${NFCORE_ROOT}/cache/singularity" \
-    "${NFCORE_ROOT}/cache/singularity-runtime" \
-    "${NFCORE_ROOT}/cache/taxonomy" \
-    "${NFCORE_ROOT}/results-real" \
-    "${NFCORE_ROOT}/work-real"
+source "${COURSE_DIR}/scripts/nfcore_env.sh"
+mkdir -p "${NFCORE_ROOT}/results-real" "${NFCORE_ROOT}/work-real"
 
-export NXF_HOME="${NFCORE_ROOT}/cache/nextflow"
-export NXF_SINGULARITY_CACHEDIR="${NFCORE_ROOT}/cache/singularity"
-export APPTAINER_CACHEDIR="${NFCORE_ROOT}/cache/singularity-runtime"
-export SINGULARITY_CACHEDIR="${NFCORE_ROOT}/cache/singularity-runtime"
-
-nextflow run nf-core/ampliseq \
-    -r 2.18.0 \
+nextflow run "${NFCORE_AMPLISEQ_HOME}" \
     -profile singularity \
+    -c "${NFCORE_SITE_CONFIG}" \
     -c "${CONFIG}" \
     --input "${SAMPLESHEET}" \
     --FW_primer 'GTGYCAGCMGCCGCGGTAA' \

@@ -1,8 +1,8 @@
-# HPC 實戰指南：Slurm 語法精講與超級電腦作業調度實務 (晶創26 / Nano4 超算專屬)
+# 第 03 章：Slurm 語法精講與超級電腦作業調度實務 (晶創26 / Nano4 超算專屬)
 
 本教學手冊全面解析在國網中心**晶創26（Nano4 / `nano4.nchc.org.tw`）**超級電腦叢集中最核心的資源排程系統 —— **Slurm (Simple Linux Utility for Resource Management)**。
 
-本章節基於 Nano4 實際硬體架構（包含雙 Intel Xeon 8480+ 計算節點、NVIDIA H200 141GB 節點、NVIDIA GB200 NVL72 節點與專屬生醫大記憶體節點），進行系統化的語法剖析、架構指南、實戰範本與除錯清單。
+本章以 GP1 生醫 NGS CPU 節點（`25a-cpn*`）與本課程的 `ngs62g` 佇列為主軸，進行系統化的語法剖析、實戰範本與除錯清單；H200 / GB200 GPU 節點與大記憶體節點的內容保留作為參考。
 
 ---
 
@@ -16,34 +16,36 @@
 
 
 > [!WARNING]
-> 本章所有 `GOV...`、`MST...` 都是說明用範例；提交前必須以 `wallet` 和 association 查到的 project ID 取代，不能直接照抄。
+> 本次課程計畫為 **`GOV115088`**（國網生技醫藥高效能運算推廣與應用計畫）。本章其他 `GOV...`、`MST...` 代號都是說明用範例；日後使用自己的計畫時，必須以 `wallet` 和 association 查到的 project ID 取代，不能直接照抄。
 
 > [!IMPORTANT]
 > **本次課程採 CPU-only 配置。** 機房雖然有 H200/其他 GPU 節點，但本次不申請 GPU、
 > 不使用 `dev`/`ngs1gpu`～`ngs8gpu`，Slurm 腳本也不加入 `--gres=gpu`。
-> 本課程以 GP1 CPU 服務與 NGS CPU 分區為主，實際 account、partition、`--mem` 與核心數
-> 必須先以 `wallet`、association 和 `scontrol show partition` 驗證。
+> 本課程以 GP1 CPU 服務與 NGS CPU 分區為主：**`GOV115088` 在 NGS CPU 佇列中只允許使用 `ngs62g`**
+> （官方規格：每個作業固定 **`-c 8 --mem=62G`**，最長 4 天；標準範例見第 3 節）。
+> 日後使用其他計畫時，仍應以 `wallet`、association 和 `scontrol show partition` 驗證權限。
+> 本章的 H200 / GB200 段落標示為「參考」，本次課程不操作。
 > 官方 GP1 說明：[Nano4 生醫專用節點使用說明](https://man.twcc.ai/xOYzPATVS_aDlbuqMrwhyg)。
 
 
 ## 📌 目錄 (Table of Contents)
-- [1. 為什麼需要 Slurm？排程器運作本質](#_1-為什麼需要-slurm-排程器運作本質)
-- [2. Nano4 官方硬體規格與佇列分區表 (Partitions)](#_2-nano4-官方硬體規格與佇列分區表-partitions)
-  - [A. 計畫錢包餘額與帳號權限查詢 (`wallet` / `sacctmgr`)](#a-計畫錢包餘額與帳號權限查詢-wallet-sacctmgr)
+- [1. 為什麼需要 Slurm？排程器運作本質](#1-為什麼需要-slurm排程器運作本質)
+- [2. Nano4 官方硬體規格與佇列分區表 (Partitions)](#2-nano4-官方硬體規格與佇列分區表-partitions)
+  - [A. 計畫錢包餘額與帳號權限查詢 (`wallet` / `sacctmgr`)](#a-計畫錢包餘額與帳號權限查詢-wallet--sacctmgr)
   - [B. 專案類別與佇列分區對應架構 (Project vs. Partition)](#b-專案類別與佇列分區對應架構-project-vs-partition)
   - [C. Nano4 常用佇列清單與 QoS 限制](#c-nano4-常用佇列清單與-qos-限制)
-- [3. Slurm 核心參數速查表 (#SBATCH Directives)](#_3-slurm-核心參數速查表-sbatch-directives)
-- [4. 資源配置關鍵四要素：Nodes、Tasks、CPUs 與 Memory](#_4-資源配置關鍵四要素-nodes、tasks、cpus-與-memory)
-- [5. 進階排程神器：陣列、相依性與 GPU 運算](#_5-進階排程神器-陣列、相依性與-gpu-運算)
+- [3. Slurm 核心參數速查表 (#SBATCH Directives)](#3-slurm-核心參數速查表-sbatch-directives)
+- [4. 資源配置關鍵四要素：Nodes、Tasks、CPUs 與 Memory](#4-資源配置關鍵四要素nodestaskscpus-與-memory)
+- [5. 進階排程神器：陣列、相依性與 GPU 運算](#5-進階排程神器陣列相依性與-gpu-運算)
   - [A. 批次陣列作業 (Array Jobs)](#a-批次陣列作業-array-jobs)
   - [B. 流水線相依性作業 (Job Dependencies)](#b-流水線相依性作業-job-dependencies)
   - [C. NVIDIA H200 GPU 資源申請](#c-nvidia-h200-gpu-資源申請)
-  - [D. 互動式除錯與即時開發 (`salloc` + `srun`)](#d-互動式除錯與即時開發-salloc-srun)
+  - [D. 互動式除錯與即時開發 (`salloc` + `srun`)](#d-互動式除錯與即時開發-salloc--srun)
   - [E. 單節點 vs 跨節點 GPU 分散式運算架構與 Benchmark 迷思](#e-單節點-vs-跨節點-gpu-分散式運算架構與-benchmark-迷思)
-- [6. 作業監控、效能分析 (seff) 與資源除錯](#_6-作業監控、效能分析-seff-與資源除錯)
-- [7. HPC 容器化技術：Singularity / Apptainer 實務](#_7-hpc-容器化技術-singularity-apptainer-實務)
-- [8. 初學者循序漸進實作演練 (Hands-on Labs)](#_8-初學者循序漸進實作演練-hands-on-labs)
-- [9. Nano4 常見踩坑與排錯清單 (Troubleshooting)](#_9-nano4-常見踩坑與排錯清單-troubleshooting)
+- [6. 作業監控、效能分析 (seff) 與資源除錯](#6-作業監控效能分析-seff-與資源除錯)
+- [7. HPC 容器化技術：Singularity / Apptainer 實務](#7-hpc-容器化技術singularity--apptainer-實務)
+- [8. 初學者循序漸進實作演練 (Hands-on Labs)](#8-初學者循序漸進實作演練-hands-on-labs)
+- [9. Nano4 常見踩坑與排錯清單 (Troubleshooting)](#9-nano4-常見踩坑與排錯清單-troubleshooting)
 
 ---
 
@@ -81,7 +83,7 @@ Nano4 採用雙架構設計，包含 x86_64（Intel Xeon 8480+ 與 NVIDIA H200�
 wallet
 
 # 2. 查詢特定計畫餘額 (速度較快)
-wallet GOV113021
+wallet GOV115088
 
 # 3. 查詢自己帳號在 Slurm 排程系統中綁定的授權 (Association)
 sacctmgr -nP show assoc user="$(whoami)" format=Account,Partition,QOS
@@ -95,22 +97,26 @@ Nano4 具備非常嚴格的**專案類別佇列隔離機制**：
 
 ```mermaid
 flowchart TD
-    User["使用者帳號 (User)"] --> P_General["一般 AI / 運算專案<br/>(如 GOV113021, GOV114022)"]
-    User --> P_Bio["生技醫藥專屬專案<br/>(如 GOV115088, MST109178)"]
+    User["使用者帳號 (User)"] --> P_General["一般 AI / 運算專案<br/>(如 GOV113021, GOV108018)"]
+    User --> P_Course["本課程計畫<br/>GOV115088"]
+    User --> P_Bio["生醫平台計畫<br/>(如 MST109178, ENT109430)"]
 
-    P_General --> H200["NVIDIA H200 分區<br/>dev (4h), 8gpus (48h) ~ 256gpus"]
+    P_General --> H200["NVIDIA H200 分區<br/>dev (4h), 8gpus (48h) ~ 64gpus"]
     P_General --> GB200["NVIDIA GB200 NVL72 分區<br/>gb200-dev (2h), gb200-r1 (24h)"]
 
-    P_Bio --> NGS_CPU["NGS CPU / 記憶體分區<br/>ngstest (10m), ngs8g ~ ngs1000g<br/>ngs62g (4d, 8C/62G)<br/>ngs248c / 496c"]
+    P_Course --> NGS62["ngs62g<br/>(4d, 每作業 8C / 62G)<br/>★ 本課程唯一使用的佇列"]
+
+    P_Bio --> NGS_CPU["NGS CPU / 記憶體分區<br/>ngstest (10m), ngs8g ~ ngs1000g<br/>ngs62g, ngs248c / 496c"]
     P_Bio --> NGS_Fat["NGS 超大記憶體 Fat Node<br/>ngs1500g, ngs2t, ngs3t, ngs6t (6.0TB RAM)"]
     P_Bio --> NGS_GPU["NGS 專屬 GPU 分區<br/>ngs1gpu ~ ngs8gpu (14天)"]
 ```
 
 > [!CAUTION]
 > **專案與佇列權限不可混用**：
-> 1. 生醫專案（如 `GOV115088`, `MST109178`）被 GPU 分區（如 `dev`）設定為 `DenyAccounts`，無法派送至一般 GPU 佇列。
-> 2. 一般 AI 專案（如 `GOV113021`）無法派送至 `ngs62g` 等生醫專用分區。
-> 3. 派送前可用 `scontrol show partition <PARTITION>` 檢查 `AllowAccounts` 與 `DenyAccounts`。
+> 1. 生醫平台計畫 `MST109178`、`ENT109430` 被一般 GPU 分區（如 `dev`）設定為 `DenyAccounts`，只能使用 `ngs*` 佇列。
+> 2. 本課程計畫 `GOV115088` 在 NGS 佇列中**只列在 `ngs62g` 的 `AllowAccounts`**；送到 `ngstest`、`ngs32g`、`ngs250g`、`ngscourse*` 等會被拒絕。
+> 3. 一般 AI 專案（如 `GOV113021`）無法派送至 `ngs62g` 等生醫專用分區。
+> 4. 派送前可用 `scontrol show partition <PARTITION>` 檢查 `AllowAccounts` 與 `DenyAccounts`。
 
 ---
 
@@ -128,43 +134,74 @@ flowchart TD
 #### 2. NVIDIA GB200 NVL72 分區 (Arm aarch64 新架構)
 | 佇列名稱 | 節點架構 | GPU 資源 | 最長執行時間 | 說明與限制 |
 | :--- | :--- | :--- | :--- | :--- |
-| **`gb200-dev`** | 25a-ggpn* (Arm) | 1 ~ 8x Blackwell | **2 小時** | GB200 除錯測試專用 |
+| **`gb200-dev`** | 25a-ggpn* (Arm) | 1 ~ 2x Blackwell（單一計畫上限 2） | **2 小時** | GB200 除錯測試專用 |
 | **`gb200-r1` / `r2`**| 25a-ggpn* (Arm) | NVL72 專屬 | 12 ~ 24 小時 | 高階 Blackwell 平行訓練 |
 
 > ⚠️ **Arm 架構編譯提醒**：Nano4 登入節點為 x86_64，若軟體要在 GB200 上執行，必須透過 `salloc -p gb200-dev` 進入 Arm 計算節點進行編譯或建立虛擬環境！
 
-#### 3. NGS 生技醫藥專用分區 (`GOV115088` / `MST109178` 專屬)
-| 佇列名稱 | 節點類型 | CPU 上限 | 記憶體標準 / 上限 | 最長時間 | 適用任務 |
+#### 3. NGS 生技醫藥專用分區 (`ngs62g` 開放 `GOV115088`；其餘僅 `MST109178` / `ENT109430`)
+| 佇列名稱 | 節點類型 | 核心數搭配 (`-c`) | 記憶體配置 (`--mem`) | 最長時間 | 適用任務 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **`ngstest`** | 25a-cpn* | **1 核心** | **8 GB** | **10 分鐘** | 快速語法除錯、微型測試 |
 | **`ngsconsole`**| 25a-cpn* | **1 核心** | **8 GB** | **不限時** | 互動式命令列操作 |
-| **`ngs62g`** (核心)| 25a-cpn* | **8 核心** | **62 GB** (嚴格上限) | **4 天** (96h) | **生醫最常用分區 (FASTQ QC, Amplicon)** |
-| **`ngs250g` / `500g`**| 25a-cpn* | 32~64 核心 | 250 ~ 500 GB | 3 ~ 4 天 | 基因體比對、Variant Calling |
+| **`ngs62g`** (本課程)| 25a-cpn* | **8 核心** | **62 GB**（固定規格） | **4 天** (96h) | **本課程唯一使用的分區 (FASTQ QC, Amplicon)** |
+| **`ngs250g` / `500g`**| 25a-cpn* | 32~64 核心 | 250 ~ 500 GB | **不限時** | 基因體比對、Variant Calling |
 | **`ngs248c` / `496c`**| 25a-cpn* | **124×2 / 124×4** | 不設限 | **不限時** | 大規模 CPU 基因體平行運算 |
 | **`ngs1500g` ~ `ngs6t`**| 25a-mpn* (Fat) | 32～124 核心 | **1.5～6.0 TB** | **不限時** | **巨量記憶體組裝 (De novo assembly)** |
 | **`ngs1gpu` ~ `ngs8gpu`**| 25a-hgpn* | 12～96 核心 | **200～1600 GB** | **14 天** | 生醫專屬 GPU（本次課程不使用） |
 
 > [!WARNING]
 > **💥 國網 Nano4 初學者第一大坑：`ngs62g` 記憶體未指定直接報錯！**  
-> `ngs62g` 分區設有 QoS 限額：單一作業 CPU ≤ 8 核心、記憶體 ≤ 62 GB。  
+> 國網官方規定 `ngs62g` 必須以固定搭配 **`-c 8 --mem=62G`** 申請（單一作業 CPU 8 核心、記憶體 62 GB）。  
 > 若您在腳本中**漏寫** `#SBATCH --mem=...`，Slurm 預設會為您申請「整台節點的記憶體 (1024 GB)」，導致作業因超出 QoS 限制而被排程器拒絕或永遠處於 `(QOSMaxMemoryPerJob)` 排隊狀態！  
-> **解決方案**：在 `ngs62g` 作業中**務必明確指定** `#SBATCH --mem=62G`（或更小，如 `16G`、`4G`）！
+> **解決方案**：在 `ngs62g` 作業中**務必明確指定** `#SBATCH --cpus-per-task=8` 與 `#SBATCH --mem=62G`（官方規格，不自行縮減）！
 
 ---
 
 ## 3. Slurm 核心參數速查表 (#SBATCH Directives)
 
+### 本課程標準範例：`ngs62g`（依國網官方規格）
+
+國網 [GP1 生醫專用節點使用說明](https://man.twcc.ai/xOYzPATVS_aDlbuqMrwhyg) 規定：每個佇列都必須以表中固定的「核心數 × 記憶體」搭配申請。本課程所有範例一律使用 `ngs62g` 的官方規格 **`-c 8 --mem=62g`**：
+
+| Partition | 記憶體配置 (`--mem`) | 核心數搭配 (`-c`) | 時間限制 | 個人 Job 上限 |
+| :--- | :---: | :---: | :---: | :---: |
+| `ngs62g` | 62G | 8 | 96 hrs | 120 |
+
+官方範例（計畫代號換成本課程的 `GOV115088`）：
+
+```bash
+#!/usr/bin/sh
+#SBATCH -A GOV115088        # Account name/project number (官方範例為 MST109178)
+#SBATCH -J Job_name         # Job name
+#SBATCH -p ngs62g           # Partition Name 等同PBS裡面的 -q Queue name
+#SBATCH -c 8                # 使用的core數 請參考Queue資源設定
+#SBATCH --mem=62g           # 使用的記憶體量 請參考Queue資源設定
+#SBATCH -o out.log          # Path to the standard output file
+#SBATCH -e err.log          # Path to the standard error output file
+#SBATCH --mail-user=XXXX@niar.org.tw    # email
+#SBATCH --mail-type=BEGIN,END           # 指定送出email時機 可為NONE, BEGIN, END, FAIL, REQUEUE, ALL
+
+echo 'Hello world!'  ## 這邊寫入你要執行的指令
+```
+
+本手冊的範本另外做了兩處調整，其餘完全依官方規格：
+- 日誌改用 `#SBATCH --output=%x-%j.out` / `--error=%x-%j.err`，檔名帶作業名稱與 Job ID，多次提交也不會互相覆蓋。
+- 執行內容第一行加入 `module purge`，再載入所需模組。
+
+### 參數速查表
+
 在批次腳本開頭，以 `#SBATCH` 開頭的指令會被 Slurm 解析：
 
 | 參數語法 | 簡寫 | 功能說明 | Nano4 實戰範例 |
 | :--- | :--- | :--- | :--- |
-| `#SBATCH --account=<ID>` | `-A` | 指定計費計畫代號 (iService Project ID) | `--account=GOV115088` (生醫) 或 `GOV113021` (AI) |
+| `#SBATCH --account=<ID>` | `-A` | 指定計費計畫代號 (iService Project ID) | `--account=GOV115088`（本課程）；GPU 參考：`GOV113021` |
 | `#SBATCH --job-name=<NAME>` | `-J` | 定義作業名稱 (顯示於 squeue) | `--job-name=fastq_qc` |
-| `#SBATCH --partition=<NAME>` | `-p` | 指定排程分區 | `--partition=ngs62g` 或 `--partition=dev` |
+| `#SBATCH --partition=<NAME>` | `-p` | 指定排程分區 | `--partition=ngs62g`（本課程）；GPU 參考：`dev` |
 | `#SBATCH --nodes=<N>` | `-N` | 申請的實體節點數量 (單機多線程填 1) | `--nodes=1` |
 | `#SBATCH --ntasks-per-node=<N>` | | 每個節點執行的行程（Process）數 | `--ntasks-per-node=1` |
-| `#SBATCH --cpus-per-task=<N>` | `-c` | 每個行程分配的 CPU 核心數（多執行緒） | `--cpus-per-task=4` (ngs62g 最大 8) |
-| `#SBATCH --mem=<SIZE>` | | **【必填】分配總記憶體大小** | `--mem=16G` 或 `--mem=62G` |
+| `#SBATCH --cpus-per-task=<N>` | `-c` | 每個行程分配的 CPU 核心數（多執行緒） | `--cpus-per-task=8` (ngs62g 官方規格) |
+| `#SBATCH --mem=<SIZE>` | | **【必填】分配總記憶體大小** | `--mem=62G` (ngs62g 官方規格) |
 | `#SBATCH --gres=gpu:<N>` | | 申請 GPU 數量 (GPU 分區專用) | `--gres=gpu:1` (H200 分區必備) |
 | `#SBATCH --time=<D-HH:MM:SS>` | `-t` | 最長運行時間上限 (Walltime) | `--time=00:30:00` (30分鐘) |
 | `#SBATCH --output=<FILE>` | `-o` | 標準輸出日誌路徑 | `--output=%x-%j.out` |
@@ -193,17 +230,17 @@ graph TD
 ```
 
 1. **單機多執行緒程式（Python multiprocessing, FastQC, OpenMP）**：
-   * 範例：申請 1 節點、跑 1 個行程、使用 8 個執行緒、配給 32GB 記憶體（生醫純 CPU 分區 `ngs62g`）。
+   * 範例：申請 1 節點、跑 1 個行程、使用 8 個執行緒、配給 62GB 記憶體（生醫純 CPU 分區 `ngs62g` 官方規格）。
    ```bash
    #SBATCH --account=GOV115088
    #SBATCH --partition=ngs62g
    #SBATCH --nodes=1
    #SBATCH --ntasks-per-node=1
    #SBATCH --cpus-per-task=8
-   #SBATCH --mem=32G
+   #SBATCH --mem=62G
    ```
-2. **GPU 加速作業（PyTorch / TensorFlow / vLLM）**：
-   * 範例：申請 1 節點、1 張 H200 GPU、12 核心、64GB 記憶體。
+2. **GPU 加速作業（PyTorch / TensorFlow / vLLM）【參考，本次課程不操作】**：
+   * 範例：申請 1 節點、1 張 H200 GPU、12 核心、64GB 記憶體（需一般 AI 計畫）。
    ```bash
    #SBATCH --partition=dev
    #SBATCH --nodes=1
@@ -222,7 +259,8 @@ graph TD
 
 ```bash
 #SBATCH --partition=ngs62g
-#SBATCH --mem=8G
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=62G
 #SBATCH --array=1-10%4        # 總共 10 個任務，%4 代表最多同時平行執行 4 個
 #SBATCH --output=%x-%A_%a.out # %A 為主作業ID, %a 為子任務序號 (1~10)
 
@@ -230,6 +268,7 @@ graph TD
 SAMPLE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" sample_list.txt)
 echo "正在處理樣本: ${SAMPLE}"
 ```
+（`sample_list.txt` 為示意檔：每行一個樣本名稱，第 N 個子任務讀第 N 行。）
 *(參考範本：[`templates/array_job.slurm`](https://github.com/gemini960114/Nano4-Docs/blob/main/03-slurm-syntax-and-job-management/templates/array_job.slurm))*
 
 ---
@@ -247,11 +286,15 @@ JOB2=$(sbatch --parsable --dependency=afterok:${JOB1} --account=GOV115088 stage2
 # 步驟 3：步驟 2 完成後，自動產出統計報告
 sbatch --dependency=afterok:${JOB2} --account=GOV115088 stage3_report.slurm
 ```
+（`stage*_*.slurm` 為示意檔名；Lab 5 的 `workflow_dependency.sh` 以同一支 `standard_cpu_job.slurm` 代表三個階段。）
 *(參考範本：[`templates/workflow_dependency.sh`](https://github.com/gemini960114/Nano4-Docs/blob/main/03-slurm-syntax-and-job-management/templates/workflow_dependency.sh))*
 
 ---
 
 ### C. NVIDIA H200 GPU 資源申請
+
+> 📎 參考內容，本次 CPU-only 課程不操作（需一般 AI 計畫的 GPU 權限）。
+
 在 Nano4 的 H200 佇列（`dev` 或 `8gpus`）：
 ```bash
 #SBATCH --account=GOV113021
@@ -270,10 +313,10 @@ sbatch --dependency=afterok:${JOB2} --account=GOV115088 stage3_report.slurm
 當您需要即時除錯或測試程式，不想每次都透過 `sbatch` 排隊看 log 時，可透過 `salloc` 申請計算節點並進入即時互動式 Shell：
 
 ```bash
-# 案例 1：申請生醫 ngs62g 分區 4 核心、16GB 記憶體 (限時 30 分鐘)
-salloc --account=GOV115088 --partition=ngs62g --nodes=1 --cpus-per-task=4 --mem=16G --time=00:30:00 srun --pty /bin/bash
+# 案例 1：申請生醫 ngs62g 分區 8 核心、62GB 記憶體 (官方規格，限時 30 分鐘)
+salloc --account=GOV115088 --partition=ngs62g --nodes=1 --cpus-per-task=8 --mem=62G --time=00:30:00 srun --pty /bin/bash
 
-# 案例 2：申請一般 AI dev 分區 1 顆 H200 GPU、12 核心、64GB 記憶體 (限時 1 小時)
+# 案例 2（參考，本次課程不操作）：申請一般 AI dev 分區 1 顆 H200 GPU、12 核心、64GB 記憶體 (限時 1 小時)
 salloc --account=GOV113021 --partition=dev --nodes=1 --cpus-per-task=12 --gres=gpu:1 --mem=64G --time=01:00:00 srun --pty /bin/bash
 ```
 *(參考輔助腳本：[`scripts/interactive_salloc.sh`](https://github.com/gemini960114/Nano4-Docs/blob/main/03-slurm-syntax-and-job-management/scripts/interactive_salloc.sh))*
@@ -281,6 +324,9 @@ salloc --account=GOV113021 --partition=dev --nodes=1 --cpus-per-task=12 --gres=g
 ---
 
 ### E. 單節點 vs 跨節點 GPU 分散式運算架構與 Benchmark 迷思
+
+> 📎 參考內容，本次 CPU-only 課程不操作。
+
 
 在深度學習或大數據運算中，初學者常有一個直覺迷思：「**節點開越多、機器數量越多，運算速度一定越快？**」  
 答案是：**完全不一定！如果配置不當，跨節點反而會大幅拖慢運算速度！**
@@ -357,7 +403,7 @@ srun singularity exec --nv /work/${USER}/pytorch.sif torchrun \
 | **取消個人所有作業** | `scancel -u $(whoami)` | 一鍵終止自己所有運行中的作業 |
 | **查看作業詳細資訊** | `scontrol show job <JOB_ID>` | 查看工作目錄、節點分配、運行時間與錯誤原因 |
 | **查詢歷史作業紀錄** | `sacct -j <JOB_ID> --format=JobID,JobName,State,Elapsed,MaxRSS` | 查詢已結束作業的記憶體峰值 (MaxRSS) 與退出碼 |
-| **查詢分區空閒狀態** | `sinfo -p ngs62g,dev,8gpus` | 查看特定 Queue 節點空閒狀況 (idle / alloc) |
+| **查詢分區空閒狀態** | `sinfo -p ngs62g` | 查看特定 Queue 節點空閒狀況 (idle / alloc) |
 
 > [!WARNING]
 > **⚠️ 國網中心官方鐵律：嚴禁使用 `watch` 或程式迴圈高頻輪詢 `squeue`！**  
@@ -403,19 +449,23 @@ seff <JOB_ID>
 ```text
 Job ID: 1073764
 State: COMPLETED (exit code 0)
-CPU Utilized: 00:03:12
-CPU Efficiency: 80.00% of 00:04:00 core-walltime
+Nodes: 1
+Cores per node: 8
+CPU Utilized: 00:06:24
+CPU Efficiency: 80.00% of 00:08:00 core-walltime
 Memory Utilized: 2.15 GB
-Memory Efficiency: 13.44% of 16.00 GB
+Memory Efficiency: 3.47% of 62.00 GB
 ```
+
+> 記憶體效率偏低在 `ngs62g` 是正常現象：本課程依官方規格固定申請 `-c 8 --mem=62G`，**不要**因為 seff 顯示用量少就自行調降 `--mem` 或 `-c`。要看的重點是 CPU 效率：8 核心有沒有被程式用滿。
 
 **🔍 兩大常見資源浪費與除錯解法：**
 1. **CPU 效率太低 (CPU Efficiency < 20%)**：
    - **原因**：申請了多核心（例如 `--cpus-per-task=8`），但執行的程式僅支援單執行緒（未開平行化），白白浪費了 7 核心的 SU 計費點數！
-   - **優化**：調降申請核心數為 1 或 2，或修改程式啟用多核心平行運算。
+   - **優化**：`ngs62g` 依官方規格固定申請 8 核心，因此應修改程式啟用多核心平行運算（例如 `fastqc -t 8`、`${SLURM_CPUS_PER_TASK}`），把 8 核心用滿。
 2. **記憶體溢出崩潰 (OOM - Out of Memory, ExitCode 137)**：
    - **原因**：程式使用的記憶體超過了 `--mem` 申請的配額，被 Linux 核心 OOM Killer 強制終止。
-   - **解法**：在 `ngs62g` 中加大 `--mem=62G`；若仍不足，請切換至大記憶體專用分區（如 `ngs250g` 或高達 6.0TB 的 `ngs2t`/`ngs6t`）！
+   - **解法**：`ngs62g` 已固定為 62G，無法再加大；請減少單一作業的資料量，或拆成多個作業（例如 array job）。若單一步驟本身就需要更多記憶體，需改用 `MST109178` 等生醫平台計畫申請大記憶體分區（如 `ngs250g` 或 `ngs2t`（2 TB）～`ngs6t`（6 TB））。
 
 ---
 
@@ -434,7 +484,7 @@ Memory Efficiency: 13.44% of 16.00 GB
   ```
 * **在容器中執行指令 (掛載 `/work` 高速目錄)**：
   ```bash
-  singularity exec -B /work/${USER}:/mnt /work/${USER}/ubuntu_22.04.sif python3 /mnt/script.py
+  singularity exec -B /work/${USER}:/mnt /work/${USER}/ubuntu_22.04.sif ls /mnt   # 在容器內列出掛載的 /work 目錄
   ```
 * **GPU 深度學習支援 (啟用 `--nv`)**：
   ```bash
@@ -445,7 +495,11 @@ Memory Efficiency: 13.44% of 16.00 GB
 
 ## 8. 初學者循序漸進實作演練 (Hands-on Labs)
 
-針對剛接觸超級電腦排程的初學者，請依序完成以下 6 個動手實驗：
+針對剛接觸超級電腦排程的初學者，請依序完成以下 7 個動手實驗（Lab 3 為 GPU 參考，本次課程跳過）。所有 Lab 都在本章目錄執行：
+
+```bash
+cd "$HOME/Nano4-Docs/03-slurm-syntax-and-job-management"
+```
 
 ### 🧪 Lab 1：查詢個人專案錢包與可用的排程分區
 1. 查詢自己的可用點數：
@@ -472,7 +526,7 @@ Memory Efficiency: 13.44% of 16.00 GB
    ```bash
    sbatch --account=GOV115088 templates/standard_cpu_job.slurm
    ```
-3. 觀察作業狀態（狀態應為 `R` Running，數秒後結束）：
+3. 觀察作業狀態（可能先顯示 `PD` 排隊，接著變成 `R`；作業結束後會從清單中消失，這時就可以查看日誌）：
    ```bash
    squeue -u $(whoami)
    ```
@@ -484,7 +538,9 @@ Memory Efficiency: 13.44% of 16.00 GB
 
 ---
 
-### 🧪 Lab 3：提交 NVIDIA H200 GPU 測試作業
+### 🧪 Lab 3：提交 NVIDIA H200 GPU 測試作業【參考，本次課程跳過】
+
+> 此 Lab 需要一般 AI 計畫（如 `GOV113021`）的 GPU 權限，本次 CPU-only 課程不操作。
 1. 檢視 GPU 作業範本：
    ```bash
    cat templates/gpu_job.slurm
@@ -531,7 +587,7 @@ Memory Efficiency: 13.44% of 16.00 GB
 ### 🧪 Lab 6：啟動即時除錯互動終端 (`salloc`)
 1. 執行互動式登入輔助腳本：
    ```bash
-   ./scripts/interactive_salloc.sh GOV115088 ngs62g 4 00:10:00 8G
+   ./scripts/interactive_salloc.sh GOV115088 ngs62g 8 00:10:00 62G
    ```
 2. 進入節點後，觀察主機名稱是否切換為計算節點（如 `25a-cpn*`）：
    ```bash
@@ -554,7 +610,7 @@ seff <JOB_ID>
 ## 9. Nano4 常見踩坑與排錯清單 (Troubleshooting)
 
 ### Q1: 提交作業時報錯 `Batch job submission failed: Invalid account or account/partition combination specified`
-* **原因**：您指定的 `--account` 沒有該 `--partition` 的使用權限（例如用生醫計畫 `GOV115088` 派送至 H200 `dev` 佇列，或用一般專案派送至 `ngs62g`）。
+* **原因**：您指定的 `--account` 沒有該 `--partition` 的使用權限（例如用 `GOV115088` 派送至 `ngstest`、`ngs32g`，用 `MST109178` 派送至 H200 `dev`，或用一般 AI 專案派送至 `ngs62g`）。
 * **檢查方法**：
   ```bash
   sacctmgr -nP show assoc user="$(whoami)" format=Account,Partition
@@ -565,7 +621,10 @@ seff <JOB_ID>
 
 ### Q2: 作業狀態一直顯示 `PD` (Pending)，原因為 `(QOSMaxMemoryPerJob)`
 * **原因**：在 `ngs62g` 分區漏寫了 `#SBATCH --mem=...`，Slurm 預設申請整台節點 1024GB 記憶體，超過了 `ngs62g` QoS 的 62GB 限額！
-* **解法**：在腳本開頭加上 `#SBATCH --mem=62G`（或 `16G`）。
+* **解法**：依官方規格在腳本開頭加上 `#SBATCH --cpus-per-task=8` 與 `#SBATCH --mem=62G`。
+
+> [!NOTE]
+> `sbatch --test-only` 只會檢查帳號、分區與語法能否被接受，**不會檢查 QoS 上限**。例如在 `ngs62g` 申請 `--cpus-per-task=12`，`--test-only` 仍會回報可排程，實際提交後卻會卡在 `QOSMaxCpuPerJobLimit`。資源數字請自行對照上方的佇列限制表。
 
 ---
 
@@ -582,7 +641,7 @@ seff <JOB_ID>
 ---
 
 > 💡 **從排程指令到生物資訊與 AI Agent 實戰 (Roadmap)**：  
-> 掌握了 Nano4 的 Slurm 基礎語法與 H200/NGS 分區後，下一步我們將進階至真實生物資訊資料處理！  
-> 在下一章中，我們將結合 VS Code、AI 輔助與 Slurm，打造端到端的 FASTQ 質控與 16S 擴增子分析管線！
+> 掌握了 Nano4 的 Slurm 基礎語法與 `ngs62g` 分區規格後，下一步我們將進階至真實生物資訊資料處理！  
+> 在下一章中，我們將結合 VS Code、AI 輔助與 Slurm，在登入節點以微型資料完成 FASTQ 質控（FastQC / MultiQC）；完整的 16S 擴增子分析則在第 07 章進行。
 
-👉 **下一課**：[第 04 章：AI 輔助生醫資訊管線 — FASTQ 質控與擴增子分析實務](./04_ai_assisted_bio_pipeline)
+👉 **下一課**：[第 04 章：AI 輔助生醫質控管線](./04_ai_assisted_bio_pipeline)

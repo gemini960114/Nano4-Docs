@@ -1,22 +1,26 @@
 #!/bin/bash
 # ==============================================================================
-# sync_skills.sh: 一鍵同步 Nano4 HPC Skills 到使用者的 ~/.agents/skills 目錄
+# sync_skills.sh: 一鍵同步 Nano4 HPC Skills 到使用者的技能目錄
+#   ~/.agents/skills  OpenCode、Antigravity 等工具讀取
+#   ~/.claude/skills  Claude Code 讀取
 # ==============================================================================
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_DIR="${HOME}/.agents/skills"
+CLAUDE_DIR="${HOME}/.claude/skills"
 
 echo "================================================================================"
-echo "🚀 正在同步 Nano4 AI Agent 專屬技能至：$TARGET_DIR"
+echo "🚀 正在同步 Nano4 AI Agent 專屬技能至：$TARGET_DIR 與 $CLAUDE_DIR"
 echo "================================================================================"
 
-mkdir -p "$TARGET_DIR"
+mkdir -p "$TARGET_DIR" "$CLAUDE_DIR"
 
 for skill in slurm-job-advisor ai-agent-slurm-pipeline nano4-slurm-operations nfcore-ampliseq-nano4; do
     if [ -d "$SCRIPT_DIR/$skill" ]; then
         echo "📦 同步技能: $skill ..."
         cp -ru "$SCRIPT_DIR/$skill" "$TARGET_DIR/"
+        cp -ru "$SCRIPT_DIR/$skill" "$CLAUDE_DIR/"
     fi
 done
 

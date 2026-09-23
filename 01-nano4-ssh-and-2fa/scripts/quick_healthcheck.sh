@@ -78,16 +78,16 @@ fi
 
 echo -e "\n[5] Slurm 資源調度系統 (佇列概況)："
 if command -v sinfo &>/dev/null; then
-    echo "• H200 GPU 佇列   : dev (4h測試), 8gpus/16gpus (48h), 32gpus/64gpus (24h)"
-    echo "• GB200 NVL72 佇列: gb200-dev (2h開發除錯), gb200-r1 (24h), gb200-r2 (12h)"
-    echo "• NGS CPU 佇列    : ngstest, ngs8g ~ ngs1000g, ngs1500g ~ ngs6t (大記憶體)"
+    echo "• GP1 NGS CPU 佇列: ngs62g (本課程 GOV115088，固定 -c 8 --mem=62G，96h)"
+    echo "                    其他 ngs* 佇列僅開放 MST109178 等生醫平台計畫"
+    echo "• GPU 佇列 (參考) : H200 dev/8gpus…、GB200 gb200-dev/r1/r2"
 else
     echo "⚠️ 未檢測到 Slurm 指令"
 fi
 
 echo -e "\n[6] 登入節點外網連通性測試："
-if curl -s -I --connect-timeout 5 https://huggingface.co | grep -q -E "HTTP/.* [23]00"; then
-    echo "✅ 外網連線正常 (Hugging Face 連通)"
+if curl -s -I --connect-timeout 5 https://www.ncbi.nlm.nih.gov | grep -q -E "HTTP/.* [23]00"; then
+    echo "✅ 外網連線正常 (NCBI 連通)"
 else
     echo "⚠️ 外網連線逾時，請檢查防火牆或 DNS"
 fi

@@ -8,8 +8,8 @@
 #SBATCH --partition=ngs62g                   # Nano4 生醫佇列 (上限 8 核心、62GB 記憶體)
 #SBATCH --nodes=1                            # 單節點運算
 #SBATCH --ntasks-per-node=1                  # 節點內主行程數
-#SBATCH --cpus-per-task=4                    # 分配 CPU 核心數 (ngs62g 上限 8)
-#SBATCH --mem=16G                            # 【關鍵】分配記憶體大小 (ngs62g 上限 62G)
+#SBATCH --cpus-per-task=8                    # ngs62g 官方規格：每個作業 8 核心 (與 --mem=62G 搭配)
+#SBATCH --mem=62G                            # ngs62g 官方規格：每個作業 62 GB (與 -c 8 搭配)
 #SBATCH --time=01:00:00                      # 作業最長時限 (D-HH:MM:SS)
 #SBATCH --output=%x-%j.out                   # 標準輸出 (%x:作業名, %j:作業ID)
 #SBATCH --error=%x-%j.err                    # 標準錯誤
@@ -20,6 +20,9 @@
 # 嚴格安全與環境設定
 # ------------------------------------------------------------------------------
 set -euo pipefail
+
+# 國網官方規範：執行內容第一行清空模組避免污染，再依需求載入對應環境
+module purge
 
 echo "================================================================================"
 echo "作業啟動時間 : $(date)"

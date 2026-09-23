@@ -31,15 +31,14 @@ lifecycle operations.
 
 ## Account and Partition Selection
 
-- Treat `GOV115088` as the dedicated biomedical allocation. Use it only with a live
-  `ngs*` partition that explicitly allows the account.
-- Do not use `GOV115088` on standard GPU partitions. Select an active general
-  project from `wallet`, then verify the target partition's account policy.
+- Treat `GOV115088` as the CPU-only course allocation. Its only NGS partition is
+  `ngs62g` (8 CPU / 62 GB per job); other `ngs*` partitions reject it.
+- Do not request GPUs with `GOV115088` in the course. For GPU work select an active
+  general project from `wallet`, then verify the target partition's account policy.
 - Do not assume every general project can use every GPU or special-purpose
   partition. Inspect `AllowAccounts`, `DenyAccounts`, QoS, time, and resources.
-- Do not reject `GOV115088` solely because `wallet GOV115088` says the NANO4 service
-  is not enabled. This special NGS allocation must instead pass both Slurm
-  association and partition-policy checks.
+- `sbatch --test-only` validates the account/partition pair only; it does not check
+  QoS limits. Compare requests with `sacctmgr -nP show qos p_<partition> format=name,maxtrespj`.
 - Never place a personal project ID in a version-controlled `#SBATCH --account`
   directive. Supply it at submission:
 

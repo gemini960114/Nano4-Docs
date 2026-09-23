@@ -29,10 +29,10 @@ declare -A PART_DESC
 PART_DESC["dev"]="8x H200 (141GB)"
 PART_DESC["8gpus"]="8x H200 (141GB)"
 PART_DESC["gb200-dev"]="4x GB200 (Arm)"
-PART_DESC["ngstest"]="CPU (10 min)"
-PART_DESC["ngs62g"]="CPU (8C/62GB)"
-PART_DESC["ngs250g"]="CPU (250GB RAM)"
-PART_DESC["ngs6t"]="Fat (6.2TB RAM)"
+PART_DESC["ngstest"]="CPU 1C/8G (MST)"
+PART_DESC["ngs62g"]="CPU 8C/62G (GOV115088)"
+PART_DESC["ngs250g"]="CPU 32C/250G (MST)"
+PART_DESC["ngs6t"]="Fat 124C/6T (MST)"
 
 for p in dev 8gpus gb200-dev ngstest ngs62g ngs250g ngs6t; do
     info=$(sinfo -p "$p" -o "%a %l %m" -h 2>/dev/null | head -n 1 || true)
@@ -54,7 +54,8 @@ done
 
 echo ""
 echo "💡 Nano4 關鍵提示："
-echo "  1. 派送前使用 'sbatch --test-only <script.slurm>' 進行免扣點模擬預檢。"
+echo "  1. 派送前使用 'sbatch --test-only <script.slurm>' 預檢帳號/分區組合 (不檢查 QoS 上限)。"
+echo "  1b. 本課程計畫 GOV115088 在 NGS 分區中只能使用 ngs62g。"
 echo "  2. 在 'ngs62g' 分區務必指定 '#SBATCH --mem=...'(上限 62G)，否則會因 QOS 限制卡住！"
 echo "  3. 在 'dev' 分區務必指定至少 1 顆 GPU ('#SBATCH --gres=gpu:1')。"
 echo "  4. 計算節點具備外網直連能力 (Direct Internet)，無須啟動 HTTP Proxy。"

@@ -1,5 +1,0 @@
-.	Basic Statistics	Per Base Sequence Quality
-sample_01_R1	1	1
-sample_02_R1	1	1
-sample_03_R1	1	1
-sample_04_R1	1	1

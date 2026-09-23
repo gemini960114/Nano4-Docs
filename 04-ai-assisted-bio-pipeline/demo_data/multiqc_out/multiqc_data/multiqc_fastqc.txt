@@ -1,5 +1,0 @@
-Sample	Filename	File type	Encoding	Total Sequences	Sequences flagged as poor quality	Sequence length	%GC	basic_statistics	per_base_sequence_quality
-sample_01_R1	sample_01_R1.fastq.gz	Conventional base calls	Sanger / Illumina 1.9	1000.0	0.0	151.0	51.0	pass	pass
-sample_02_R1	sample_02_R1.fastq.gz	Conventional base calls	Sanger / Illumina 1.9	1000.0	0.0	151.0	51.0	pass	pass
-sample_03_R1	sample_03_R1.fastq.gz	Conventional base calls	Sanger / Illumina 1.9	1000.0	0.0	151.0	51.0	pass	pass
-sample_04_R1	sample_04_R1.fastq.gz	Conventional base calls	Sanger / Illumina 1.9	1000.0	0.0	151.0	51.0	pass	pass

@@ -10,8 +10,8 @@
 #SBATCH --partition=ngs62g           # (-p) Nano4 生醫專屬 CPU 佇列 (ngs62g)
 #SBATCH --nodes=1                    # (-N) 申請 1 台計算節點
 #SBATCH --ntasks-per-node=1          # 每個節點執行的任務數
-#SBATCH --cpus-per-task=4            # 每個任務分配的 CPU 核心數 (ngs62g 建議 1~8 核心)
-#SBATCH --mem=16G                    # ⚠️【關鍵必填】記憶體配額 (ngs62g 上限 62G，漏填會觸發 QOSMaxMemoryPerJob 卡死)
+#SBATCH --cpus-per-task=8            # ngs62g 官方規格：每個作業 8 核心 (與 --mem=62G 搭配)
+#SBATCH --mem=62G                    # ngs62g 官方規格：每個作業 62 GB (與 -c 8 搭配)
 #SBATCH --time=00:15:00              # 最長執行時間 (時:分:秒)
 #SBATCH --output=%x-%j.out           # 標準輸出日誌 (%x=作業名稱, %j=作業序號)
 #SBATCH --error=%x-%j.err            # 標準錯誤日誌
@@ -30,7 +30,7 @@ echo "• 執行節點主機名稱    : $(hostname)"
 echo "• 獲得的 Slurm Job ID : ${SLURM_JOB_ID:-N/A}"
 echo "• 運算分區 (Partition): ${SLURM_JOB_PARTITION:-ngs62g}"
 echo "• 分配到的 CPU 核心數 : ${SLURM_CPUS_PER_TASK:-1}"
-echo "• 申請的記憶體大小    : ${SLURM_MEM_PER_NODE:-16384} MB"
+echo "• 申請的記憶體大小    : ${SLURM_MEM_PER_NODE:-N/A} MB"
 echo "• 當前工作目錄        : $(pwd)"
 echo "• 開始執行時間        : $(date)"
 echo "=========================================================="

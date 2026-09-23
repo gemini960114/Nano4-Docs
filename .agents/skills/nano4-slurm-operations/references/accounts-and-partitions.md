@@ -12,27 +12,34 @@ Nano4 exposes two different views:
 - `sacctmgr show assoc`: Slurm associations, including historical or special
   accounts that might not appear as active wallet projects.
 
-Do not treat an association as proof of an active balance. Conversely, do not treat
-the special `GOV115088` wallet response as proof that its NGS allocation is invalid.
+Do not treat an association as proof of an active balance.
 
-## Biomedical Allocation
+## Course Allocation: GOV115088
 
-- Account: `GOV115088`
-- Purpose: dedicated biomedical/NGS allocation
-- Partition family: `ngs*` (e.g. `ngs62g`, `ngs250g`)
-- Standard GPU partitions: prohibited
+- Account: `GOV115088` (國網生技醫藥高效能運算推廣與應用計畫)
+- Purpose: biomedical HPC training and outreach; the course is CPU-only
+- NGS CPU partition: **`ngs62g` only** (per job: 8 CPU, 62 GB, 4 days)
 
-Observed behavior:
+Observed behavior (verified 2026-09-23 with `scontrol` and `sbatch --test-only`):
 
-- `wallet GOV115088` reports that the NANO4 service is not enabled.
-- The Slurm association includes `gov115088`.
-- `ngs62g` and `ngs250g` explicitly include `gov115088` in `AllowAccounts`.
-- `ngs8g`, `ngs16g`, `ngs32g`, `ngs125g` do NOT include `gov115088` in `AllowAccounts`.
-- The standard GPU `dev` partition explicitly includes `gov115088` in
-  `DenyAccounts`.
+- `wallet GOV115088` lists the project with an active SU balance.
+- Among NGS partitions, only `ngs62g` lists `gov115088` in `AllowAccounts`.
+  `ngstest`, `ngsconsole`, `ngs8g`-`ngs32g`, `ngs125g`-`ngs1000g`,
+  `ngs248c`/`ngs496c`, `ngscourse*`, `ngs1500g`-`ngs6t` and `ngs1gpu`-`ngs8gpu`
+  are restricted to `mst109178` and `ent109430`.
+- The association also accepts the general GPU partitions `dev` and `gb200-dev`,
+  but course jobs must not request GPUs.
 
-Therefore validate this account through both the Slurm association and the selected
-NGS partition's current policy.
+## Biomedical Platform Allocations: MST109178, ENT109430
+
+- Allowed on every `ngs*` partition, including `ngstest`, the fat-memory
+  `ngs1500g`-`ngs6t`, and the 14-day `ngs1gpu`-`ngs8gpu` queues.
+- Listed in `DenyAccounts` of the general GPU partitions such as `dev` and `8gpus`.
+
+Always validate an account through both the Slurm association and the selected
+partition's current `AllowAccounts` / `DenyAccounts`. `sbatch --test-only` confirms
+the account/partition combination but does **not** enforce QoS limits such as
+`MaxTRESPerJob`; compare CPU and memory requests with `sacctmgr show qos p_<partition>`.
 
 ## General Projects and GPU Partitions
 

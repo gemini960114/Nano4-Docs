@@ -7,14 +7,17 @@
 #SBATCH --job-name=array_qc                  # 作業識別名稱
 #SBATCH --partition=ngs62g                   # 排程分區 (Nano4 生醫佇列)
 #SBATCH --nodes=1                            # 每個子任務申請 1 節點
-#SBATCH --cpus-per-task=2                    # 每個子任務分配核心數
-#SBATCH --mem=8G                             # 每個子任務分配記憶體
+#SBATCH --cpus-per-task=8                    # ngs62g 官方規格：每個作業 8 核心 (與 --mem=62G 搭配)
+#SBATCH --mem=62G                             # ngs62g 官方規格：每個作業 62 GB (與 -c 8 搭配)
 #SBATCH --array=1-10%4                       # 【關鍵】10 個子任務，最多同時執行 4 個
 #SBATCH --time=01:00:00                      # 每個子任務時間上限
 #SBATCH --output=%x-%A_%a.out                # 【關鍵】%A:主作業ID, %a:陣列子任務序號
 #SBATCH --error=%x-%A_%a.err
 
 set -euo pipefail
+
+# 國網官方規範：執行內容第一行清空模組避免污染，再依需求載入對應環境
+module purge
 
 echo "================================================================================"
 echo "主作業 ID   : ${SLURM_ARRAY_JOB_ID}"

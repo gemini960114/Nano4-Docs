@@ -2,14 +2,14 @@
 #SBATCH --job-name=ampliseq_data
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=4G
+#SBATCH --cpus-per-task=8             # ngs62g 官方規格：每個作業 8 核心
+#SBATCH --mem=62G                     # ngs62g 官方規格：每個作業 62 GB
 #SBATCH --time=01:00:00
 #SBATCH --output=%x-%j.out
 #SBATCH --error=%x-%j.err
 
 # Submit from the chapter directory and provide account/partition on the command line:
-# sbatch --account=<PROJECT_ID> --partition=<PARTITION> scripts/01_prepare_real_data.slurm
+# sbatch --account=GOV115088 --partition=ngs62g scripts/01_prepare_real_data.slurm
 
 module purge
 set -euo pipefail
@@ -61,7 +61,11 @@ download_and_verify() {
     fi
 
     echo "Downloading ${url}"
-    curl --fail --location --retry 3 --continue-at - --output "${partial}" "${url}"
+    # ENA occasionally drops connections mid-transfer (curl exit 18); retry every
+    # error and resume from the partial file instead of failing the whole job.
+    curl --fail --location --no-progress-meter \
+        --retry 10 --retry-delay 15 --retry-all-errors \
+        --continue-at - --output "${partial}" "${url}"
     printf '%s  %s\n' "${expected_md5}" "${partial}" | md5sum --check --status
     mv "${partial}" "${destination}"
 }

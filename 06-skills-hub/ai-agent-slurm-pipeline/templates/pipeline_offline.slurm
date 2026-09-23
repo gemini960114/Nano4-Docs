@@ -8,13 +8,16 @@
 #SBATCH --partition=ngs62g                   # 佇列分區 (Nano4 生醫佇列)
 #SBATCH --nodes=1                            # 節點數
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=4                    # 核心數
-#SBATCH --mem=16G                            # 【關鍵】記憶體配額 (ngs62g 上限 62G)
+#SBATCH --cpus-per-task=8                    # ngs62g 官方規格：每個作業 8 核心 (與 --mem=62G 搭配)
+#SBATCH --mem=62G                            # ngs62g 官方規格：每個作業 62 GB (與 -c 8 搭配)
 #SBATCH --time=01:00:00                      # 時限
 #SBATCH --output=%x-%j.out                   # 輸出日誌
 #SBATCH --error=%x-%j.err                    # 錯誤日誌
 
 set -euo pipefail
+
+# 國網官方規範：執行內容第一行清空模組避免污染，再依需求載入對應環境
+module purge
 
 echo "================================================================================"
 echo "作業啟動時間 : $(date)"

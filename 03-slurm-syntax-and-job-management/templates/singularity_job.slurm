@@ -4,8 +4,8 @@
 #SBATCH --partition=ngs62g            # (-p) 排程分區 (或 GPU 任務改用 dev)
 #SBATCH --nodes=1                     # (-N) 節點數
 #SBATCH --ntasks-per-node=1           # Task 數
-#SBATCH --cpus-per-task=4             # (-c) 核心數
-#SBATCH --mem=8G                      # 記憶體配置
+#SBATCH --cpus-per-task=8             # ngs62g 官方規格：每個作業 8 核心 (與 --mem=62G 搭配)
+#SBATCH --mem=62G                      # ngs62g 官方規格：每個作業 62 GB (與 -c 8 搭配)
 #SBATCH --time=00:30:00               # (-t) 執行時間上限
 #SBATCH --output=%x-%j.out            # (-o) 標準輸出
 #SBATCH --error=%x-%j.err             # (-e) 標準錯誤
@@ -17,6 +17,9 @@
 
 set -euo pipefail
 
+# 國網官方規範：執行內容第一行清空模組避免污染，再依需求載入對應環境
+module purge
+
 echo "=========================================================="
 echo "作業啟動時間 : $(date)"
 echo "執行計算節點 : $(hostname -s)"
@@ -24,7 +27,6 @@ echo "作業流水號   : ${SLURM_JOB_ID}"
 echo "=========================================================="
 
 # 1. 【國網規範】重設模組環境
-module purge
 
 # 2. 定義容器映像檔位置與工作目錄 (Nano4 高速工作目錄為 /work/${USER})
 WORK_DIR="/work/${USER}"

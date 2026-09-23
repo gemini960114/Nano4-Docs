@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # run_fastqc_multiqc.sh - 執行 FASTQ 樣本之 FastQC 與 MultiQC 質控流程 (Nano4 版)
+# 登入節點微型測試：4 個樣本、各 1000 條 reads，最多使用 4 核心，數秒內完成。
 # ==============================================================================
 set -euo pipefail
 
@@ -20,81 +21,36 @@ if [ ! -d "${RAW_DIR}" ] || [ -z "$(ls -A "${RAW_DIR}"/*.fastq.gz 2>/dev/null ||
     bash "${SCRIPT_DIR}/download_demo_fastq.sh"
 fi
 
-# 尋找 MultiQC (支援系統路徑、/work/$USER/.venv、~/.venv-bio 或自動透過 uv 安裝)
-MULTIQC_CMD="multiqc"
-if ! command -v multiqc &>/dev/null; then
-    if [ -x "/work/${USER}/.venv/bin/multiqc" ]; then
-        MULTIQC_CMD="/work/${USER}/.venv/bin/multiqc"
-    elif [ -x "${HOME}/.venv-bio/bin/multiqc" ]; then
-        MULTIQC_CMD="${HOME}/.venv-bio/bin/multiqc"
-    elif [ -x "${HOME}/.local/bin/multiqc" ]; then
-        MULTIQC_CMD="${HOME}/.local/bin/multiqc"
-    elif [ -f "/work/${USER}/.venv/bin/python" ]; then
-        echo "正在透過 uv 安裝 multiqc 至 /work/${USER}/.venv..."
-        uv pip install --python "/work/${USER}/.venv/bin/python" multiqc
-        MULTIQC_CMD="/work/${USER}/.venv/bin/multiqc"
-    else
-        echo "正在透過 uv 建立專屬環境並安裝 multiqc..."
-        uv venv "${HOME}/.venv-bio"
-        uv pip install --python "${HOME}/.venv-bio/bin/python" multiqc
-        MULTIQC_CMD="${HOME}/.venv-bio/bin/multiqc"
+# 使用 Nano4 官方 Lmod 模組提供的 Java、FastQC 與 MultiQC
+if type module &>/dev/null; then
+    module load biology/JDK/26.0.1 biology/FastQC/0.11.9 biology/MultiQC
+fi
+for tool in fastqc multiqc; do
+    if ! command -v "${tool}" &>/dev/null; then
+        echo "❌ 找不到 ${tool}。請先執行：module load biology/JDK/26.0.1 biology/FastQC/0.11.9 biology/MultiQC" >&2
+        exit 1
     fi
-fi
-echo "MultiQC 執行檔: ${MULTIQC_CMD}"
-
-# 尋找 FastQC
-FASTQC_CMD=""
-if command -v fastqc &>/dev/null; then
-    FASTQC_CMD="fastqc"
-elif [ -x "${HOME}/bin/fastqc" ]; then
-    FASTQC_CMD="${HOME}/bin/fastqc"
-fi
+done
+echo "FastQC 執行檔 : $(command -v fastqc)"
+echo "MultiQC 執行檔: $(command -v multiqc)"
 
 echo "========================================================"
 echo "🧬 [2/3] 執行 FastQC 品質控制分析..."
 echo "========================================================"
-if [ -n "${FASTQC_CMD}" ]; then
-    echo "使用 FastQC: ${FASTQC_CMD}"
-    "${FASTQC_CMD}" -t 4 "${RAW_DIR}"/*.fastq.gz -o "${FASTQC_OUT}"
-else
-    echo "ℹ️ 系統未安裝原生 Java/FastQC。為示範 MultiQC 彙整管線，"
-    echo "   自動生成符合 FastQC 規範的示範質控數據檔於 ${FASTQC_OUT}..."
-    for f in "${RAW_DIR}"/*.fastq.gz; do
-        sample="$(basename "$f" .fastq.gz)"
-        TMP_DIR="/work/${USER}/tmp_${sample}_fastqc"
-        mkdir -p "${TMP_DIR}"
-        cat <<EOF > "${TMP_DIR}/fastqc_data.txt"
-##FastQC	0.12.1
->>Basic Statistics	pass
-#Measure	Value
-Filename	${sample}.fastq.gz
-File type	Conventional base calls
-Encoding	Sanger / Illumina 1.9
-Total Sequences	1000
-Sequences flagged as poor quality	0
-Sequence length	151
-%GC	51
->>END_MODULE
->>Per base sequence quality	pass
-#Base	Mean	Median	Lower Quartile	Upper Quartile	10th Percentile	90th Percentile
-1	32.0	33.0	30.0	35.0	28.0	36.0
-2	35.0	36.0	33.0	38.0	31.0	39.0
-3	36.0	37.0	34.0	39.0	32.0	40.0
->>END_MODULE
-EOF
-        cat <<EOF > "${TMP_DIR}/summary.txt"
-PASS	Basic Statistics	${sample}.fastq.gz
-PASS	Per base sequence quality	${sample}.fastq.gz
-EOF
-        (cd "/work/${USER}" && zip -qr "${FASTQC_OUT}/${sample}_fastqc.zip" "tmp_${sample}_fastqc")
-        rm -rf "${TMP_DIR}"
-    done
+fastqc -t 4 "${RAW_DIR}"/*.fastq.gz -o "${FASTQC_OUT}"
+
+# FastQC 找不到 Java 時仍會回傳 0，因此以實際產出的報告數量確認是否成功
+n_in=$(ls "${RAW_DIR}"/*.fastq.gz | wc -l)
+n_out=$(ls "${FASTQC_OUT}"/*_fastqc.zip 2>/dev/null | wc -l)
+if [ "${n_out}" -lt "${n_in}" ]; then
+    echo "❌ FastQC 只產出 ${n_out}/${n_in} 份報告，請確認已載入 biology/JDK。" >&2
+    exit 1
 fi
 
 echo "========================================================"
 echo "📊 [3/3] 執行 MultiQC 彙整產生單一 HTML 報告..."
 echo "========================================================"
-"${MULTIQC_CMD}" "${FASTQC_OUT}" -o "${MULTIQC_OUT}" --force
+multiqc "${FASTQC_OUT}" -o "${MULTIQC_OUT}" --force
 
 echo "--------------------------------------------------------"
 echo "🎉 質控管線執行完畢！"

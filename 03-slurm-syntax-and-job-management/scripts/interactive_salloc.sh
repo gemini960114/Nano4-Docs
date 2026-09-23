@@ -4,7 +4,7 @@
 #
 # 使用方式:
 #   1. 生醫 CPU 測試 (預設):
-#      ./interactive_salloc.sh GOV115088 ngs62g 4 00:30:00 16G
+#      ./interactive_salloc.sh GOV115088 ngs62g 8 00:30:00 62G   # ngs62g 官方規格：-c 8 --mem=62G
 #   2. 一般 AI H200 GPU 測試:
 #      ./interactive_salloc.sh GOV113021 dev 12 01:00:00 64G 1
 # ==============================================================================
@@ -12,9 +12,9 @@ set -euo pipefail
 
 ACCOUNT="${1:-GOV115088}"
 PARTITION="${2:-ngs62g}"
-CPUS="${3:-4}"
+CPUS="${3:-8}"
 TIME_LIMIT="${4:-00:30:00}"
-MEM="${5:-16G}"
+MEM="${5:-62G}"
 GPUS="${6:-0}"
 
 echo "========================================================"

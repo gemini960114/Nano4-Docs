@@ -3,9 +3,9 @@
 # Slurm 批次排程範本：Nano4 大記憶體 / 基因組組裝運算 (Fat Node High-Memory)
 # 適用於：SPAdes, Trinity, 龐大矩陣運算, 大規模 De novo 基因組組裝
 # ==============================================================================
-#SBATCH --account=GOV115088                  # 必填：wallet 查詢之可用計畫代號 (生醫: GOV115088)
+#SBATCH --account=MST109178                  # 必填：大記憶體分區僅開放 MST109178 / ENT109430 (GOV115088 無法使用)
 #SBATCH --job-name=fat_task                  # 作業識別名稱
-#SBATCH --partition=ngs250g                  # 大記憶體佇列 (可依需求調整為 ngs500g, ngs1000g, 或高達 6.2TB 的 ngs6t)
+#SBATCH --partition=ngs250g                  # 大記憶體佇列 (可依需求調整為 ngs500g, ngs1000g, 或高達 6TB 的 ngs6t)
 #SBATCH --nodes=1                            # 單節點運算
 #SBATCH --ntasks-per-node=1                  # 節點內主行程數
 #SBATCH --cpus-per-task=32                   # 分配 CPU 核心數
@@ -15,6 +15,9 @@
 #SBATCH --error=%x-%j.err                    # 標準錯誤
 
 set -euo pipefail
+
+# 國網官方規範：執行內容第一行清空模組避免污染，再依需求載入對應環境
+module purge
 
 echo "================================================================================"
 echo "作業啟動時間 : $(date)"

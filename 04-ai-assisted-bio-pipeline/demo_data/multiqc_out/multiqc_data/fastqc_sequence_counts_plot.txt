@@ -1,5 +1,0 @@
-Sample	Total Sequences
-sample_01_R1	1000.0
-sample_02_R1	1000.0
-sample_03_R1	1000.0
-sample_04_R1	1000.0

@@ -54,10 +54,10 @@ description: >-
 AI Agent 產生之 Slurm 腳本必須 100% 通過以下安全檢驗：
 
 1. **帳號與分區合規**：
-   - 生醫專案：使用有效專案代號（如 `#SBATCH --account=GOV115088`）並派送至 `ngs62g`（或 `ngstest`、`ngs250g`）。
+   - 生醫專案：使用有效專案代號（如 `#SBATCH --account=GOV115088`）並派送至 `ngs62g`（`GOV115088` 唯一可用的 NGS 分區；`MST109178` 另可用 `ngstest`、`ngs250g` 等）。
    - 一般 AI 專案：使用一般專案代號（如 `#SBATCH --account=GOV113021`）並派送至 `dev` 或 `8gpus`。
 2. **【關鍵防呆】明確指定記憶體**：
-   - 在 `ngs62g` 中**務必加上 `#SBATCH --mem=16G`（或最大 62G）**，嚴禁遺漏避免 `QOSMaxMemoryPerJob` 卡死。
+   - 在 `ngs62g` 中**務必依官方規格加上 `#SBATCH --cpus-per-task=8` 與 `#SBATCH --mem=62G`**（國網規定每個佇列須以固定 CPU × 記憶體搭配申請）。
    - 在 `dev` 中**務必加上 `#SBATCH --gres=gpu:1`**。
 3. **嚴格錯誤攔截**：
    - 腳本頂部加入 `set -euo pipefail`。任一步驟出錯立即終止，避免浪費計畫點數。

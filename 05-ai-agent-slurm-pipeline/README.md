@@ -1,17 +1,25 @@
-# HPC 實戰指南：AI Agent 自動化 Slurm 排程重構與批次派送實戰 (Nano4 雙實戰案例)
+# 第 05 章：AI Agent 自動化 Slurm 排程重構與批次派送實戰 (Nano4 雙實戰案例)
 
-本教學手冊展示如何引導 **AI Agent（OpenCode CLI / Antigravity CLI / Claude Code）**，將前述章節在登入節點執行的互動式生醫分析管線，自動重構並封裝為生產級的 **Slurm 批次排程作業**，同時完整實作 **「事前下載離線運算」** 與 **「計算節點外網直連動態下載」** 兩種關鍵生產環境架構。
+本教學手冊展示如何引導 **AI Agent（Antigravity / Claude Code / OpenCode CLI）**，將前述章節在登入節點執行的互動式生醫分析管線，自動重構並封裝為生產級的 **Slurm 批次排程作業**，同時完整實作 **「事前下載離線運算」** 與 **「計算節點外網直連動態下載」** 兩種關鍵生產環境架構。
 
 ---
 
+
+> [!NOTE]
+> 本章實作檔案位於教材 repository。若重新開啟終端機，先回到教材根目錄：
+>
+> ```bash
+> cd "$HOME/Nano4-Docs"
+> ```
+
 ## 📌 目錄 (Table of Contents)
-- [1. 為什麼要將腳本派送至 Slurm 佇列？](#_1-為什麼要將腳本派送至-slurm-佇列)
-- [2. 請 AI Agent 自動重構 Slurm 腳本 (Prompt 技巧)](#_2-請-ai-agent-自動重構-slurm-腳本-prompt-技巧)
-- [3. Nano4 兩大運算架構對比：離線運算 vs 外網直連](#_3-nano4-兩大運算架構對比-離線運算-vs-外網直連)
-- [4. 實戰案例 A：事前資料下載 / 高速離線運算模式](#_4-實戰案例-a-事前資料下載-高速離線運算模式)
-- [5. 實戰案例 B：計算節點外網直連 / 動態下載模式](#_5-實戰案例-b-計算節點外網直連-動態下載模式)
-- [6. 結果檢驗、效能分析 (seff) 與成果匯總](#_6-結果檢驗、效能分析-seff-與成果匯總)
-- [7. Nano4 HPC 實戰全系列 7 大課程總結與進階](#_7-nano4-hpc-實戰全系列-7-大課程總結與進階)
+- [1. 為什麼要將腳本派送至 Slurm 佇列？](#1-為什麼要將腳本派送至-slurm-佇列)
+- [2. 請 AI Agent 自動重構 Slurm 腳本 (Prompt 技巧)](#2-請-ai-agent-自動重構-slurm-腳本-prompt-技巧)
+- [3. Nano4 兩大運算架構對比：離線運算 vs 外網直連](#3-nano4-兩大運算架構對比離線運算-vs-外網直連)
+- [4. 實戰案例 A：事前資料下載 / 高速離線運算模式](#4-實戰案例-a事前資料下載--高速離線運算模式)
+- [5. 實戰案例 B：計算節點外網直連 / 動態下載模式](#5-實戰案例-b計算節點外網直連--動態下載模式)
+- [6. 結果檢驗、效能分析 (seff) 與成果匯總](#6-結果檢驗效能分析-seff-與成果匯總)
+- [7. 課程進度回顧與後續章節](#7-課程進度回顧與後續章節)
 
 ---
 
@@ -20,22 +28,22 @@
 在第 04 章中，我們示範了在登入節點執行小量 FASTQ 質控。然而：
 * 登入節點（`25a-lgn01~05`）是多人共用，系統 Cgroups 限制個人 CPU 與記憶體，嚴禁執行長時間或高資源運算。
 * 只有將任務打包送入 **Slurm 計算節點 (Compute Node)**，才能申請：
-  * **多核心 CPU**（生醫佇列 `ngs62g` 支援 8 核，節點專用 `ngs248c`/`ngs496c` 支援數百核）。
-  * **超大容量記憶體**（`ngs62g` 支援 62GB，超大記憶體節點 `ngs6t` 支援高達 **6.2 TB RAM**）。
-  * **NVIDIA H200 141GB GPU**（`dev`、`8gpus`）與 **GB200 NVL72**，實現數百個樣品或龐大模型的高度平行處理！
+  * **多核心 CPU**（本課程計畫 `GOV115088` 使用 `ngs62g`，每個作業固定 8 核心；生醫平台計畫另可用 `ngs248c`/`ngs496c` 數百核）。
+  * **大容量記憶體**（`ngs62g` 每個作業固定 62 GB；生醫平台計畫另可用高達 **6 TB** 的 `ngs6t`）。
+  * 一般 AI 計畫另可申請 **NVIDIA H200 / GB200 GPU**（本次 CPU-only 課程不使用）。
 
 ---
 
 ## 2. 請 AI Agent 自動重構 Slurm 腳本 (Prompt 技巧)
 
-在 **VS Code Remote-SSH** 中，開啟您安裝好的 AI 助手（如 OpenCode CLI、Antigravity CLI 或 Claude Code）。AI 會自動讀取專案根目錄的 `AGENTS.md` 規範（自動帶入 Nano4 專屬的 `ngs62g`、`--mem=16G`、WekaFS `/work` 規範），您只需輸入具體的重構需求提示詞：
+在 **Antigravity 或 VS Code Remote-SSH** 中，開啟您安裝好的 AI 助手（如 Antigravity 內建 Agent、Claude Code 或 OpenCode CLI）。OpenCode、Codex 等工具會自動讀取專案根目錄的 `AGENTS.md` 規範（Nano4 專屬的 `ngs62g` 官方規格 `-c 8 --mem=62G`、WekaFS `/work` 規範）；Claude Code 則讀取 `CLAUDE.md`，本 repo 的 `CLAUDE.md` 已匯入 `AGENTS.md`（需在 VS Code 以 `$HOME/Nano4-Docs` 為工作資料夾開啟）；若您使用的工具沒有自動讀取，請在對話開頭要求它「先閱讀 AGENTS.md」。無論使用哪種工具，prompt 中仍請明確寫出 `ngs62g` 與 `-c 8 --mem=62G`：
 
 ```text
 你是一位熟悉國網中心 Nano4 (晶創26) 超級電腦 Slurm 排程器與生物資訊分析的專家。
 我原本在登入節點有一個執行 FASTQ 質控分析（FastQC + MultiQC）的互動腳本 `run_fastqc_multiqc.sh`。
 現在我希望將這套流程改由 Slurm 佇列派送到 Nano4 計算節點（Compute Node）執行。
 
-請幫我編寫兩個版本的 Slurm 批次作業腳本（符合 Nano4 規格，生醫專案使用 #SBATCH --account=YOUR_BIO_PROJECT_ID 與 --partition=ngs62g，並嚴格加上 #SBATCH --mem=16G 避免 QoS 超限）：
+請幫我編寫兩個版本的 Slurm 批次作業腳本（符合 Nano4 規格，本課程計畫使用 #SBATCH --account=GOV115088 與 --partition=ngs62g，並依 ngs62g 官方規格加上 #SBATCH --cpus-per-task=8 與 #SBATCH --mem=62G）：
 
 1. 案例 A：事前資料下載 / 離線運算模式 (資料已在 /work 高速目錄就緒，計算節點純內網多核平行處理)。
 2. 案例 B：外網直連 / 動態下載模式 (利用 Nano4 計算節點 Direct Internet 存取能力，即時抓取遠端資料並質控)。
@@ -74,25 +82,26 @@ flowchart TD
 ## 4. 實戰案例 A：事前資料下載 / 高速離線運算模式
 
 ### 步驟 1：在登入節點準備好資料
-在登入節點執行下載腳本，將小型示範資料存入 `/work/${USER}` 共享工作區：
+在登入節點執行下載腳本，將小型示範資料存入個人高速工作區 `/work/${USER}`：
 ```bash
-cd 05-ai-agent-slurm-pipeline/case_a_offline
+cd "$HOME/Nano4-Docs/05-ai-agent-slurm-pipeline/case_a_offline"
 bash 01_download_on_login_node.sh
 ```
 
 ### 步驟 2：提交純離線 Slurm 計算作業
 
-先將 `BIO_PROJECT_ID` 設成你在第 03 章查到、且確實有 `ngs62g` 權限的 project；命令列的 `--account` 會覆寫範本中的佔位符。
+本課程計畫為 `GOV115088`（範本已預設）；若日後使用其他生醫計畫，改設 `BIO_PROJECT_ID` 即可，命令列的 `--account` 會覆寫範本中的設定。
 
 ```bash
-export BIO_PROJECT_ID=YOUR_BIO_PROJECT_ID
+export BIO_PROJECT_ID=GOV115088
 sbatch --account="${BIO_PROJECT_ID}" 02_submit_offline_qc.slurm
 ```
 **Slurm 執行腳本重點解密**：
 * 申請生醫佇列：`#SBATCH --partition=ngs62g`
-* 指定計費專案：`#SBATCH --account=YOUR_BIO_PROJECT_ID`
-* 嚴格指定記憶體：`#SBATCH --mem=16G`（避免超出 QoS 限制）
-* 申請 4 個 CPU 核心 (`#SBATCH --cpus-per-task=4`)
+* 指定計費專案：`#SBATCH --account=GOV115088`
+* 依 `ngs62g` 官方規格申請：`#SBATCH --cpus-per-task=8` 與 `#SBATCH --mem=62G`
+* FastQC 以 `-t ${SLURM_CPUS_PER_TASK}` 使用全部 8 核心
+* `module purge` 後載入 `biology/JDK/26.0.1 biology/FastQC/0.11.9 biology/MultiQC`（計算節點沒有系統 Java，FastQC 必須搭配 JDK 模組）
 * 計算節點從 `/work/${USER}/nano4-case-a-qc` 讀取 FASTQ，進行多執行緒 FastQC 與 MultiQC 匯總。
 
 ---
@@ -104,33 +113,38 @@ sbatch --account="${BIO_PROJECT_ID}" 02_submit_offline_qc.slurm
 ### 提交外網直連動態下載與質控作業
 
 ```bash
-export BIO_PROJECT_ID=YOUR_BIO_PROJECT_ID
-cd 05-ai-agent-slurm-pipeline/case_b_online
+export BIO_PROJECT_ID=GOV115088
+cd "$HOME/Nano4-Docs/05-ai-agent-slurm-pipeline/case_b_online"
 sbatch --account="${BIO_PROJECT_ID}" run_online_pipeline.slurm
 ```
 
 **Slurm 核心關鍵配置與程式碼：**
 * **生醫純 CPU 分區配置**：
   ```bash
-  #SBATCH --account=YOUR_BIO_PROJECT_ID           # 生醫專案代號
+  #SBATCH --account=GOV115088           # 本課程計畫代號
   #SBATCH --job-name=qc_online          # 作業名稱
   #SBATCH --partition=ngs62g            # Nano4 生醫專屬 CPU 佇列
   #SBATCH --nodes=1                     # 1 台節點
-  #SBATCH --cpus-per-task=4             # 4 核心多線程
-  #SBATCH --mem=16G                     # 【關鍵必填】記憶體大小 (ngs62g 上限 62G)
+  #SBATCH --cpus-per-task=8             # ngs62g 官方規格：8 核心
+  #SBATCH --mem=62G                     # ngs62g 官方規格：62 GB (與 -c 8 搭配)
   #SBATCH --time=00:30:00               # 執行時間上限
   ```
 * **計算節點直連外網實行管線**：
   ```bash
+  # 0. 載入官方模組 (計算節點沒有系統 Java)
+  module purge
+  module load biology/JDK/26.0.1 biology/FastQC/0.11.9 biology/MultiQC
+
   # 1. 驗證計算節點對外網路連通性 (無須任何 Proxy)
-  curl -s -I --connect-timeout 5 https://docs.qiime2.org/ >/dev/null
+  curl -fsSIL --connect-timeout 10 -o /dev/null "${SAMPLE_URL}"
   echo "✅ 外網直連成功！"
 
-  # 2. 計算節點內部直接向外網下載資料
-  curl -sSL "https://data.qiime2.org/2024.5/tutorials/moving-pictures/emp-single-end-sequences/sequences.fastq.gz" -o dynamic_sample.fastq.gz
+  # 2. 計算節點內部直接向外網下載資料，完整下載後再拆分成 2 組各 1000 reads 的樣本
+  curl -fsSL --retry 3 "${SAMPLE_URL}" -o "${SOURCE_FASTQ}"
 
-  # 3. 下載完成後立即啟動 FastQC 與 MultiQC
-  multiqc fastqc_out/ -o multiqc_out/
+  # 3. 下載完成後立即執行 FastQC 與 MultiQC
+  fastqc -t "${SLURM_CPUS_PER_TASK}" "${DATA_DIR}"/*.fastq.gz -o "${FASTQC_OUT}"
+  multiqc "${FASTQC_OUT}" -o "${MULTIQC_OUT}" --force
   ```
 
 ---
@@ -141,43 +155,42 @@ sbatch --account="${BIO_PROJECT_ID}" run_online_pipeline.slurm
 ```bash
 squeue -u $(whoami)
 ```
-當作業狀態自 `R` (Running) 結束後，即可檢視由計算節點產生的成果日誌：
+當作業從 `squeue` 清單中消失（表示已結束）後，即可檢視由計算節點產生的成果日誌（日誌寫在提交作業的目錄）：
 ```bash
-# 案例 A 產物:
-cat case_a_offline/qc_offline-*.out
+# 案例 A 日誌與報告:
+cat "$HOME/Nano4-Docs/05-ai-agent-slurm-pipeline/case_a_offline"/qc_offline-*.out
+ls /work/${USER}/nano4-case-a-qc/multiqc_out_offline/
 
-# 案例 B 產物:
-cat case_b_online/qc_online-*.out
+# 案例 B 日誌與報告:
+cat "$HOME/Nano4-Docs/05-ai-agent-slurm-pipeline/case_b_online"/qc_online-*.out
+ls /work/${USER}/nano4-case-b-qc/multiqc_out_online/
 ```
 
 **執行效能診斷 (`seff`)**：
 ```bash
 seff <JOB_ID>
 ```
+（`<JOB_ID>` 就是 `sbatch` 回應 `Submitted batch job 123456` 中的數字，也會出現在日誌檔名 `qc_offline-123456.out` 中。）
 確認 CPU 利用率與 Memory 峰值，驗證資源分配是否精準合理！
 
 ---
 
-## 7. Nano4 HPC 實戰全系列 7 大課程總結與進階
+## 7. 課程進度回顧與後續章節
 
-恭喜您！至此整個 **Nano4 HPC 實戰教學系列手冊** 已建立起完整、成體系且符合晶創26最新規範的 7 大核心章節：
+恭喜您完成第 05 章！本系列共 7 章，目前已完成 01–05，接下來是 06–07：
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│              Nano4 (晶創26) HPC 實戰教學系列手冊 (全 7 章)    │
-├─────────────────────────────────────────────────────────────┤
-│  01. Nano4 登入與雙因子認證 (SSH 22、IDExpert 2FA、DTN 2222) │
-│  02. VS Code Remote-SSH 與 AI 開發工具鏈 (OpenCode/Antigravity)│
-│  03. Slurm 語法精講與超級電腦作業調度實務 (H200/GB200/NGS分區)│
-│  04. AI 輔助生醫管線 (FASTQ 下載與 FastQC/MultiQC 微型實作) │
-│  05. AI Agent 自動化排程 (重構生醫管線至 Slurm：離線 vs 直連)│
-│  06. AI Agent 技能庫中心 (Skills Hub：Slurm Advisor/生醫管線)│
-│  07. nf-core/ampliseq 真實 16S 案例                       │
-└─────────────────────────────────────────────────────────────┘
-```
+| 章節 | 主題 |
+| :---: | :--- |
+| 01 | Nano4 登入與雙因子認證（SSH 22、IDExpert 2FA、DTN 2222） |
+| 02 | VS Code Remote-SSH 與 AI 工具鏈（Antigravity / Codex / OpenCode） |
+| 03 | Slurm 語法與作業調度（`ngs62g` 與 NGS 分區） |
+| 04 | AI 輔助生醫質控管線（FASTQ 下載與 FastQC / MultiQC 微型實作） |
+| 05 | AI Agent 自動化 Slurm 排程（離線 vs 直連） |
+| 06 | AI Agent 技能總匯庫（Skills Hub） |
+| 07 | nf-core/ampliseq 真實 16S 案例 |
 
-這 7 門課程由淺入深，從**安全遠端連線**、**VS Code Remote AI 開發環境**，到**Slurm 排程器深度掌控**；接著在登入節點完成**生醫管線微型驗證**，並最終引導 **AI Agent 將流程自動重構為生產級 Slurm 批次管線**！
+這 7 門課程由淺入深：從**安全遠端連線**、**VS Code Remote AI 開發環境**，到**Slurm 排程器**；接著在登入節點完成**生醫管線微型驗證**，本章再由 **AI Agent 將流程重構為 Slurm 批次管線**。
 
-在最後的 **第 07 章** 中，我們將使用真實 16S 資料驗證前面建立的 Slurm、Nextflow、Singularity 與 Skills Hub 能力，讓您的 AI 助手能自動調度叢集專屬的 Advisor 技能，成為真正能自動排程與維運的超級電腦專家！
+下一步的 **第 06 章** 會把本章的經驗打包成 AI Agent 可重用的 Skills；最後的 **第 07 章** 中，我們將使用真實 16S 資料驗證前面建立的 Slurm、Nextflow、Singularity 與 Skills Hub 能力，並練習讓 AI Agent 在 Skill 的規範下重現整套分析。
 
-👉 **下一課**：[第 07 章：nf-core/ampliseq 真實案例——手動操作、AI 重做與 Skill 封裝](../07-nfcore-ampliseq-case-study/)
+👉 **下一課**：[第 06 章：AI Agent 技能總匯庫 (Skills Hub)](../06-skills-hub/)

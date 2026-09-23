@@ -43,7 +43,7 @@ else
     if [[ "$PARTITION" =~ ^(ct112|cf112|hm112|visual-dev|visual|vscode|jupyter|arm144)$ ]]; then
         echo "❌ [嚴重錯誤] 分區 '$PARTITION' 為舊創進一號 (F1) 佇列，Nano4 叢集不存在此分區！"
         echo "   建議替換："
-        echo "   - CPU 生醫運算 ➔ ngs62g, ngstest, ngs250g"
+        echo "   - CPU 生醫運算 ➔ ngs62g (GOV115088 唯一可用)；MST109178 另可用 ngstest, ngs250g"
         echo "   - GPU 運算 ➔ dev (H200 最長 4h), 8gpus"
         echo "   - Arm 運算 ➔ gb200-dev (GB200 最長 2h)"
     fi
@@ -54,18 +54,22 @@ NODES=$(grep -E "^#SBATCH\s+(-N|--nodes=)" "$SLURM_FILE" | head -n 1 | awk -F'='
 CPUS=$(grep -E "^#SBATCH\s+(-c|--cpus-per-task=)" "$SLURM_FILE" | head -n 1 | awk -F'=' '{print $2}' | awk '{print $1}' || echo "1")
 echo "✅ 申請資源規模: 節點數 = $NODES, 每個行程核心數 = $CPUS"
 
-# 4. 檢查 ngs62g 特殊規則 (Max 8 CPU, Max 62G RAM, 必須指定 --mem)
+# 4. 檢查 ngs62g 官方規格 (國網規定固定搭配：-c 8 --mem=62G)
 if [ "$PARTITION" == "ngs62g" ]; then
-    if [ "$CPUS" -gt 8 ]; then
-        echo "❌ [QoS 錯誤] 分區 'ngs62g' 單一任務上限為 8 核心，目前設定為 $CPUS 核心！"
-    fi
-    
-    MEM_SETTING=$(grep -E "^#SBATCH\s+--mem" "$SLURM_FILE" | head -n 1 || true)
-    if [ -z "$MEM_SETTING" ]; then
-        echo "❌ [致命地雷] 'ngs62g' 必須明確指定 #SBATCH --mem=... (上限 62G)！"
-        echo "   未指定時 Slurm 預設申請整台節點 1024GB 記憶體，會直接被 QoS 拒絕 (QOSMaxMemoryPerJob)！"
+    if [ "$CPUS" != "8" ]; then
+        echo "❌ [規格錯誤] 'ngs62g' 官方規格為 -c 8，目前設定為 $CPUS 核心！"
     else
-        echo "✅ ngs62g 記憶體設定: $MEM_SETTING"
+        echo "✅ ngs62g 核心數符合官方規格: -c 8"
+    fi
+
+    MEM_VALUE=$(grep -E "^#SBATCH\s+--mem=" "$SLURM_FILE" | head -n 1 | sed -E 's/^#SBATCH\s+--mem=([^ ]+).*/\1/' || true)
+    if [ -z "$MEM_VALUE" ]; then
+        echo "❌ [致命地雷] 'ngs62g' 必須明確指定 #SBATCH --mem=62G！"
+        echo "   未指定時 Slurm 預設申請整台節點 1024GB 記憶體，會直接被 QoS 拒絕 (QOSMaxMemoryPerJob)！"
+    elif [[ ! "$MEM_VALUE" =~ ^62[Gg]$ ]]; then
+        echo "❌ [規格錯誤] 'ngs62g' 官方規格為 --mem=62G，目前設定為 $MEM_VALUE！"
+    else
+        echo "✅ ngs62g 記憶體符合官方規格: --mem=62G"
     fi
 fi
 

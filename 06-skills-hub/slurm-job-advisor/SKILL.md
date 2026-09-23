@@ -37,8 +37,10 @@ description: >-
 * **計算節點對外連網**：**Nano4 計算節點具備外網直連能力 (Direct Internet)**，可直接連線 GitHub、Hugging Face 或 NCBI 下載資料，不需要任何 HTTP Proxy 隧道。
 
 ### 2. 專案類別與佇列對應限制 (Project vs. Partition)
-* **生技醫藥專案（如 `GOV115088`, `MST109178`）**：
-  * **專屬分區**：`ngstest`（10分鐘測試）、`ngs62g`（4天，上限 8 核/62GB RAM）、`ngs250g`、`ngs6t`（超大記憶體 6.2TB RAM）、`ngs1gpu~8gpu`（生醫專屬 GPU 佇列，最長 14 天）。
+* **本課程計畫 `GOV115088`（CPU-only）**：
+  * **唯一 NGS 分區**：`ngs62g`（4天，官方規格每作業固定 -c 8 --mem=62G）。送到其他 `ngs*` 分區會被拒絕。
+* **生醫平台計畫（如 `MST109178`, `ENT109430`）**：
+  * **專屬分區**：`ngstest`（10分鐘、1 核 / 8GB）、`ngs8g`～`ngs1000g`、`ngs1500g`～`ngs6t`（超大記憶體 6TB）、`ngs1gpu~8gpu`（生醫專屬 GPU 佇列，最長 14 天）。
   * ❌ **禁止派送至一般 GPU 佇列**：`dev` 等分區將生醫專案列為 `DenyAccounts`。
 * **一般 AI / 大模型訓練專案（如 `GOV113021`, `GOV114022`）**：
   * **H200 GPU 分區**：`dev`（最長 4 小時，除錯測試）、`8gpus`（最長 48 小時，單節點 8x H200 141GB）、`16gpus~256gpus`（多節點分散式平行）。
@@ -53,10 +55,10 @@ AI 必須主動攔截並糾正以下「不合邏輯」或「必定失敗」的�
 
 | 不合理狀況 (Fallacy) | 發生場景與危害 | AI 糾正與防禦措施 |
 | :--- | :--- | :--- |
-| **1. `ngs62g` 漏填 `--mem`** | 在 `ngs62g` 申請 4 核心但未寫 `#SBATCH --mem`。Slurm 預設為全節點 1024GB 記憶體，超過 QoS 限額，作業永遠卡在 `(QOSMaxMemoryPerJob)` 排隊或被拒絕！ | **主動介入說明**：「在 Nano4 `ngs62g` 佇列中，必須明確指定 `--mem=16G`（或最大 62G），否則會因預設全額超限而卡死！」 |
+| **1. `ngs62g` 漏填 `--mem`** | 在 `ngs62g` 申請 4 核心但未寫 `#SBATCH --mem`。Slurm 預設為全節點 1024GB 記憶體，超過 QoS 限額，作業永遠卡在 `(QOSMaxMemoryPerJob)` 排隊或被拒絕！ | **主動介入說明**：「在 Nano4 `ngs62g` 佇列中，必須依官方規格明確指定 `-c 8 --mem=62G`，否則會因預設全額超限而卡死！」 |
 | **2. `dev` 申請 0 GPU** | 用戶在 `dev` 分區申請 CPU 任務，未寫 `--gres=gpu:1`。系統拋出 `job violates accounting/QOS policy (0 < 1)` 直接拒絕提交。 | **主動介入說明**：「Nano4 `dev` 為 H200 GPU 測試分區，QoS 規範最少必須申請 1 顆 GPU（`#SBATCH --gres=gpu:1`）！」 |
 | **3. 使用舊 F1 佇列名稱** | 用戶寫 `#SBATCH -p ct112` 或 `-p cf112` 或 `-p visual-dev`。 | **指出分區不存在**：「這些是舊版超級電腦 (F1) 的佇列名稱。Nano4 請改用 `ngs62g`（CPU）或 `dev`（H200 GPU）！」 |
-| **4. 測試作業直接掛 96 小時** | 新手除錯腳本直接申請 `--time=96:00:00`，導致在佇列中排隊數小時甚至數天。 | **推薦測試佇列**：「首次測試腳本建議使用分區 `#SBATCH -p ngstest`（限時 10 分鐘）或 `#SBATCH -p dev`（時限設定 30 分鐘），秒排秒跑！」 |
+| **4. 測試作業直接掛 96 小時** | 新手除錯腳本直接申請 `--time=96:00:00`，導致在佇列中排隊數小時甚至數天。 | **推薦測試佇列**：「首次測試腳本建議把 `--time` 設為 10～30 分鐘：`GOV115088` 用 `ngs62g`，`MST109178` 可用 `ngstest`（限時 10 分鐘、1 核 / 8GB）。」 |
 | **5. 遺漏 `--account`** | 未指定計畫代號。Nano4 排程器會強制攔截並終止提交。 | **強制要求指定**：必須於腳本標頭填入 `wallet` 查詢到的正數點數計畫代號（生醫專案如 `#SBATCH -A GOV115088`，AI 專案如 `#SBATCH -A GOV113021`）。 |
 | **6. 日誌路徑目錄不存在** | 寫 `#SBATCH -o logs/job-%j.out` 但當前目錄沒有 `logs/` 資料夾，導致 Slurm 拋出 `_open_output_file: No such file or directory` 瞬間失敗。 | **推薦萬用 Token**：統一建議使用 `#SBATCH -o %x-%j.out` 與 `#SBATCH -e %x-%j.err`。 |
 
@@ -72,7 +74,7 @@ AI 必須主動攔截並糾正以下「不合邏輯」或「必定失敗」的�
 1. 💳 【計費計畫代號 (Account)】
    系統查詢到您帳號目前可用的計畫代號如下（執行 wallet 查詢）：
    - GOV113021 (一般 AI 計畫，可用於 H200 dev / 8gpus)
-   - GOV115088 (生技醫藥計畫，可用於 ngs62g / ngs250g / ngs6t)
+   - GOV115088 (本課程計畫，僅可用 ngs62g)
    請問此作業要使用哪一個計畫代號？
 
 2. 🔬 【運算任務類型與軟體】
@@ -81,12 +83,12 @@ AI 必須主動攔截並糾正以下「不合邏輯」或「必定失敗」的�
    (B) 基因體組裝 / 大矩陣運算 (高記憶體需求 ➔ 推薦 ngs250g 或 6.2TB ngs6t)
    (C) 深度學習模型微調 / 推論 (PyTorch, vLLM ➔ 推薦 H200 dev 或 8gpus)
    (D) 批次多樣本平行處理 (Array Job ➔ 推薦 ngs62g)
-   (E) 快速語法邏輯除錯 (推薦 ngstest 10分鐘 或 dev 30分鐘)
+   (E) 快速語法邏輯除錯 (GOV115088 → ngs62g 搭配 --time=00:10:00；MST109178 → ngstest)
 
 3. ⚡ 【預估 CPU 核心、記憶體與 GPU 需求】
-   - 輕量 CPU (4 核 / 16GB RAM) ➔ ngs62g
+   - 一般 CPU (官方規格 8 核 / 62GB RAM) ➔ ngs62g
    - 滿載 CPU (8 核 / 62GB RAM) ➔ ngs62g
-   - 超高記憶體 (64~128 核 / 250GB~6.2TB RAM) ➔ ngs250g / ngs6t
+   - 超高記憶體 (64~124 核 / 250GB~6TB RAM) ➔ ngs250g / ngs6t (僅 MST109178 等生醫平台計畫)
    - H200 GPU 運算 (1 顆 H200 / 12 核 / 64GB RAM) ➔ dev
 
 4. ⏱️ 【運行時間預估 (Walltime)】
@@ -106,5 +108,6 @@ bash <此 skill 的 scripts 目錄>/validate_slurm.sh your_job.slurm
 
 # 2. 或直接調用原生 Slurm 模擬預檢指令
 sbatch --test-only your_job.slurm
+# 注意：--test-only 只檢查帳號/分區組合，不檢查 QoS 上限 (例如 ngs62g 的 8 核 / 62GB)
 ```
 若預檢成功印出 `sbatch: Job <ID> to start at ...`，即可放心告知使用者正式提交：`sbatch your_job.slurm`！

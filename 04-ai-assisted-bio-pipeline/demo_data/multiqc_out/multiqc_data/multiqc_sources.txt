@@ -1,5 +1,0 @@
-Module	Section	Sample Name	Source
-FastQC	all_sections	sample_01_R1	/home/c00cjz00/hpc-tutorial/05-ai-assisted-bio-pipeline/demo_data/fastqc_out/sample_01_R1_fastqc.zip
-FastQC	all_sections	sample_02_R1	/home/c00cjz00/hpc-tutorial/05-ai-assisted-bio-pipeline/demo_data/fastqc_out/sample_02_R1_fastqc.zip
-FastQC	all_sections	sample_03_R1	/home/c00cjz00/hpc-tutorial/05-ai-assisted-bio-pipeline/demo_data/fastqc_out/sample_03_R1_fastqc.zip
-FastQC	all_sections	sample_04_R1	/home/c00cjz00/hpc-tutorial/05-ai-assisted-bio-pipeline/demo_data/fastqc_out/sample_04_R1_fastqc.zip

@@ -18,6 +18,106 @@ AI Agent 重做
 > 官方 test profile 只驗證 Nextflow、Slurm、Singularity 與 pipeline 能否運作；
 > 真實資料才用於學習資料溯源與結果解讀。兩者目的不同，不能互相取代。
 
+> [!IMPORTANT]
+> **本章只使用 CPU，不申請 GPU。** 本課程計畫為 `GOV115088`，在 NGS CPU 佇列中**只能使用 `ngs62g`**
+> （官方規格：每個作業 `-c 8 --mem=62G`，最長 4 天）。因此 Nextflow driver 與所有 pipeline 子工作都送到 `ngs62g`，並一律依官方規格申請 8 核心 / 62 GB，
+> 不使用 `ngs1gpu`～`ngs8gpu`，也不加入 `--gres=gpu`。
+
+> [!NOTE]
+> 本章實作檔案位於教材 repository。若重新開啟終端機，先回到本章目錄：
+>
+> ```bash
+> cd "$HOME/Nano4-Docs/07-nfcore-ampliseq-case-study"
+> ```
+
+## 📌 目錄 (Table of Contents)
+- [0. 本章故事：一位研究生的一天](#0-本章故事一位研究生的一天)
+- [1. 本章使用的兩套資料](#1-本章使用的兩套資料)
+- [2. 工作目錄與先備檢查](#2-工作目錄與先備檢查)
+- [3. 第一階段：學生手動操作一次](#3-第一階段學生手動操作一次)
+- [4. 第二階段：讓 AI Agent 重做](#4-第二階段讓-ai-agent-重做)
+- [5. 第三階段：查看與解讀結果](#5-第三階段查看與解讀結果)
+- [6. 第四階段：封裝並使用 Skill](#6-第四階段封裝並使用-skill)
+- [7. 繳交內容](#7-繳交內容)
+
+## 0. 本章故事：一位研究生的一天
+
+> 先讀這一節，再動手。後面每一個指令，都對應到這個故事裡的一個決定。
+
+### 0.1 研究問題
+
+小林是研究「早期生活壓力」的研究生。他讀到一篇論文：
+[*Early life stress in mice alters gut microbiota independent of maternal microbiota inheritance*](https://doi.org/10.1152/ajpregu.00072.2020)。
+
+研究者讓一組幼鼠經歷 **MSEW**（Maternal Separation with Early Weaning，**母鼠分離＋提早斷奶**），這是模擬「童年早期壓力」的常用小鼠模型；另一組幼鼠正常飼養，作為 **Control**。他們想知道：
+
+- 早期壓力會不會改變幼鼠的**腸道菌相**（腸道裡有哪些細菌、各佔多少）？
+- 如果會改變，是不是只是因為「媽媽的菌傳給了小孩」？論文標題的答案是：**不是，改變與母鼠菌相的遺傳無關**。
+
+要回答「腸道裡有哪些細菌」，研究者對糞便樣本做 **16S rRNA 擴增子定序**：只把細菌共有的 16S 基因中一小段（V4 區）放大後定序。每條 read 就像一張細菌的「條碼」，比對條碼就能知道是哪種細菌。
+
+### 0.2 指導教授的任務
+
+指導教授請小林：「用作者公開的原始資料，在國網 Nano4 上把分析流程重現一次，而且要讓別人看得懂、能重跑。」為了在課堂時間內完成，小林只挑 6 個樣本：3 個 Control、3 個 MSEW，全部是同一批實驗（`exp1`）、出生後第 10 天（`PD10`）、公鼠，並且各來自不同窩（litter）。分組完全照作者的 metadata，**小林沒有自己發明任何分組**。
+
+### 0.3 小林的做法，也就是本章的步驟
+
+| 小林的想法 | 對應章節 | 你要做的事 |
+| :--- | :--- | :--- |
+| 「先搞懂資料從哪來、為什麼是這 6 個樣本。」 | 1、3.1 | 讀 `study_notes.md`、樣本表與 manifest |
+| 「資料要下載完整、而且沒損壞。」 | 3.2 | 在計算節點下載 FASTQ 並逐檔核對 MD5 |
+| 「先別急著跑真資料，確認**機器這關**能過。」 | 3.3 | 跑 nf-core 內建的 test profile |
+| 「環境沒問題了，才跑真實資料。」 | 3.4 | 跑 6 個樣本的完整分析 |
+| 「讀懂結果，不要過度解讀。」 | 5 | 依序看 QC、primer 移除、DADA2、多樣性 |
+| 「請 AI 用同樣的資料再做一次，並逐項檢查它。」 | 4 | AI 重做、人工核准、比較差異 |
+| 「把做對的規則留下來，下次直接用。」 | 6 | 封裝成 Skill |
+
+### 0.4 為什麼一定要先跑 test？
+
+分析失敗時，原因只有兩大類：**環境問題**（軟體、容器、Slurm 設定、權限）或**資料問題**（檔案損壞、primer 錯誤、樣本表寫錯）。
+test profile 使用 nf-core 官方準備好、保證正確的小型資料：
+
+- **test 成功** → 環境沒問題。之後真實資料若失敗，就專心檢查資料與參數。
+- **test 失敗** → 問題一定在環境，不必懷疑資料。
+
+先用 test 把兩類問題分開，除錯範圍立刻縮小一半。這是實務上跑任何 nf-core pipeline 的標準做法。也因為 test 資料是「軟體測試用」，**它的分組與圖表不能拿來做任何生物學解讀**。
+
+### 0.5 nf-core/ampliseq 幫小林做了什麼？
+
+nf-core/ampliseq 是社群維護的標準化擴增子分析 pipeline。它把下面這些步驟串在一起，每一步都會變成一個（或數個）Slurm 作業：
+
+| 步驟 | 工具 | 白話說明 | 結果目錄 |
+| :--- | :--- | :--- | :--- |
+| 1. 原始資料品質檢查 | FastQC / MultiQC | 看定序品質好不好、有沒有異常 | `fastqc/`、`multiqc/` |
+| 2. 移除 primer | Cutadapt | 切掉每條 read 開頭的引子（515F / 806R），只留真正的菌種序列；找不到 primer 的 read 會被丟掉 | `cutadapt/` |
+| 3. 去雜訊、找出 ASV | DADA2 | 過濾低品質 reads、校正定序錯誤、合併雙端 reads、去除嵌合體，得到 **ASV**（Amplicon Sequence Variant，精確到單一鹼基的「序列種類」）與每個樣本的數量表 | `dada2/` |
+| 4. 物種分類 | DADA2 + SILVA 138.2 | 拿每個 ASV 去比對 SILVA 參考資料庫，判斷它是哪個門、綱、目、科、屬 | `dada2/`、`qiime2/abundance_tables/` |
+| 5. 多樣性分析 | QIIME 2 | **alpha 多樣性**：單一樣本內菌種有多豐富；**beta 多樣性**：兩個樣本菌相有多不同，並以 PCoA 圖呈現分組 | `qiime2/diversity/` |
+| 6. 總結報告 | MultiQC / summary report | 把各步驟的統計彙整成網頁報告 | `multiqc/`、`summary_report/` |
+
+### 0.6 執行時你會看到什麼？
+
+送出 test 或真實資料的作業後，只需要執行**一次** `squeue --me` 查看（不要用 `watch` 反覆刷新）：
+
+```text
+ JOBID PARTITION     NAME     USER ST   TIME NODES NODELIST(REASON)
+425914    ngs62g ampliseq  student  R  03:12     1 25a-cpn01
+425930    ngs62g nf-NFCOR  student  R  00:41     1 25a-cpn01
+425931    ngs62g nf-NFCOR  student PD  00:00     1 (Priority)
+```
+
+`squeue` 預設只顯示作業名稱的前 8 個字元，所以 `ampliseq_test` 會顯示成 `ampliseq`、`nf-NFCORE_…` 會顯示成 `nf-NFCOR`。
+
+| 你看到的 | 意思 |
+| :--- | :--- |
+| `ampliseq_test` / `ampliseq_real` | **主控作業（driver）**：裡面跑 Nextflow，負責依序把每個分析步驟送出成子作業。它會一直執行到整條 pipeline 結束 |
+| `nf-NFCORE_AMPLISEQ_…` | **子作業**：pipeline 的某一個步驟，例如 `…_DADA2_DENOISING`、`…_QIIME2_DIVERSITY_…`。會陸續出現、結束，數量可達上百個 |
+| `ST` = `R` | Running，正在計算節點上執行 |
+| `ST` = `PD` + `(Priority)` / `(Resources)` | Pending，正在排隊等資源，屬正常現象 |
+| `ST` = `PD` + `(Dependency)` | 等待其他作業先完成 |
+
+每個子作業都依 `ngs62g` 官方規格申請 8 核心 / 62 GB。進度請看 driver 的日誌 `ampliseq_test-<JOB_ID>.out`：每行 `[PROCESS …]` 代表一個步驟被送出；最後出現 **`Pipeline completed successfully`** 才代表成功。
+
 ## 1. 本章使用的兩套資料
 
 ### 1.1 nf-core/ampliseq 官方 test profile
@@ -27,7 +127,7 @@ AI Agent 重做
 
 - Nextflow 可以啟動；
 - `executor = slurm` 確實提交子工作；
-- Singularity/Apptainer 能取得及執行容器；
+- Singularity/Apptainer 能執行國網預先下載的容器；
 - `/work/${USER}` 的 work 與 cache 可由所有節點存取；
 - nf-core/ampliseq 能跑到完成。
 
@@ -70,7 +170,7 @@ ID 不能包含連字號，只有 pipeline ID 將 `-` 可逆地改成 `_`；原�
 
 ## 2. 工作目錄與先備檢查
 
-程式碼留在 Git repository，大型資料與 cache 全部寫入 WekaFS：
+程式碼留在 Git repository，大型資料與 cache 全部寫入 WekaFS（約 286 MB FASTQ 加上 taxonomy 與 Nextflow work）：
 
 ```text
 /work/${USER}/nfcore-ampliseq-course/
@@ -80,9 +180,10 @@ ID 不能包含連字號，只有 pipeline ID 將 `-` 可逆地改成 `_`；原�
 │   └── metadata.tsv            # 作者 metadata 的課堂子集
 ├── cache/
 │   ├── nextflow/
-│   ├── singularity/
+│   ├── singularity/            # 個人補抓的容器 (共享快取缺少時才使用)
+│   ├── singularity-library/    # 指向國網共享容器快取的連結
 │   ├── singularity-runtime/
-│   └── taxonomy/
+│   └── taxonomy/               # SILVA 138.2，第一次正式分析時下載
 ├── provenance/
 ├── results-test/
 ├── results-real/
@@ -90,25 +191,50 @@ ID 不能包含連字號，只有 pipeline ID 將 `-` 可逆地改成 `_`；原�
 └── work-real/
 ```
 
+> [!WARNING]
+> `/work/${USER}/nfcore-ampliseq-course/` 是本案例的**短期運算工作區**，不是永久保存位置，也沒有備份。學生完成分析後，至少要保留 `data/` 的來源紀錄、`metadata/`、`provenance/`、pipeline 版本／命令、Slurm Job ID 與必要的 `results-*`；再依 GP1 官方規範移到長期儲存或核准的備份位置。先用 `hfsquota` 確認配額，避免 FASTQ、container cache 與 Nextflow work 佔滿 `/work`。
+
+### 2.1 國網離線 nf-core 環境
+
+本章使用國網中心預先封裝的 **`biology/nf-core-ampliseq/2.18.0`** 模組，而不是讓每位學生各自從 GitHub 與容器 registry 下載：
+
+| 項目 | 來源 |
+| :--- | :--- |
+| Nextflow 26.04.6 與 Java | 模組相依的 `biology/Nextflow/26.04.6` |
+| nf-core/ampliseq 2.18.0 程式碼 | `$NFCORE_AMPLISEQ_HOME`（國網預載） |
+| Singularity 容器 | 國網共享唯讀快取（預先下載） |
+| 站台 Slurm／容器設定 | `$NFCORE_SITE_CONFIG`，再疊加本章 `config/nano4.config` |
+| SILVA 138.2 taxonomy | 第一次正式分析時由計算節點下載到 `cache/taxonomy/` |
+| ENA FASTQ | `01_prepare_real_data.slurm` 在計算節點下載 |
+
+`scripts/nfcore_env.sh` 會在每個 driver job 內執行 `module purge` 與 `module load biology/nf-core-ampliseq/2.18.0`，並把 cache 導向 `/work`。有兩個站台細節由它和 `config/nano4.config` 處理：
+
+- 國網 `site.config` 會依記憶體把每個 process 分到 `ngs8g`、`ngs16g`…，但 `GOV115088` 只能用 `ngs62g`，所以 `nano4.config` 把所有 process（含 `process_high_memory`）固定送到 `NFCORE_PARTITION`，並以 `withName: '.*'` 讓**每個 process 都依 `ngs62g` 官方規格申請 8 CPU / 62 GB**（覆蓋 nf-core 內建的 1 GB、3 GB 等預設值），時間上限 96 小時。
+- 共享容器快取中有少數檔案其實是下載失敗的 HTML 錯誤頁（例如 `bioconductor-biostrings-2.58.0`）。`nfcore_env.sh` 只連結有效的映像檔，缺少的會自動下載到個人 `cache/singularity/`，不會因唯讀快取而失敗。
+
+### 2.2 先備檢查
+
 先確認環境，不要在登入節點直接啟動分析：
 
 ```bash
+cd "$HOME/Nano4-Docs/07-nfcore-ampliseq-case-study"
 hostname
-wallet
+wallet GOV115088
+module load biology/nf-core-ampliseq/2.18.0
 nextflow -version
 singularity --version || apptainer --version
+module purge
 ```
 
-選定 `<PROJECT_ID>` 與 `<PARTITION>` 後執行唯讀 preflight：
+執行唯讀 preflight，確認 `GOV115088` 與 `ngs62g` 的授權：
 
 ```bash
-bash .agents/skills/nano4-slurm-operations/scripts/slurm-preflight.sh \
-    --project '<PROJECT_ID>' \
-    --partition '<PARTITION>'
+bash "$HOME/Nano4-Docs/06-skills-hub/nano4-slurm-operations/scripts/slurm-preflight.sh" \
+    --project GOV115088 \
+    --partition ngs62g
 ```
 
-課堂的 CPU 生醫案例通常會評估 `ngs62g`，但實際授權、QoS 與分區狀態必須
-以當天查詢結果為準，不可只照教材填值。
+`GOV115088` 在 NGS CPU 佇列中只有 `ngs62g` 可用；若日後改用其他計畫，仍須以當天的 wallet、association 與 partition policy 為準。
 
 ## 3. 第一階段：學生手動操作一次
 
@@ -117,7 +243,7 @@ bash .agents/skills/nano4-slurm-operations/scripts/slurm-preflight.sh \
 先閱讀以下三個檔案：
 
 ```bash
-cd 07-nfcore-ampliseq-case-study
+cd "$HOME/Nano4-Docs/07-nfcore-ampliseq-case-study"
 less metadata/study_notes.md
 column -ts $'\t' metadata/course_subset.tsv | less -S
 column -ts $'\t' data/ena_manifest.tsv | less -S
@@ -129,12 +255,17 @@ column -ts $'\t' data/ena_manifest.tsv | less -S
 ### 3.2 下載及驗證真實 FASTQ
 
 下載在計算節點進行。script 會下載約 286 MB 的 ENA FASTQ、逐檔核對 ENA
-MD5，並由固定 manifest 建立 samplesheet：
+MD5，並由固定 manifest 建立 samplesheet。課前實測（2026-09-23）約 5 分鐘完成；
+ENA 伺服器偶爾會在傳輸中途斷線，script 會自動重試並從斷點續傳，`.err` 日誌中出現
+`Will retry` 屬正常現象：
 
 ```bash
+export NFCORE_ACCOUNT=GOV115088
+export NFCORE_PARTITION=ngs62g
+
 sbatch \
-    --account='<PROJECT_ID>' \
-    --partition='<PARTITION>' \
+    --account="${NFCORE_ACCOUNT}" \
+    --partition="${NFCORE_PARTITION}" \
     scripts/01_prepare_real_data.slurm
 ```
 
@@ -157,13 +288,13 @@ column -ts $'\t' \
 ### 3.3 執行官方 test profile
 
 `-profile test,singularity` 會載入 test 資料設定與 Singularity 執行環境；
-`config/nano4.config` 才負責將各個 nf-core process 送進 Slurm。第一次執行時
-Nextflow 會下載 pipeline、test data、taxonomy 與所需 container image，後續則
-重用 `/work` cache。
+國網 `site.config` 與本章 `config/nano4.config` 才負責將各個 nf-core process 送進 Slurm。
+pipeline 與容器都來自國網離線環境，只有 test profile 的小型輸入與 taxonomy 會從網路下載。
+課前實測（2026-09-23）約 27 分鐘完成，共 125 個 Slurm 子工作、0 個失敗（實際時間視排隊狀況而定）。最後顯示 `Pipeline completed successfully` 即為成功。
 
 ```bash
-export NFCORE_ACCOUNT='<PROJECT_ID>'
-export NFCORE_PARTITION='<PARTITION>'
+export NFCORE_ACCOUNT=GOV115088
+export NFCORE_PARTITION=ngs62g
 
 sbatch \
     --account="${NFCORE_ACCOUNT}" \
@@ -183,14 +314,18 @@ Slurm driver job
           └── Slurm process: QIIME2 / MultiQC / reports
 ```
 
-主控 Nextflow 也放在低資源 Slurm allocation 中，避免在登入節點維持長時間
-Java process。
+主控 Nextflow 也放在 Slurm 作業中（同樣依 `ngs62g` 官方規格 8 核心 / 62 GB），避免在登入節點長時間執行 Java 程序。
+執行時 `squeue` 的畫面與各欄位意思，請見 [0.6 執行時你會看到什麼？](#06-執行時你會看到什麼)。
 
 ### 3.4 執行真實資料
 
-只有在下載工作和官方 test 都成功後才提交：
+只有在下載工作和官方 test 都成功後才提交。官方 test 約需 27 分鐘，若期間重新開過終端機，請先重新設定變數：
 
 ```bash
+cd "$HOME/Nano4-Docs/07-nfcore-ampliseq-case-study"
+export NFCORE_ACCOUNT=GOV115088
+export NFCORE_PARTITION=ngs62g
+
 sbatch \
     --account="${NFCORE_ACCOUNT}" \
     --partition="${NFCORE_PARTITION}" \
@@ -203,17 +338,24 @@ sbatch \
 - nf-core/ampliseq `2.18.0`；
 - 研究原始 515F/806R primer；
 - 作者原始 metadata 與 treatment；
-- DADA2 taxonomy `silva=138.2`；
+- DADA2 taxonomy `silva=138.2`（國網離線資料只有 SILVA 138 的 QIIME 2 格式與 GTDB，因此由計算節點下載一次到 `cache/taxonomy/`）；
 - `-resume` 支援安全續跑；
 - container、taxonomy 與 work cache 位於 `/work/${USER}`。
 
 > [!NOTE]
 > nf-core/ampliseq 2.18.0 使用 `--FW_primer` 與 `--RV_primer`。開發版文件可能
-> 顯示新版名稱；因本課固定 `-r 2.18.0`，參數也必須依 2.18.0 文件與 schema。
+> 顯示新版名稱；因本課固定 2.18.0 版，參數也必須依 2.18.0 文件與 schema。
 
 ## 4. 第二階段：讓 AI Agent 重做
 
-人工版完成後才使用 [`prompts/ai_reproduce.md`](./prompts/ai_reproduce.md)。AI
+人工版完成後才使用 [`prompts/ai_reproduce.md`](./prompts/ai_reproduce.md)。這份 prompt 會要求 AI 使用 `nfcore-ampliseq-nano4` 等 Skills；若尚未在第 06 章安裝，請先執行：
+
+```bash
+cd "$HOME/Nano4-Docs/06-skills-hub"
+bash sync_skills.sh
+```
+
+AI
 必須先讀取研究資料、提出計畫並完成 live preflight，在學生確認 account、
 partition、資源與實際命令前不得提交工作。
 
@@ -226,8 +368,13 @@ AI 版應使用獨立位置，例如：
 不要讓 AI 覆寫人工版。兩版完成後比較：
 
 ```bash
-diff -u manual/samplesheet.tsv ai/samplesheet.tsv
-diff -u manual/nano4.config ai/nano4.config
+# samplesheet：人工版 vs AI 版
+diff -u /work/${USER}/nfcore-ampliseq-course/metadata/samplesheet.tsv \
+        /work/${USER}/nfcore-ampliseq-course-ai/metadata/samplesheet.tsv
+
+# Nextflow 設定：課程提供的 config vs AI 產生的 config（路徑依 AI 實際輸出調整）
+diff -u "$HOME/Nano4-Docs/07-nfcore-ampliseq-case-study/config/nano4.config" \
+        /work/${USER}/nfcore-ampliseq-course-ai/nano4.config
 ```
 
 比較重點：
@@ -243,7 +390,7 @@ diff -u manual/nano4.config ai/nano4.config
 
 ## 5. 第三階段：查看與解讀結果
 
-先列出主要報告與表格：
+真實資料（3.4）完成後，先列出主要報告與表格（此 script 只檢查 `results-real`）：
 
 ```bash
 bash scripts/04_inspect_results.sh
@@ -274,7 +421,7 @@ PCoA 是視覺化，不等於統計顯著。本章只有六個樣本，不能宣
 檢查任務中自動載入它：
 
 ```bash
-cd 06-skills-hub
+cd "$HOME/Nano4-Docs/06-skills-hub"
 bash sync_skills.sh
 ```
 
@@ -308,3 +455,7 @@ Skill 不會把本章六個樣本硬編碼成所有研究的標準。它封裝�
 
 完成本章後，學生不只是「會跑 nf-core」，而是能理解、監督、驗證並重用
 一套真實 HPC 生物資訊 workflow。
+
+---
+
+👈 **回到**：[課程總綱與學習地圖](../README.md)
