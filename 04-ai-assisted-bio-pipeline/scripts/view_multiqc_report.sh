@@ -5,7 +5,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPORT_DIR="${SCRIPT_DIR}/../demo_data/multiqc_out"
+# 可指定報告所在資料夾，例如 bash view_multiqc_report.sh /work/$USER/slurm_lab/qc/multiqc_out
+REPORT_DIR="${1:-${SCRIPT_DIR}/../demo_data/multiqc_out}"
 REPORT_FILE="${REPORT_DIR}/multiqc_report.html"
 
 if [ ! -f "${REPORT_FILE}" ]; then

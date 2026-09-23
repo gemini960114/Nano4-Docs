@@ -1,13 +1,10 @@
-# 第 02 章：VS Code Remote-SSH、AI 開發工具鏈與國網地端大模型配置
+# 第 02 章：Antigravity Remote-SSH 與三個 AI Agent
 
-歡迎來到第 02 章！在第 01 章中，您已經掌握了登入節點 SSH 連線、雙因子認證（2FA）、WekaFS 高速儲存架構（`/home` vs `/work`）與極速 `uv` Python 環境。
+歡迎來到第 02 章！在第 01 章中，您已經學會 SSH 登入、雙因子認證（2FA）、`/home` 與 `/work` 的分工，以及用 `module` 載入生醫工具。
 
-但如果每次寫程式都得使用黑底白字的文字終端機（如 vim 或 nano），對於初學者來說開發門檻較高。在晶創26（Nano4）環境中，**最主流、最流暢且最推薦的現代化開發方式，就是使用您個人電腦上的 Visual Studio Code（或以 VS Code 為基礎、內建 AI Agent 的 Google Antigravity）透過「Remote - SSH」直連 Nano4**！
+本章的目的只有一個：**把 AI Agent 帶到 Nano4 上**。我們用以 VS Code 為基礎的 **Google Antigravity**，透過「Remote - SSH」連上 Nano4，再裝上 **Codex** 與 **Claude Code** 兩個擴充套件，加上 Antigravity 內建的 Agent，一共三個 Agent 可以隨時切換、對同一個問題比較回答。
 
-本章將帶您在個人電腦打造直通超級電腦的圖形化開發工作台，並在遠端環境中配置 **AI 開發工具鏈（Antigravity、ChatGPT、Gemini、Codex CLI、OpenCode CLI 與國網 Taiwan AI RAP 地端大模型 API）**，以及導入超算專屬的 **`AGENTS.md`** 治理守則，讓 AI 成為您探索超算的隨身神隊友！
-
----
-
+有了 AI Agent，您不必背誦複雜的指令：用自然語言說出想完成的分析（例如「幫我檢查這 4 個定序樣本的品質」），由 Agent 撰寫 Slurm 腳本、送到計算節點、再用白話解讀結果；**您的工作是確認 Agent 的計畫與結果是否正確**。本章最後的示範會讓您親眼看到這件事。
 
 > [!NOTE]
 > 本章指令預設已完成第 01 章的 repository clone。若重新開啟終端機，先回到教材根目錄：
@@ -17,57 +14,52 @@
 > ```
 
 ## 📌 目錄 (Table of Contents)
-- [1. 為什麼推薦 VS Code Remote-SSH？(終結黑底終端機)](#1-為什麼推薦-vs-code-remote-ssh終結黑底終端機)
-- [2. 本地電腦 VS Code Remote-SSH 連線實戰 (3 分鐘速成)](#2-本地電腦-vs-code-remote-ssh-連線實戰-3-分鐘速成)
-- [3. 遠端工作區必備擴充套件安裝 (Python, Jupyter, AI)](#3-遠端工作區必備擴充套件安裝-python-jupyter-ai)
-- [4. AI 工具選擇與雙工具操作練習](#4-ai-工具選擇與雙工具操作練習)
-- [5. 終端 AI 命令行工具配置：Codex、OpenCode 與 Antigravity](#5-終端-ai-命令行工具配置codexopencode-與-antigravity)
-- [6. 國網中心地端大模型：Taiwan AI RAP 設定實務](#6-國網中心地端大模型taiwan-ai-rap-設定實務)
-- [7. 國網中心支援模型清單與場景推薦](#7-國網中心支援模型清單與場景推薦)
-- [8. 超算專屬 AI Agent 治理守則：AGENTS.md 實務](#8-超算專屬-ai-agent-治理守則agentsmd-實務)
-- [9. 初學者動手實戰練習 (Hands-on Labs 1 ~ 5)](#9-初學者動手實戰練習-hands-on-labs-1--5)
-- [10. 多登入節點與 Agent session 清理](#10-多登入節點與-agent-session-清理)
-- [11. 常見踩坑與連線排錯 (FAQ)](#11-常見踩坑與連線排錯-faq)
+- [1. 為什麼要用 Antigravity Remote-SSH？](#1-為什麼要用-antigravity-remote-ssh)
+- [2. 連上 Nano4 (Antigravity / VS Code Remote-SSH)](#2-連上-nano4-antigravity--vs-code-remote-ssh)
+- [3. 裝上三個 AI Agent](#3-裝上三個-ai-agent)
+- [4. 三個 Agent 怎麼讀到 Nano4 的規則與 Skills](#4-三個-agent-怎麼讀到-nano4-的規則與-skills)
+- [5. 超算專屬 AI Agent 治理守則：AGENTS.md](#5-超算專屬-ai-agent-治理守則agentsmd)
+- [6. 動手實戰練習 (Hands-on Labs 1 ~ 6)](#6-動手實戰練習-hands-on-labs-1--6)
+- [7. 多登入節點與 Agent session 清理](#7-多登入節點與-agent-session-清理)
+- [8. 常見踩坑與連線排錯 (FAQ)](#8-常見踩坑與連線排錯-faq)
 
 ---
 
-## 1. 為什麼推薦 VS Code Remote-SSH？(終結黑底終端機)
+## 1. 為什麼要用 Antigravity Remote-SSH？
 
-在傳統超算教學中，許多人習慣在登入節點打 `vim script.py`，但對於不熟悉 Linux 快捷鍵的學員而言極易受挫。而網頁版 Code-Server 又常因瀏覽器快捷鍵衝突、記憶體佔用或網路斷線而體驗不佳。
+Remote-SSH 讓您的編輯器介面在個人電腦上執行，而檔案、終端機與 AI Agent 都在 Nano4 遠端執行：
 
-### 🌟 VS Code Remote-SSH 的五大殺手級優勢：
-1. **本地流暢度，超算核心算力**：VS Code 的介面渲染在您個人本機執行，毫無網頁版延遲；所有檔案讀寫、語法檢查與終端命令則 100% 運行在 Nano4 遠端。
-2. **完整滑鼠與視窗操作**：左側是遠端檔案總管，支援拖曳上傳、點擊開啟；右側是強大的代碼編輯器與 Markdown 即時預覽。
-3. **無縫整合終端機**：按下 **``Ctrl + ` ``** 即可在下方開啟遠端 Bash 終端分頁，直接提交 Slurm 作業。
-4. **Jupyter Notebook 原生互動支援**：直接在 VS Code 裡點開 `.ipynb`，選擇第 01 章在 `/work` 建立好的 Python 環境作為 Kernel（需先安裝 `ipykernel`，見本章 FAQ Q3），即可進行互動式資料分析與繪圖。
-5. **AI 插件完全解放**：可無縫掛載 GitHub Copilot、Cline、Roo Code 或國網地端大模型，直接在編輯器內請 AI 寫代碼與 Slurm 批次腳本。
+1. **AI Agent 直接看得到遠端的檔案**：Agent 可以讀取 `/work` 裡的資料、撰寫 Slurm 腳本、執行 `sbatch` 並查看日誌，不必在網頁和終端機之間複製貼上。
+2. **三個 Agent 可以自由切換**：Antigravity 內建 Agent、Codex、Claude Code 裝在同一個視窗，同一個問題可以請三個 Agent 各回答一次，互相比對。
+3. **不用記 `vim`**：左側檔案總管用滑鼠開檔、存檔；按下 **``Ctrl + ` ``** 就有遠端終端機。
+4. **直接在瀏覽器看報告**：MultiQC 等 HTML 報告可透過連接埠轉送或下載，在筆電瀏覽器打開。
 
 ```text
 [ 學員個人電腦 (Windows / macOS / Linux) ]
-   └─ 執行原生 VS Code (本地 UI, 擴充套件, 本地快捷鍵)
+   └─ Antigravity（本地介面、快捷鍵）
             │
-            ▼ (加密 SSH 隧道，使用第 01 章設定之 Host nano4)
+            ▼ (加密 SSH 連線，使用第 01 章設定之 Host nano4)
 [ 晶創26 (Nano4) 登入節點 (25a-lgn01~05) ]
-   ├─ VS Code Server (背景常駐運行)
+   ├─ Antigravity Server（背景執行）
+   ├─ 三個 AI Agent：Antigravity 內建 Agent、Codex、Claude Code
    ├─ WekaFS 高速工作區 (/work/$USER)
-   ├─ Python 虛擬環境 (/work/$USER/...，不放在 $HOME)
-   └─ Slurm 調度命令列 (sbatch, salloc, squeue)
+   └─ Slurm 指令 (sbatch, squeue, sacct) → 計算節點 ngs62g
 ```
+
+> [!NOTE]
+> Antigravity 以 VS Code 為基礎，本章步驟在 VS Code 上也完全相同，差別只在 VS Code 沒有內建 Agent。
 
 ---
 
-## 2. 本地電腦 VS Code Remote-SSH 連線實戰 (3 分鐘速成)
+## 2. 連上 Nano4 (Antigravity / VS Code Remote-SSH)
 
-### 步驟 A：在個人電腦安裝 VS Code 與 Remote-SSH 套件
-1. 前往 [VS Code 官網](https://code.visualstudio.com/) 下載並安裝適合您作業系統的版本。
-2. 開啟 VS Code，按下快捷鍵 `Ctrl + Shift + X`（macOS 為 `Cmd + Shift + X`）開啟擴充套件市場。
-3. 搜尋 **`Remote - SSH`**（由 Microsoft 官方發行），點擊 **Install (安裝)**。
+### 步驟 A：在個人電腦安裝 Antigravity
+1. 前往 [Antigravity 官網](https://antigravity.google/) 下載安裝，並以 Google 帳號登入。
+2. 在擴充套件面板（`Ctrl + Shift + X`，macOS 為 `Cmd + Shift + X`）確認已有 **Remote - SSH** 套件（若已內建則略過安裝）。
+3. 首次連線時，Antigravity 會在 Nano4 的 `~/.antigravity-ide-server` 安裝伺服器端。
 
 > [!TIP]
-> **使用 Google Antigravity（本課程推薦）**：Antigravity 以 VS Code 為基礎，介面、快捷鍵與 Remote-SSH 連線方式都與 VS Code 相同，並內建 AI Agent，可直接在連上 Nano4 的遠端工作區裡請 AI 讀程式、寫 Slurm 腳本。
-> 1. 前往 [Antigravity 官網](https://antigravity.google/) 下載安裝，並以 Google 帳號登入。
-> 2. 在擴充套件面板確認已有 Remote-SSH 套件（若已內建則略過安裝）。
-> 3. 之後的步驟 B–D 與 VS Code 完全相同。首次連線時，Antigravity 會在 Nano4 的 `~/.antigravity-ide-server` 安裝伺服器端（VS Code 則是 `~/.vscode-server`）。
+> **使用 VS Code**：到 [VS Code 官網](https://code.visualstudio.com/) 下載安裝，在擴充套件市場搜尋 **`Remote - SSH`**（Microsoft 官方發行）並安裝。首次連線會在 Nano4 的 `~/.vscode-server` 安裝伺服器端。VS Code 可以使用第 3 節的 Codex 與 Claude Code，但沒有 Antigravity 內建 Agent。
 
 ### 步驟 B：確認本機 SSH Config 已配置
 在第 01 章中，我們已經在您本機的 `~/.ssh/config` 中加入了 `nano4` 設定：
@@ -81,7 +73,7 @@ Host nano4
 ```
 
 ### 步驟 C：一鍵連入 Nano4
-1. 點擊 VS Code 視窗左下角的綠色按鈕（或圖示 `><`），在上方彈出的選單中選擇：  
+1. 點擊視窗左下角的遠端按鈕（圖示 `><`），在上方彈出的選單中選擇：  
    👉 **`Connect to Host... (連線至主機...)`**
 2. 清單中會自動列出 **`nano4`**，點擊選取它。
 3. 系統會開啟新視窗並提示連線。在上方提示列選擇連線平台（選擇 **`Linux`**）。
@@ -90,25 +82,25 @@ Host nano4
    Login method (1: Mobile APP OTP, 2: Mobile APP PUSH, 3: Email OTP): 
    ```
    輸入 **`2`** 按 Enter，解鎖手機在 **IDExpert App** 點擊「同意」；隨後輸入您的主機密碼。
-5. 驗證通過後，左下角會顯示 **`SSH: nano4`**，表示您已成功穿透連線進入晶創26！
+5. 驗證通過後，左下角會顯示 **`SSH: nano4`**，表示您已成功連進晶創26！
 
-### 步驟 D：開啟遠端高速工作區
+### 步驟 D：開啟遠端工作區
 1. 點擊左側選單的「檔案總管 (Explorer)」➔ 點擊 **Open Folder (開啟資料夾)**。
 2. 在上方輸入框填入您的 WekaFS 高速工作區路徑：
    ```text
    /work/your_account
    ```
-   （教材 repository 位於 `/home/your_account/Nano4-Docs`；第 04 章要瀏覽教材檔案時，可用 File ➔ Open Folder 另外開啟這個資料夾。）
-3. 按下確定，您就能在 VS Code 左側清單中看到所有遠端檔案與目錄！
+   （教材 repository 位於 `/home/your_account/Nano4-Docs`；本章練習 4、6 要讓 Agent 讀到教材裡的 `AGENTS.md`，屆時改用 File ➔ Open Folder 開啟這個資料夾。）
+3. 按下確定，您就能在左側清單中看到所有遠端檔案與目錄！
 
 ### 步驟 E（強烈建議）：用 ssh-proxy 只做一次 2FA 認證
 
-Nano4 的**每一條新 SSH 連線**都要輸入密碼與 OTP。VS Code / Antigravity 的 Remote-SSH 在「連線」、「Open Folder 選目錄」、「切換資料夾或重新載入視窗」時都會開新連線，所以同一堂課可能要認證好幾次。
+Nano4 的**每一條新 SSH 連線**都要輸入密碼與 OTP。Antigravity / VS Code 的 Remote-SSH 在「連線」、「Open Folder 選目錄」、「切換資料夾或重新載入視窗」時都會開新連線，所以同一堂課可能要認證好幾次。
 
-[`ssh-proxy`](https://github.com/gemini960114/ssh-proxy) 是在**您個人電腦上**執行的小工具：它先用密碼 + OTP 連上 Nano4 並保持連線，再在本機 `127.0.0.1:2222` 開一個入口。之後 VS Code / Antigravity 改連 `nano4-proxy`，所有連線都走這條已認證的通道，不必再輸入 OTP。
+[`ssh-proxy`](https://github.com/gemini960114/ssh-proxy) 是在**您個人電腦上**執行的小工具：它先用密碼 + OTP 連上 Nano4 並保持連線，再在本機 `127.0.0.1:2222` 開一個入口。之後 Antigravity 改連 `nano4-proxy`，所有連線都走這條已認證的通道，不必再輸入 OTP。
 
 ```text
-VS Code / Antigravity / 終端機
+Antigravity / VS Code / 終端機
         │  連 nano4-proxy（不需 OTP）
         ▼
 127.0.0.1:2222   ← ssh-proxy（在您的電腦上執行，視窗保持開著）
@@ -161,216 +153,104 @@ xattr -d com.apple.quarantine ssh-proxy-macos-arm64
 **4. 改連 `nano4-proxy`**：
 
 - 終端機：`ssh nano4-proxy`，應直接進入 Nano4，不再要求 OTP。
-- VS Code / Antigravity：`Connect to Host...` 時選 **`nano4-proxy`**（不是 `nano4`），之後 Open Folder、切換資料夾都不必再認證。
+- Antigravity / VS Code：`Connect to Host...` 時選 **`nano4-proxy`**（不是 `nano4`），之後 Open Folder、切換資料夾都不必再認證。
 
 **5. 使用注意**
 
-- 預設**沒有任何連線 60 分鐘**或**總執行 8 小時**後，proxy 會自動停止；整天的課程可在啟動時加上 `--max-lifetime 10h`。proxy 停止後 VS Code 會斷線，重新啟動 proxy（再認證一次）並重新連線即可。
+- 預設**沒有任何連線 60 分鐘**或**總執行 8 小時**後，proxy 會自動停止；整天的課程可在啟動時加上 `--max-lifetime 10h`。proxy 停止後 Antigravity 會斷線，重新啟動 proxy（再認證一次）並重新連線即可。
 - 只在**自己的電腦**上使用：proxy 在執行期間，同一台電腦上的其他程式也能透過它連進您的帳號。使用共用電腦或離開座位前，請在 proxy 視窗按 `Ctrl+C` 停止。
 - 若出現 `Address already in use`，表示已有另一個 proxy 在使用 2222 埠，請先關閉它。
 
 ---
 
-## 3. 遠端工作區必備擴充套件安裝 (Python, Jupyter, AI)
+## 3. 裝上三個 AI Agent
 
-當 VS Code 透過 Remote-SSH 連線後，擴充套件分為「本地執行」與「遠端執行（SSH: nano4）」。與程式碼執行、語法檢查相關的套件，**必須安裝在遠端主機上**。
+| Agent | 怎麼取得 | 需要的帳號 | 在哪裡開啟 |
+| :--- | :--- | :--- | :--- |
+| **Antigravity 內建 Agent** | Antigravity 內建，不需安裝 | Google 帳號（登入 Antigravity 時已完成） | Agent 面板 |
+| **Codex** | 擴充套件 `openai.chatgpt` | ChatGPT 帳號 | 左側活動列的 Codex 圖示 |
+| **Claude Code** | 擴充套件 `anthropic.claude-code` | Claude 帳號（Pro / Max 訂閱）或 Anthropic API key | 左側活動列的 Claude 圖示 |
 
-### A. 必備遠端套件清單
+> [!IMPORTANT]
+> Codex 與 Claude Code 需要學員自己的帳號。**只有 Antigravity 內建 Agent 也能完成本課程所有練習**；有其他帳號的學員，再加裝對應的擴充套件來比較。
 
-| 套件類別 | 識別碼 (Extension ID) | 核心功能 |
-| :--- | :--- | :--- |
-| **Python 核心環境** | `ms-python.python` | Python 語法高亮、虛擬環境自動偵測 |
-| **Python 除錯器** | `ms-python.debugpy` | 斷點除錯、單步執行與變數檢視 |
-| **Jupyter 互動運算** | `ms-toolsai.jupyter` | 執行 `.ipynb` Notebook 的運算引擎 |
-| **Jupyter 渲染器** | `ms-toolsai.jupyter-renderers` | 支援 Plotly 互動圖表與 DataFrame 表格檢視 |
-| **Claude AI 助手** | `anthropic.claude-code` | Anthropic 官方 Claude 程式碼輔助工具 |
-| **Roo Code / Cline** | `rooveterinaryinc.roo-cline` | 支援自訂 API (可接國網 Taiwan AI RAP) 的 AI Agent |
+### A. 安裝擴充套件（裝在遠端 SSH: nano4-proxy）
 
-> ChatGPT 與 Gemini 主要在學員本機的 Web/Desktop 應用程式中使用，不需要安裝到 Nano4。Codex CLI、OpenCode CLI 才是可直接操作 repository 的終端工具。
+連上 Nano4 後，擴充套件分為「本地」與「遠端（SSH）」。**AI Agent 與 Python、Jupyter 套件都要裝在遠端**，Agent 才能讀取 Nano4 上的檔案、在 Nano4 上執行指令。
 
-### B. 一鍵安裝腳本 (在 VS Code 整合終端執行)
-
-按下 **``Ctrl + ` ``** 開啟整合式終端機，執行本章隨附的安裝腳本：
+按下 **``Ctrl + ` ``** 開啟整合式終端機，執行本章隨附的安裝腳本（Antigravity 與 VS Code 都適用）：
 
 ```bash
 cd "$HOME/Nano4-Docs/02-vscode-and-ai-tools/scripts"
 bash install_vscode_extensions.sh
 ```
 
-*(您也可以在 VS Code 左側 Extensions 面板中搜尋套件名稱，並點選 **Install in SSH: nano4** 安裝)*
+腳本會安裝下列套件：
 
----
+| 套件類別 | 識別碼 (Extension ID) | 核心功能 |
+| :--- | :--- | :--- |
+| **Codex** | `openai.chatgpt` | OpenAI 的 AI Agent |
+| **Claude Code** | `anthropic.claude-code` | Anthropic 的 AI Agent |
+| **Python 核心環境** | `ms-python.python` | Python 語法高亮、虛擬環境自動偵測 |
+| **Python 除錯器** | `ms-python.debugpy` | 斷點除錯、單步執行與變數檢視 |
+| **Jupyter 互動運算** | `ms-toolsai.jupyter` | 執行 `.ipynb` Notebook 的運算引擎 |
+| **Jupyter 渲染器** | `ms-toolsai.jupyter-renderers` | 支援 Plotly 互動圖表與 DataFrame 表格檢視 |
 
-## 4. AI 工具選擇與雙工具操作練習
+*(也可以在左側 Extensions 面板搜尋套件名稱，點選 **Install in SSH: nano4-proxy** 安裝。)*
 
-本課程不限定只使用 OpenCode。每位學員至少選擇 **兩個 AI 工具**，對同一個 Nano4 任務進行對話、追問、修改與驗證，最後比較它們的差異。推薦組合是 **Gemini + Codex**；也可以選擇 ChatGPT + Codex、ChatGPT + OpenCode，或 Gemini + OpenCode。
+### B. 登入各個 Agent
 
-| 工具 | 使用位置 | 本章練習角色 | 是否安裝到 Nano4？ |
-| :--- | :--- | :--- | :---: |
-| [ChatGPT](https://chatgpt.com/) | 本機 Web/Desktop | 解釋錯誤、審查腳本、提出改善方案 | 否 |
-| [Gemini](https://gemini.google.com/) | 本機 Web | 第二意見、比較提示詞與分析結果 | 否 |
-| [Codex CLI](https://developers.openai.com/codex/cli) | 本機或 Nano4 終端 | 讀取 repository、修改檔案、執行測試 | 可選 |
-| [OpenCode](https://opencode.ai) | Nano4 終端 | 連接 Taiwan AI RAP、產生與診斷 HPC 腳本 | 是 |
-
-### 雙工具練習流程
-
-1. 兩個工具使用**同一份 prompt、同一份檔案與同一個問題**。
-2. 先請工具說明計畫，不要立即執行破壞性指令。
-3. 比較它們提出的路徑、Slurm 資源、`/work` 使用方式與錯誤處理。
-4. 由學生手動選擇與合併建議，再執行 `bash -n`、`sbatch --test-only` 或小型測試。
-5. 記錄工具名稱、prompt、修改內容與驗證結果，形成可重現的 AI 使用紀錄。
-
-## 5. 終端 AI 命令行工具配置：Codex、OpenCode 與 Antigravity
-
-除了編輯器外掛，在 HPC 終端環境中常駐 AI CLI 工具，能讓您隨時透過指令請 AI 生成代碼、修改腳本或診斷 Slurm 排程錯誤。
-
-### A. Codex CLI
-[Codex CLI](https://developers.openai.com/codex/cli) 可在終端中檢查、修改與執行 repository 內容。若在 Nano4 安裝，請使用使用者權限：
-
-```bash
-curl -fsSL https://chatgpt.com/codex/install.sh | sh
-export PATH="${HOME}/.local/bin:${PATH}"
-codex --version
-```
-
-首次執行 `codex` 會要求登入 ChatGPT / OpenAI 帳號，請依畫面指示在本機瀏覽器完成授權。因為 Codex 跑在遠端登入節點，瀏覽器授權完成後若無法回到終端機，請改用裝置碼（device code）登入，例如 `codex login --device-auth`，在本機瀏覽器輸入畫面上的代碼即可；沒有帳號的學員可改用 OpenCode + 國網 Taiwan AI RAP。
-
-### B. OpenCode CLI
-[OpenCode](https://opencode.ai) 是一個輕量、模組化且支援 OpenAI 相容協議（相容國網中心 Taiwan AI RAP API）的終端 AI 工具。
-
-* **安裝指令**：
-  ```bash
-  curl -fsSL https://opencode.ai/install | bash
-  ```
-* **預設安裝路徑**：`~/.opencode/bin/opencode`
-
-### C. Antigravity CLI (`agy`)
-Google 出品的 Antigravity CLI 專精於複雜專案推理與多代理人排程除錯。本教材**不提供** `agy` 的安裝程式：
-* **取得方式**：請依 Google Antigravity 官方說明下載，並以使用者權限放置於 `~/.local/bin/agy`（不需要 `sudo`）。
-* **驗證**：`agy --version`
-* 若尚未取得 `agy`，本章練習改用 Codex CLI 或 OpenCode CLI 即可，不影響後續章節。
-
-### D. 一鍵配置 PATH
-執行本章隨附的設定腳本：若尚未安裝 OpenCode 會自動安裝，並將 `~/.opencode/bin` 與 `~/.local/bin` 加入 `~/.bashrc`：
-```bash
-cd "$HOME/Nano4-Docs/02-vscode-and-ai-tools/scripts"
-bash install_ai_cli.sh
-source ~/.bashrc
-```
-
----
-
-## 6. 國網中心地端大模型：Taiwan AI RAP 設定實務
-
-國網中心提供專屬的地端大模型推論服務 **[Taiwan AI RAP](https://rap.genai.nchc.org.tw/)**，讓研究人員可以直接調用高效能開源大模型，無需自行租用昂貴的商業 API！
-
-> [!NOTE]
-> Taiwan AI RAP 的前身為「Medusa / GenAI Portal」。下方設定檔中的 provider 名稱（`medusa-portal`、`medusa-inner`）與 API 網址沿用服務端的既有名稱，請照範本填寫，不需要改名。
-
-### A. 設定檔位置：`~/.config/opencode/opencode.json`
-
-OpenCode 原生支援多個 Provider 配置。請將本章隨附的範本複製至您的家目錄：
-
-```bash
-mkdir -p ~/.config/opencode
-cp "$HOME/Nano4-Docs/02-vscode-and-ai-tools/templates/opencode.json" ~/.config/opencode/opencode.json
-```
-
-### B. 標準設定範本內容解析
-
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "provider": {
-    "medusa-portal": {
-      "npm": "@ai-sdk/openai-compatible",
-      "options": {
-        "baseURL": "https://portal.genai.nchc.org.tw/api/v1/",
-        "apiKey": "YOUR_MEDUSA_PORTAL_KEY"
-      },
-      "models": {
-        "gpt-oss-120b": {
-          "name": "gpt-oss-120b"
-        },
-        "Devstral-2-123B-Instruct-2512": {
-          "name": "Devstral-2-123B-Instruct-2512"
-        },
-        "Ministral-3-14B-Instruct-2512": {
-          "name": "Ministral-3-14B-Instruct-2512"
-        }
-      }
-    },
-    "medusa-inner": {
-      "npm": "@ai-sdk/openai-compatible",
-      "options": {
-        "baseURL": "https://inner-medusa.genai.nchc.org.tw/v1/",
-        "apiKey": "YOUR_MEDUSA_INNER_KEY"
-      },
-      "models": {
-        "gpt-oss-120b": {
-          "name": "gpt-oss-120b"
-        },
-        "gemma-4-26B-A4B-it": {
-          "name": "gemma-4-26B-A4B-it"
-        },
-        "Thanos3.5-397B-A17B": {
-          "name": "Thanos3.5-397B-A17B"
-        }
-      }
-    }
-  },
-  "model": "medusa-inner/gemma-4-26B-A4B-it"
-}
-```
+1. **Codex**：點左側活動列的 Codex 圖示 ➔ **Sign in with ChatGPT**，依畫面在本機瀏覽器完成授權。
+2. **Claude Code**：點左側活動列的 Claude 圖示 ➔ 依畫面登入 Claude 帳號（或填入 API key）。
+3. **Antigravity 內建 Agent**：打開 Agent 面板即可使用。
 
 > [!TIP]
-> 請使用 `nano ~/.config/opencode/opencode.json`，將 `YOUR_MEDUSA_PORTAL_KEY` 或 `YOUR_MEDUSA_INNER_KEY` 替換為您在 [Taiwan AI RAP](https://rap.genai.nchc.org.tw/) 取得的個人 API Token！
->
-> 範本預設模型是 `medusa-inner/gemma-4-26B-A4B-it`。若您只取得 Portal Key，請把最後一行改成 `"model": "medusa-portal/gpt-oss-120b"`；`medusa-inner` 需另外取得 Inner Key。
+> 三個 Agent 都在**登入節點**上執行指令。登入節點只適合編輯、小型測試與送出作業；請讓 Agent 把運算用 `sbatch` 送到計算節點（`AGENTS.md` 已寫明這條規則，見第 5 節）。
 
 ---
 
-## 7. 國網中心支援模型清單與場景推薦
+## 4. 三個 Agent 怎麼讀到 Nano4 的規則與 Skills
 
-下表與本章 `opencode.json` 範本列出的模型一致（`provider/模型` 為 OpenCode 中的選用名稱）。實際可用清單以 `opencode models` 與 Taiwan AI RAP 為準。
+Agent 會從**您開啟的工作資料夾**讀取規則檔，並從固定的資料夾載入 Skills（第二堂會做自己的 skill）：
 
-| OpenCode 模型名稱 | 參數量 | 特點與專長領域 | 推薦應用場景 |
-| :--- | :---: | :--- | :--- |
-| **`medusa-portal/Devstral-2-123B-Instruct-2512`** | 123B | 針對程式碼生成、架構重構與 Bash 排程優化 | **HPC 首選**！編寫 Slurm 腳本與 Python 管線 |
-| **`medusa-portal/gpt-oss-120b`** / **`medusa-inner/gpt-oss-120b`** | 120B | OpenAI 開放權重推理模型 | 腳本審查、錯誤診斷與步驟規劃 |
-| **`medusa-portal/Ministral-3-14B-Instruct-2512`** | 14B | Mistral 輕量模型，回應快 | 簡短問答與參數速查 |
-| **`medusa-inner/gemma-4-26B-A4B-it`**（範本預設） | 26B | Google 輕量 MoE 模型，回應極速 | 日常問答、終端除錯與參數速查 |
-| **`medusa-inner/Thanos3.5-397B-A17B`** | 397B | MoE 專家混合超大模型，繁體中文與邏輯推理強 | 複雜科研邏輯分析、論文撰寫與全案架構 |
+| Agent | 讀取的規則檔 | 工作資料夾的 Skills | 個人（所有資料夾）的 Skills |
+| :--- | :--- | :--- | :--- |
+| Antigravity 內建 Agent | `.agents/rules/` 裡的規則（本教材的 `.agents/rules/nano4.md` 會引用 `AGENTS.md`） | `.agents/skills/` | `~/.gemini/config/skills/` |
+| Codex | `AGENTS.md` | `.agents/skills/` | `~/.agents/skills/` |
+| Claude Code | `CLAUDE.md`（本教材的 `CLAUDE.md` 內容為 `@AGENTS.md`，也就是匯入 `AGENTS.md`） | `.claude/skills/` | `~/.claude/skills/` |
 
----
-
-## 8. 超算專屬 AI Agent 治理守則：AGENTS.md 實務
-
-當您在 VS Code 中使用 AI 助手（如 OpenCode、Cline、Roo Code、Cursor 等）時，**AI 預設並不知道超級電腦的多人共用規範**，可能會給出危險的建議（例如建議您執行 `sudo apt install` 或在 `$HOME` 下載 50GB 模型導致 Inode 爆量）。
-
-為了解決這個痛點，本專案在根目錄建立了 **[`AGENTS.md`](./agents_governance)** 系統守則！
-
-### 🛡️ AGENTS.md 在 Nano4 的核心防護原則：
-1. **嚴禁 `sudo`**：明確告知 AI 當前為無 root 權限之多用戶環境，任何軟體需求改以 Lmod 模組或 `uv` 虛擬環境解決。
-2. **高速目錄強制導向**：所有大資料集、模型與虛擬環境一律強制寫入 `/work/$USER`，禁止塞爆 `$HOME` 或寫入無備份之 `/tmp`。
-3. **登入節點行為限制**：嚴禁在登入節點執行超過 5 分鐘之重度或 GPU 運算（系統將自動清除進程），凡運算任務必須封裝為 Slurm 批次作業。
-4. **Slurm 作業標準**：指示 AI 寫出的 `.slurm` 腳本執行內容第一行必須加入 `module purge`，日誌格式一律使用 `%x-%j.out`。
-5. **直通外網認知**：告知 AI 晶創26計算節點原生具備外網，不要再產生舊系統過時的 HTTP Proxy 穿透指令。
+- 用 File ➔ Open Folder 開啟 **`$HOME/Nano4-Docs`**，三個 Agent 都會讀到本教材的 `AGENTS.md`；Antigravity 與 Codex 也會自動載入 `Nano4-Docs/.agents/skills/` 裡課程提供的 Skills（第 06 章介紹）。
+- 開啟其他資料夾（例如 `/work/<帳號>`）時，Agent **不會**讀到這份規則。第 03 章會用腳本在工作資料夾放好 `AGENTS.md`、`CLAUDE.md` 與 `.agents/rules/nano4.md`。
+- 不確定 Agent 有沒有讀到時，在對話開頭加一句「請先閱讀 AGENTS.md」。
 
 ---
 
-## 9. 初學者動手實戰練習 (Hands-on Labs 1 ~ 5)
+## 5. 超算專屬 AI Agent 治理守則：AGENTS.md
+
+**AI 預設並不知道超級電腦是多人共用的**，可能會建議執行 `sudo apt install`、在 `$HOME` 下載 50 GB 模型，或在登入節點直接跑大型運算。本教材在根目錄建立了 **[`AGENTS.md`](./agents_governance)** 系統守則，告訴 AI 這台機器的規矩：
+
+1. **嚴禁 `sudo`**：軟體需求改以 Lmod 模組、`uv` 虛擬環境或 Apptainer 容器解決。
+2. **大資料放 `/work/$USER`**：大資料集、模型與虛擬環境一律放在 `/work`，不塞爆 `$HOME`，不寫 `/tmp`。
+3. **登入節點不跑重度運算**：超過 5 分鐘、4 核心或 8 GB 的工作，一律封裝成 Slurm 作業送到計算節點。
+4. **Slurm 作業標準**：腳本執行內容第一行是 `module purge`，日誌格式一律使用 `%x-%j.out`；送出後不要在迴圈中反覆查詢 `squeue`。
+5. **本課程設定**：`GOV115088` 只能使用 `ngs62g`，每個作業固定 `-c 8 --mem=62G`，不可為了「省資源」調小。
+6. **Agent 替使用者操作**：使用者多為第一次使用超級電腦的生醫研究者。Agent 應先用白話說明計畫、撰寫並驗證腳本、經使用者同意後送出，最後用白話解讀結果，而不是丟給使用者一長串指令去打。
+
+---
+
+## 6. 動手實戰練習 (Hands-on Labs 1 ~ 6)
 
 | 練習 | 內容 | 本課程 |
 | :---: | :--- | :--- |
-| 1 | 在 VS Code / Antigravity 開啟遠端工作區 | **必做** |
+| 1 | 在 Antigravity 開啟遠端工作區 | **必做** |
 | 2 | 確認 ssh-proxy 只需認證一次 | **必做** |
-| 3 | 請 AI 解釋 Slurm 範本並比較回答 | 建議（需要 Antigravity、Gemini 或 Codex 其中一種） |
-| 4 | 測試 OpenCode 與 Taiwan AI RAP 連線 | 選做（需要 Taiwan AI RAP API Token） |
+| 3 | 裝上三個 AI Agent 並打招呼 | **必做**（至少 Antigravity 內建 Agent） |
+| 4 | 三個 Agent 解釋同一支 Slurm 範本並比較 | **必做**（可用的 Agent 都試） |
 | 5 | 人工驗證 AI 的建議 | **必做** |
+| 6 | 手動送出 vs 自然語言派送 FastQC / MultiQC | **講師示範**，學員可跟著做 |
 
-### 🧪 練習 1：在 VS Code / Antigravity 開啟遠端工作區
-1. 依照第 2 節步驟，在您個人筆電打開 VS Code 或 Antigravity。
+### 🧪 練習 1：在 Antigravity 開啟遠端工作區
+1. 依照第 2 節步驟，在您個人筆電打開 Antigravity（或 VS Code）。
 2. 透過 Remote-SSH 連線至 `nano4`（完成練習 2 後改連 `nano4-proxy`）。
 3. 開啟 `/work/$USER` 目錄，在檔案清單中點擊右鍵新增一個檔案 `my_test.py`。
 4. 寫入一行 `print("Hello from VS Code Remote on Nano4!")` 並存檔（`Ctrl + S`）。
@@ -394,54 +274,42 @@ cp "$HOME/Nano4-Docs/02-vscode-and-ai-tools/templates/opencode.json" ~/.config/o
    ssh nano4-proxy 'echo $USER; hfsquota'
    ```
    **預期結果**：兩次都直接顯示結果（例如 `25a-lgn03` 與您的帳號），**不會再要求密碼或 OTP**。
-3. 在 VS Code / Antigravity 選 `Connect to Host... → nano4-proxy`，依序用 **Open Folder** 開啟 `/work/<帳號>`，再切換到 `/home/<帳號>/Nano4-Docs`。
+3. 在 Antigravity 選 `Connect to Host... → nano4-proxy`，依序用 **Open Folder** 開啟 `/work/<帳號>`，再切換到 `/home/<帳號>/Nano4-Docs`。
    **預期結果**：切換資料夾時不再出現 OTP 提示。
-4. 在 VS Code 整合終端執行 `hostname`，與步驟 2 的結果比較：透過 proxy 的連線都會落在同一台登入節點。
+4. 在整合終端執行 `hostname`，與步驟 2 的結果比較：透過 proxy 的連線都會落在同一台登入節點。
 
 > 若出現 `Connection refused`，代表 proxy 已停止（例如視窗被關掉或超過時間上限），請回到步驟 1 重新啟動。
 
 ---
 
-### 🧪 練習 3：請 AI 解釋 Slurm 範本並比較回答
-以同一個任務測試兩個 AI 工具：請它們解釋 `sbatch` 腳本中的 `--account`、`--partition`、`--cpus-per-task`、`--mem`，並說明為什麼本課程一律使用 `-c 8 --mem=62G`。
-
-兩個工具都使用同一支範本：`03-slurm-syntax-and-job-management/templates/standard_cpu_job.slurm`。可從下列工具任選兩種：
-
-- **Antigravity 內建 Agent**（推薦）：在已連上 `nano4-proxy` 的 Antigravity 開啟 `$HOME/Nano4-Docs` 資料夾，對 Agent 輸入：
-  ```text
-  請先閱讀 AGENTS.md，再解釋 03-slurm-syntax-and-job-management/templates/standard_cpu_job.slurm 每一個 #SBATCH 參數的用途，但先不要修改檔案。
-  ```
-- **Gemini**：在本機開啟 [Gemini](https://gemini.google.com/)，貼上相同 prompt 與 `standard_cpu_job.slurm` 的內容（可先在 VS Code 開啟檔案後複製）。
-- **Codex**：在登入節點的教材目錄執行：
-  ```bash
-  cd "$HOME/Nano4-Docs"
-  codex "請先閱讀 AGENTS.md，解釋 03-slurm-syntax-and-job-management/templates/standard_cpu_job.slurm 每一個 #SBATCH 參數的用途，但先不要修改檔案。"
-  ```
-
-比較兩份回答：
-- 是否都正確說出 `GOV115088` 只能使用 `ngs62g`？
-- 是否有工具建議把 `--mem` 調小？（依國網官方規定，`ngs62g` 必須固定 `-c 8 --mem=62G`，這是錯誤建議。）
-- 讀過 `AGENTS.md` 的工具與沒讀的工具，回答有什麼差別？
+### 🧪 練習 3：裝上三個 AI Agent 並打招呼
+1. 用 File ➔ Open Folder 開啟 `/home/<帳號>/Nano4-Docs`。
+2. 依第 3 節執行 `install_vscode_extensions.sh`，並登入您有帳號的 Agent。
+3. 對每個 Agent 輸入同一句話：
+   ```text
+   請先閱讀 AGENTS.md。用三句話告訴我：我現在在哪一台電腦上？這門課我能用哪個計畫和佇列？每個作業要申請多少核心和記憶體？
+   ```
+   **預期結果**：三個 Agent 都能說出登入節點（`25a-lgn0X`）、`GOV115088`、`ngs62g` 與 `-c 8 --mem=62G`。說不出來的 Agent，多半是沒有讀到 `AGENTS.md`（檢查工作資料夾是否為 `Nano4-Docs`）。
 
 ---
 
-### 🧪 練習 4：測試 OpenCode CLI 與 Taiwan AI RAP 連線（選做）
-需要先完成第 6 節，在 `opencode.json` 填入 Taiwan AI RAP API Token。
+### 🧪 練習 4：三個 Agent 解釋同一支 Slurm 範本並比較
+以同一個任務測試可用的 Agent：解釋 `sbatch` 腳本中的 `--account`、`--partition`、`--cpus-per-task`、`--mem`，並說明為什麼本課程一律使用 `-c 8 --mem=62G`。
 
-1. 在 VS Code 整合終端中執行：
-   ```bash
-   opencode models
-   ```
-2. 測試向國網地端大模型提問：
-   ```bash
-   opencode run "請用一句話說明為什麼在 HPC 上不能使用 sudo 指令？"
-   ```
-3. 觀察終端機中 AI 的回答，並與練習 3 的結果比較。
+對每個 Agent 輸入相同的 prompt：
+```text
+請先閱讀 AGENTS.md，再解釋 03-slurm-syntax-and-job-management/templates/standard_cpu_job.slurm 每一個 #SBATCH 參數的用途，但先不要修改檔案。
+```
+
+比較它們的回答：
+- 是否都正確說出 `GOV115088` 只能使用 `ngs62g`？
+- 是否有 Agent 建議把 `--mem` 調小？（依國網官方規定，`ngs62g` 必須固定 `-c 8 --mem=62G`，這是錯誤建議。）
+- 哪個 Agent 的說明最容易懂？哪個最精確？
 
 ---
 
 ### 🧪 練習 5：人工驗證 AI 的建議
-AI 的回答只是建議，最後要由學生自己驗證。無論練習 3 採用了哪些建議，都手動執行：
+AI 的回答只是建議，最後要由學生自己驗證。無論練習 4 採用了哪些建議，都手動執行：
 
 ```bash
 cd "$HOME/Nano4-Docs"
@@ -454,25 +322,66 @@ sbatch --test-only --account=GOV115088 03-slurm-syntax-and-job-management/templa
 
 > `sbatch --test-only` **不會檢查 QoS 與官方規格**（例如 `ngs62g` 必須固定 `-c 8 --mem=62G`），這部分仍需自行對照第 01 章的佇列表。
 
-記錄哪個工具的建議被採用、哪些建議被拒絕，以及實際驗證結果。
+記錄哪個 Agent 的建議被採用、哪些建議被拒絕，以及實際驗證結果。
 
 ---
 
-## 10. 多登入節點與 Agent session 清理
+### 🧪 練習 6：手動送出 vs 自然語言派送 FastQC / MultiQC（第一堂結尾示範）
 
-Nano4 登入節點可能把同一次 SSH/VS Code/Antigravity 連線分派到
-`25a-lgn01`～`25a-lgn05` 的不同主機。若舊主機上的 VS Code Server、Codex、OpenCode、
-Claude 或 Antigravity agent 沒有正常結束（本機網頁版的 ChatGPT / Gemini 不受影響），重新連線到另一台主機時可能
+**目標**：用教材附的 4 個 FASTQ 定序樣本（各 1000 條 reads），做同一件事兩次：先手動送出寫好的 Slurm 腳本，再用一句自然語言請 AI Agent 完成。兩種方式都在計算節點 `ngs62g` 上執行 FastQC 與 MultiQC，約 10 秒就跑完。
+
+**A. 手動：送出寫好的腳本**
+
+```bash
+cd /work/$USER
+sbatch "$HOME/Nano4-Docs/02-vscode-and-ai-tools/templates/day1_fastqc_multiqc.slurm"
+sacct -X -o JobID,JobName,State,Elapsed      # 跑完後 State 為 COMPLETED
+tail -3 day1_qc-*.out
+```
+
+**預期結果**：日誌最後一行是 `✅ 完成！MultiQC 報告：/work/<帳號>/day1_qc/multiqc_out/multiqc_report.html`。腳本內容見 [`templates/day1_fastqc_multiqc.slurm`](https://github.com/gemini960114/Nano4-Docs/blob/main/02-vscode-and-ai-tools/templates/day1_fastqc_multiqc.slurm)，第二堂會學會每一行的意思。
+
+**B. 自然語言：請 AI Agent 做同一件事**
+
+在工作資料夾為 `Nano4-Docs` 的 Antigravity 中，對任一個 Agent 輸入：
+
+```text
+我有 4 個定序樣本（FASTQ），放在 04-ai-assisted-bio-pipeline/demo_data/fastq_raw/。
+請幫我檢查這些樣本的定序品質：用 FastQC 逐一檢查，再用 MultiQC 彙整成一份報告，結果放在 /work/$USER/day1_qc_ai/。
+請依照 AGENTS.md 把工作送到計算節點執行。送出前先用三到五句話告訴我你的計畫，等我同意再送出；跑完後用白話告訴我這 4 個樣本的品質如何。
+```
+
+**比較兩種方式**：
+
+| 檢查項目 | 手動腳本 | AI 產生的腳本 |
+| :--- | :---: | :---: |
+| `--account=GOV115088`、`--partition=ngs62g` | ✅ | ? |
+| `--cpus-per-task=8`、`--mem=62G` | ✅ | ? |
+| `module purge` 後載入 `biology/JDK/26.0.1 biology/FastQC/0.11.9 biology/MultiQC` | ✅ | ? |
+| 用 `sbatch` 送到計算節點，而不是在登入節點直接執行 FastQC | ✅ | ? |
+| 送出後沒有在迴圈中反覆查詢 `squeue` | ✅ | ? |
+| 用白話解讀品質結果 | — | ? |
+
+> [!TIP]
+> 若 Agent 在登入節點直接執行 FastQC、漏掉 `biology/JDK`，或把 `--mem` 調小，請直接告訴它哪裡違反 `AGENTS.md`，讓它修正後重來。這種「指出錯誤、請 AI 修正」的多輪對話，就是第二堂的主軸：第二堂會把這些經驗存成您自己的 skill。
+
+---
+
+## 7. 多登入節點與 Agent session 清理
+
+Nano4 登入節點可能把同一次 SSH / Antigravity / VS Code 連線分派到
+`25a-lgn01`～`25a-lgn05` 的不同主機。若舊主機上的 Antigravity / VS Code Server、Codex、
+Claude Code 或 Antigravity agent 沒有正常結束，重新連線到另一台主機時可能
 看起來像「session 卡住」或無法接續原本的對話。
 
 > [!TIP]
-> 使用本章步驟 E 的 `ssh-proxy` 時，所有 VS Code / Antigravity / 終端機連線都走同一條已認證的連線，會固定在同一台登入節點上，比較不會遇到這個問題。
+> 使用本章步驟 E 的 `ssh-proxy` 時，所有 Antigravity / VS Code / 終端機連線都走同一條已認證的連線，會固定在同一台登入節點上，比較不會遇到這個問題。
 
 本教材提供兩支清理腳本。它們只會處理**目前使用者自己的程序**，但會終止所有匹配的
 AI/IDE agent；執行前請先儲存檔案、結束不需要保留的工作，並確認沒有正在執行的分析。
 
 > [!WARNING]
-> 請從**一般 SSH 終端機**（例如 `ssh nano4`）執行，不要在 VS Code 整合終端機內執行：腳本會連同您目前使用的 VS Code Server 一起終止，造成立即斷線。
+> 請從**一般 SSH 終端機**（例如 `ssh nano4`）執行，不要在 Antigravity / VS Code 整合終端機內執行：腳本會連同您目前使用的伺服器端一起終止，造成立即斷線。
 > `kill_login.sh` 會從目前的登入節點以 SSH 連到其他四台登入節點；若出現密碼或 2FA 提示，請依畫面完成驗證，無法連線的主機會顯示警告並略過。
 
 ```bash
@@ -487,7 +396,7 @@ bash 02-vscode-and-ai-tools/scripts/kill.sh
 bash 02-vscode-and-ai-tools/scripts/kill_login.sh
 ```
 
-清理完成後，重新啟動 VS Code Remote-SSH 或 Antigravity，讓它在目前取得的登入節點
+清理完成後，重新啟動 Antigravity / VS Code Remote-SSH，讓它在目前取得的登入節點
 建立新的 agent session。若某台主機無法連線，腳本會顯示警告並繼續處理其他主機。
 
 > [!CAUTION]
@@ -496,17 +405,25 @@ bash 02-vscode-and-ai-tools/scripts/kill_login.sh
 
 ---
 
-## 11. 常見踩坑與連線排錯 (FAQ)
+## 8. 常見踩坑與連線排錯 (FAQ)
 
-### Q1：VS Code Remote-SSH 連線時卡在「Waiting for 2FA...」？
-* **原因**：VS Code 在連線時，終端驗證提示有時會縮在視窗頂部或終端輸出分頁中。
+### Q1：Remote-SSH 連線時卡在「Waiting for 2FA...」？
+* **原因**：連線時，終端驗證提示有時會縮在視窗頂部或終端輸出分頁中。
 * **解法**：請留意視窗頂部的文字輸入框，或點開「Output (輸出)」分頁切換至「Remote - SSH」，在提示時輸入 `2` (PUSH) 或 `1` (OTP)。
 
 ### Q2：開啟檔案總管時找不到 `/work` 目錄？
 * **原因**：預設開啟的是家目錄 `$HOME`。
 * **解法**：點擊選單「File ➔ Open Folder」，在路徑列手動輸入 `/work/您的帳號/` 即可。
 
-### Q3：Jupyter Notebook 無法選擇 Python Kernel？
+### Q3：在擴充套件面板找不到 Codex 或 Claude Code？
+* **原因**：套件裝到了「本地」，或搜尋時沒有連上遠端。
+* **解法**：確認左下角顯示 `SSH: nano4-proxy`，再執行第 3 節的 `install_vscode_extensions.sh`；或在 Extensions 面板中點選 **Install in SSH: nano4-proxy**。
+
+### Q4：Agent 的回答不知道 `GOV115088`、`ngs62g`？
+* **原因**：工作資料夾裡沒有規則檔（Codex 讀 `AGENTS.md`、Claude Code 讀 `CLAUDE.md`、Antigravity 讀 `.agents/rules/`）。
+* **解法**：用 File ➔ Open Folder 開啟 `$HOME/Nano4-Docs`，開一個新對話再問一次；或在對話開頭要求「請先閱讀 AGENTS.md」。
+
+### Q5：Jupyter Notebook 無法選擇 Python Kernel？
 * **原因**：未安裝遠端 Python / Jupyter 擴充套件，或尚未啟動虛擬環境。
 * **解法**：
   1. 確保已在遠端安裝 `ms-toolsai.jupyter` 與 `ms-python.python`。
@@ -518,5 +435,5 @@ bash 02-vscode-and-ai-tools/scripts/kill_login.sh
 
 ---
 
-恭喜您！現在您已經擁有了全功能、具備語法高亮、直通遠端工作區且自帶 AI 助理的現代化超算開發環境！  
-👉 **下一步**：進入 **[第 03 章：Slurm 語法與作業調度](./03_slurm_syntax_and_job_management)**，學習如何撰寫 Slurm 批次腳本，把運算送到 `ngs62g` 生醫 CPU 節點！
+恭喜您！現在您的 Antigravity 已經連上 Nano4，並帶著三個熟悉超算規則的 AI Agent！  
+👉 **下一步**：進入 **[第 03 章：Slurm 語法與作業調度](./03_slurm_syntax_and_job_management)**：先親手寫 Slurm 腳本，再請 AI Agent 用自然語言完成同樣的工作，最後把經驗存成您自己的 skill。

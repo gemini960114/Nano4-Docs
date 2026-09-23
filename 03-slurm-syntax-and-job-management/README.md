@@ -2,7 +2,14 @@
 
 本教學手冊全面解析在國網中心**晶創26（Nano4 / `nano4.nchc.org.tw`）**超級電腦叢集中最核心的資源排程系統 —— **Slurm (Simple Linux Utility for Resource Management)**。
 
-本章以 GP1 生醫 NGS CPU 節點（`25a-cpn*`）與本課程的 `ngs62g` 佇列為主軸，進行系統化的語法剖析、實戰範本與除錯清單；H200 / GB200 GPU 節點與大記憶體節點的內容保留作為參考。章末 Lab 除了送出範本作業，也包含自己改寫陣列作業處理第 04 章的 FASTQ 樣本（Lab 8），以及用 Apptainer 容器在計算節點執行 MultiQC（Lab 9）。
+本章以 GP1 生醫 NGS CPU 節點（`25a-cpn*`）與本課程的 `ngs62g` 佇列為主軸，進行系統化的語法剖析、實戰範本與除錯清單；H200 / GB200 GPU 節點與大記憶體節點的內容保留作為參考。
+
+本章分成兩部分，對應第二堂課：
+
+1. **親手做**（第 8 節 Lab 1–8）：送出標準、陣列與相依作業，用 `seff` 檢查資源，並自己改寫陣列作業處理 FASTQ 樣本。先弄懂 Slurm 在做什麼，才看得出 AI 做得對不對。
+2. **讓 AI Agent 接手**（第 9 節 Lab 10–11）：用自然語言請 Agent 完成同樣的工作，透過多輪對話糾正它的錯誤，最後請 Agent 把這些經驗存成**您自己的 skill**，接著在第 04 章用這個 skill 做 FASTQ 質控。
+
+Lab 9（Apptainer 容器）需要第 04 章產生的 FastQC 結果，改在第 04 章之後進行。
 
 ---
 
@@ -45,7 +52,8 @@
 - [6. 作業監控、效能分析 (seff) 與資源除錯](#6-作業監控效能分析-seff-與資源除錯)
 - [7. HPC 容器化技術：Singularity / Apptainer 實務](#7-hpc-容器化技術singularity--apptainer-實務)
 - [8. 初學者循序漸進實作演練 (Hands-on Labs)](#8-初學者循序漸進實作演練-hands-on-labs)
-- [9. Nano4 常見踩坑與排錯清單 (Troubleshooting)](#9-nano4-常見踩坑與排錯清單-troubleshooting)
+- [9. 讓 AI Agent 接手：多輪對話與我的 skill](#9-讓-ai-agent-接手多輪對話與我的-skill)
+- [10. Nano4 常見踩坑與排錯清單 (Troubleshooting)](#10-nano4-常見踩坑與排錯清單-troubleshooting)
 
 ---
 
@@ -497,7 +505,7 @@ Memory Efficiency: 3.47% of 62.00 GB
 
 ## 8. 初學者循序漸進實作演練 (Hands-on Labs)
 
-針對剛接觸超級電腦排程的初學者，請依序完成以下 9 個動手實驗（Lab 3 為 GPU 參考，本次課程跳過；Lab 8、9 需要第 04 章的資料）。所有 Lab 都在本章目錄執行：
+針對剛接觸超級電腦排程的初學者，請依序完成以下動手實驗（Lab 3 為 GPU 參考，本次課程跳過；Lab 8 使用第 04 章附的 FASTQ；Lab 9 需要先完成第 04 章，改在第 04 章之後進行）。所有 Lab 都在本章目錄執行：
 
 ```bash
 cd "$HOME/Nano4-Docs/03-slurm-syntax-and-job-management"
@@ -648,12 +656,12 @@ seff <JOB_ID>
 
 ---
 
-### 🧪 Lab 9：用 Apptainer 容器執行 MultiQC
+### 🧪 Lab 9：用 Apptainer 容器執行 MultiQC（第 04 章之後進行）
 
 **目標**：不載入任何模組，改用容器在計算節點上執行 MultiQC，把第 04 章的 FastQC 結果彙整成報告。體會「容器把工具和它需要的環境整包帶著走」，這也是第 07 章 nf-core 的運作方式。
 
 > [!IMPORTANT]
-> 需要先完成第 04 章（產生 `04-ai-assisted-bio-pipeline/demo_data/fastqc_out/`）。
+> 需要先執行第 04 章 §5 的對照組（約 15 秒），產生 `04-ai-assisted-bio-pipeline/demo_data/fastqc_out/`。
 
 1. 提交容器作業：
    ```bash
@@ -672,14 +680,109 @@ seff <JOB_ID>
    [4] 以容器執行 MultiQC ...
    報告位置        : /work/<帳號>/apptainer_lab/multiqc_out/multiqc_report.html
    ```
-3. 用第 04 章 §5 的方式開啟報告，和第 04 章用模組產生的報告比較：內容相同，但這次完全沒有 `module load`。
+3. 用第 04 章 §6 的方式開啟報告，和第 04 章用模組產生的報告比較：內容相同，但這次完全沒有 `module load`。
 
 > [!TIP]
 > 若日誌出現 `toomanyrequests`，代表 Docker Hub 的下載次數暫時達到上限（全班同時下載時可能發生）。請等 10–15 分鐘後再執行一次 `sbatch templates/singularity_job.slurm`。映像檔下載成功後會保留在 `/work/<帳號>/apptainer_lab/multiqc_1.35.sif`，之後不需要再下載。
 
 ---
 
-## 9. Nano4 常見踩坑與排錯清單 (Troubleshooting)
+## 9. 讓 AI Agent 接手：多輪對話與我的 skill
+
+第 8 節您已經親手送出了標準、陣列與相依作業。本節請 AI Agent 用自然語言完成**同樣的工作**：您只描述想做的分析，Agent 負責撰寫腳本、送出作業與解讀結果；您負責檢查它做得對不對，並在它犯錯時糾正。最後，請 Agent 把這次對話學到的經驗存成**您自己的 skill**，下一次（第 04 章）就能直接用。
+
+> [!NOTE]
+> 本節在教材 repository **以外**的資料夾 `/work/$USER/slurm_lab` 進行。教材 repository 的 `.agents/skills/` 已放了課程提供的 Skills（第 06 章），在 repository 以外練習，Agent 不會事先看到它們，做出來的 skill 才是您自己的經驗；第三堂再和課程提供的 Skills 比較。
+
+### 🧪 Lab 10：用自然語言多輪操作 Slurm
+
+1. 建立工作資料夾（放入 `AGENTS.md`、`CLAUDE.md`、`.agents/rules/nano4.md` 與 4 個 FASTQ 樣本）：
+   ```bash
+   bash "$HOME/Nano4-Docs/03-slurm-syntax-and-job-management/scripts/setup_agent_workspace.sh"
+   ```
+2. 在 Antigravity 用 File ➔ Open Folder 開啟 `/work/<帳號>/slurm_lab`，選一個 Agent 開新對話，**依序**輸入下列四輪。每一輪都先看 Agent 的計畫，同意後再讓它送出：
+
+   **第 1 輪：陣列作業（對照 Lab 8）**
+   ```text
+   請先閱讀 AGENTS.md。fastq_raw/ 裡有 4 個定序樣本，請幫我算出每個樣本各有幾條 reads。
+   每個樣本用一個子任務平行處理。送出前先告訴我你的計畫。
+   ```
+
+   **第 2 輪：相依作業（對照 Lab 5）**
+   ```text
+   接著請對這 4 個樣本做 FastQC 品質檢查；全部檢查完成後，再自動用 MultiQC 彙整成一份報告。
+   第二步要等第一步成功才開始，結果放在 qc/ 資料夾。
+   ```
+
+   **第 3 輪：資源檢查（對照 Lab 7）**
+   ```text
+   剛才的作業都跑完了嗎？請用 seff 看看資源用得如何，用白話告訴我，並說明這 4 個樣本的品質結果。
+   ```
+
+   **第 4 輪：故意提出錯誤要求**
+   ```text
+   為了省點數，請把記憶體改成 16G、核心改成 2 顆，再送一次 FastQC。
+   ```
+
+3. 每一輪都對照第 8 節自己做的結果，記下 Agent 做對與做錯的地方：
+
+   | 檢查項目 | 第 1 輪 | 第 2 輪 | 第 3 輪 | 第 4 輪 |
+   | :--- | :---: | :---: | :---: | :---: |
+   | 先說明計畫、等您同意才送出 | | | | |
+   | `GOV115088` + `ngs62g` + `-c 8 --mem=62G` | | | | |
+   | `module purge`；FastQC 有一起載入 `biology/JDK/26.0.1` | | | | |
+   | 用 `sbatch` 送到計算節點，沒有在登入節點直接跑 | | | | |
+   | 相依作業用 `--dependency=afterok` | — | | — | — |
+   | 沒有在迴圈中反覆查詢 `squeue` | | | | |
+   | 用白話解讀結果 | | | | — |
+
+   **第 4 輪的正確反應**：Agent 應該拒絕，並說明 `ngs62g` 依國網規定必須固定 `-c 8 --mem=62G`，調小會被拒絕或卡在排隊。如果它照做了，請指出它違反 `AGENTS.md` 哪一條，讓它修正。
+
+> [!TIP]
+> 遇到 Agent 做錯時，不要自己改腳本，**用說的**告訴它哪裡錯、為什麼錯（例如「FastQC 沒有產生報告，因為計算節點沒有 Java，要載入 biology/JDK」）。這些糾正就是 Lab 11 要存進 skill 的經驗。
+
+---
+
+### 🧪 Lab 11：把經驗存成我的 skill
+
+**Skill** 是一個資料夾，裡面的 `SKILL.md` 寫著「什麼時候用、怎麼做、要注意什麼」。Agent 遇到相關的工作時會自動讀取它，不必每次重新教。
+
+1. 在 Lab 10 的**同一個對話**中輸入：
+   ```text
+   請把我們這次對話的經驗整理成一個 skill，名稱是 my-nano4-slurm，存到 ~/.agents/skills/my-nano4-slurm/SKILL.md。
+   SKILL.md 開頭要有 name 與 description 的 YAML frontmatter；description 要寫清楚什麼時候該使用這個 skill。
+   內容請包含：
+   1. 本課程的計畫、佇列與固定規格（GOV115088、ngs62g、-c 8 --mem=62G）
+   2. 單一作業、陣列作業、相依作業三種 Slurm 腳本範本（放在同一個資料夾的 templates/）
+   3. 送出前的檢查清單，以及 sbatch --test-only 不會檢查規格這件事
+   4. 這次對話中你犯過、被我糾正過的錯誤，以及正確做法
+   5. 作業跑完後如何確認結果、如何用白話回報
+   ```
+2. 打開 `~/.agents/skills/my-nano4-slurm/SKILL.md` 讀一遍：第 4 點有沒有寫進您在 Lab 10 糾正過的錯誤？不完整就請 Agent 補上。
+3. 把 skill 複製給三個 Agent（Codex 讀 `~/.agents/skills`、Claude Code 讀 `~/.claude/skills`、Antigravity 讀 `~/.gemini/config/skills`）：
+   ```bash
+   bash "$HOME/Nano4-Docs/03-slurm-syntax-and-job-management/scripts/install_my_skill.sh"
+   ```
+   **預期結果**：
+   ```text
+   ✅ /home/<帳號>/.claude/skills/my-nano4-slurm
+   ✅ /home/<帳號>/.gemini/config/skills/my-nano4-slurm
+   👉 三個 Agent 都要開一個新對話，才會讀到更新後的 skill。
+   ```
+4. 驗收：在**另一個 Agent** 開新對話（例如 Lab 10 用 Antigravity，這裡改用 Codex 或 Claude Code），輸入：
+   ```text
+   你有哪些 skills？請用 my-nano4-slurm 說明，如果我要對 20 個 FASTQ 樣本做品質檢查，你會怎麼安排 Slurm 作業（先不要送出）。
+   ```
+   **預期結果**：Agent 會提到 `my-nano4-slurm`，並依您的 skill 規劃 `ngs62g`、`-c 8 --mem=62G`、陣列加相依作業，不必您再提醒。
+
+> [!NOTE]
+> Skill 是純文字檔，之後可以隨時請 Agent 修改（例如「把今天遇到的錯誤補進 my-nano4-slurm」），改完再執行一次 `install_my_skill.sh`。第三堂會拿您的 skill 和課程提供的 Skills（第 06 章）比較。
+
+👉 **下一步**：到 [第 04 章](../04-ai-assisted-bio-pipeline/) 用 `my-nano4-slurm` 請 Agent 做 FASTQ 質控，並練習讀懂報告。
+
+---
+
+## 10. Nano4 常見踩坑與排錯清單 (Troubleshooting)
 
 ### Q1: 提交作業時報錯 `Batch job submission failed: Invalid account or account/partition combination specified`
 * **原因**：您指定的 `--account` 沒有該 `--partition` 的使用權限（例如用 `GOV115088` 派送至 `ngstest`、`ngs32g`，用 `MST109178` 派送至 H200 `dev`，或用一般 AI 專案派送至 `ngs62g`）。

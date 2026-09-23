@@ -1,6 +1,6 @@
 # AI 提示詞範本：請 AI Agent 將互動管線重構為 Slurm 批次作業 (Nano4 專屬)
 
-您可以直接複製以下提示詞，貼給 VS Code 中的 AI 助手（例如 **OpenCode CLI**、**Antigravity CLI** 或 **Claude Code**），讓 AI 自動將本機或登入節點腳本轉化為符合 Nano4 規範的 Slurm 批次作業：
+您可以直接複製以下提示詞，貼給 Antigravity 中的 AI Agent（**Antigravity 內建 Agent**、**Codex** 或 **Claude Code**），讓 AI 自動將本機或登入節點腳本轉化為符合 Nano4 規範的 Slurm 批次作業：
 
 ---
 

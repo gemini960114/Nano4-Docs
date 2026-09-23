@@ -1,6 +1,8 @@
-# 第 04 章：AI 輔助生醫管線 — FASTQ 下載與 FastQC / MultiQC 質控 (登入節點微型實作)
+# 第 04 章：AI 輔助生醫管線 — 用我的 skill 做 FASTQ 質控並讀懂報告
 
-本教學手冊展示如何利用前幾章建立的 **VS Code Remote-SSH** 與 **AI 助手（Antigravity / Claude Code / OpenCode CLI）**，引導 AI 撰寫自動化腳本，在 Nano4 登入節點上下載 FASTQ 生醫定序資料並執行 **FastQC** 與 **MultiQC** 品質控制分析。
+本章用第 03 章 Lab 11 做好的 skill `my-nano4-slurm`，請 AI Agent（Antigravity 內建 Agent、Codex 或 Claude Code）對 FASTQ 定序資料執行 **FastQC** 與 **MultiQC** 品質控制，並和 Agent 一起讀懂報告。您只需要說出想完成的分析，指令與 Slurm 腳本交給 Agent；您負責判斷 Agent 的計畫與結論是否合理。
+
+第 5 節另外保留一套在登入節點手動執行的質控腳本，作為對照組，也是第 03 章 Lab 9（容器）需要的資料來源。
 
 > [!IMPORTANT]
 > **💡 跨領域通用學習聲明 (Case Study Disclaimer)**：  
@@ -9,7 +11,7 @@
 > 1. **如何給予 AI Agent 結構化 Prompt 自動產生處理流程**  
 > 2. **如何在登入節點以微型資料快速驗證管線邏輯 (Prototyping)**  
 > 3. **如何利用 VS Code 連接埠轉送在瀏覽器預覽互動式報表**  
-> 4. **如何讀懂報告中的品質指標，而不只是「看到」報告**（§6 練習）  
+> 4. **如何讀懂報告中的品質指標，而不只是「看到」報告**（§7 練習）  
 > 
 > 這套「**數據拉取 ➔ 批次分析 ➔ 結果可視化**」的核心架構與思維，可延伸應用到多數科學運算領域。
 
@@ -25,12 +27,13 @@
 
 ## 📌 目錄 (Table of Contents)
 - [1. 生醫資訊前處理概念：FASTQ、FastQC 與 MultiQC](#1-生醫資訊前處理概念fastqfastqc-與-multiqc)
-- [2. 請 AI Agent 撰寫分析腳本 (Prompt 提示詞技巧)](#2-請-ai-agent-撰寫分析腳本-prompt-提示詞技巧)
-- [3. 檔案結構與腳本說明](#3-檔案結構與腳本說明)
-- [4. 實戰操作：在 VS Code 整合終端機中執行質控流程](#4-實戰操作在-vs-code-整合終端機中執行質控流程)
-- [5. 檢視互動式報告：VS Code 連接埠轉送與本機預覽](#5-檢視互動式報告vs-code-連接埠轉送與本機預覽)
-- [6. 練習：讀懂 MultiQC 報告](#6-練習讀懂-multiqc-報告)
-- [7. 登入節點之限制與進入 Slurm 排程的必要性](#7-登入節點之限制與進入-slurm-排程的必要性)
+- [2. 用我的 skill 請 AI Agent 做質控（第二堂主線）](#2-用我的-skill-請-ai-agent-做質控第二堂主線)
+- [3. 請 AI Agent 撰寫分析腳本 (Prompt 提示詞技巧)](#3-請-ai-agent-撰寫分析腳本-prompt-提示詞技巧)
+- [4. 檔案結構與腳本說明](#4-檔案結構與腳本說明)
+- [5. 對照組：在登入節點手動執行質控流程](#5-對照組在登入節點手動執行質控流程)
+- [6. 檢視互動式報告：連接埠轉送與本機預覽](#6-檢視互動式報告連接埠轉送與本機預覽)
+- [7. 練習：讀懂 MultiQC 報告](#7-練習讀懂-multiqc-報告)
+- [8. 登入節點之限制與進入 Slurm 排程的必要性](#8-登入節點之限制與進入-slurm-排程的必要性)
 
 ---
 
@@ -52,9 +55,39 @@
 
 ---
 
-## 2. 請 AI Agent 撰寫分析腳本 (Prompt 提示詞技巧)
+## 2. 用我的 skill 請 AI Agent 做質控（第二堂主線）
 
-在 Antigravity 或 VS Code 中開啟 AI 助手（如 Antigravity 內建 Agent、Claude Code 或 OpenCode），輸入具體、具備架構要求的提示詞：
+> [!NOTE]
+> 需要先完成第 03 章 Lab 10–11：`/work/<帳號>/slurm_lab` 已建立，`my-nano4-slurm` 已用 `install_my_skill.sh` 複製給三個 Agent。
+
+1. 在 Antigravity 用 File ➔ Open Folder 開啟 `/work/<帳號>/slurm_lab`，選一個 Agent **開新對話**（新對話才會讀到最新的 skill）。
+2. 用自然語言說出您的分析需求：
+   ```text
+   請使用 my-nano4-slurm skill。fastq_raw/ 裡是 4 個 16S 定序樣本，我想知道它們的定序品質好不好、適不適合做後續分析。
+   請用 FastQC 檢查每個樣本，再用 MultiQC 彙整成一份報告，結果放在 qc_skill/。
+   送出前先告訴我你的計畫；跑完後告訴我報告的位置，並用白話說明：每個樣本有幾條 reads、品質分數如何、有沒有需要注意的警告。
+   ```
+3. 對照您的 skill，檢查 Agent 這次有沒有**不需要提醒**就做對：
+
+   | 檢查項目 | ✅ / ❌ |
+   | :--- | :---: |
+   | 先說明計畫，等您同意才送出 | |
+   | `GOV115088` + `ngs62g` + `-c 8 --mem=62G` | |
+   | `module purge`，FastQC 一起載入 `biology/JDK/26.0.1` | |
+   | 用 `sbatch` 送到計算節點；確認 FastQC 報告數量等於樣本數 | |
+   | 用白話回報結果與報告位置 | |
+
+   若還有 ❌，請 Agent 說明原因並修正，再請它**把這次的教訓補進 my-nano4-slurm**，然後重新執行 `install_my_skill.sh`。這就是 skill 的成長方式：每用一次，就更少犯錯。
+4. 依第 6 節打開 Agent 產生的 MultiQC 報告（第 6 節方式 A 可以在腳本後面加上報告所在的資料夾），完成第 7 節的練習，並把您的答案和 Agent 的白話解讀互相比對：Agent 說的和報告上看到的一致嗎？
+
+> [!TIP]
+> 讀報告時，也可以直接問 Agent：「sample_04 的 Per Sequence GC Content 為什麼是紅色？這代表樣本不能用嗎？」請它用報告中的數據回答，您再對照圖表確認。
+
+---
+
+## 3. 請 AI Agent 撰寫分析腳本 (Prompt 提示詞技巧)
+
+若沒有現成的 skill，也可以用一段具體、具備架構要求的提示詞請 Agent（Antigravity 內建 Agent、Codex 或 Claude Code）撰寫腳本：
 
 ```text
 你是一位熟悉生物資訊分析與 Linux HPC 環境的工程師。
@@ -69,11 +102,11 @@
 ```
 *(完整提示詞可見 [`prompts/ai_prompt_bio_pipeline.md`](./prompts/ai_prompt_bio_pipeline.md))*
 
-> 這是示範用 prompt，讓你練習如何向 AI 描述需求。下面第 4 節的實作請使用本章已提供、驗證過的 `run_fastqc_multiqc.sh`；你可以拿 AI 產生的 `run_qc_pipeline.sh` 和它比較差異。
+> 這是示範用 prompt，讓你練習如何向 AI 描述需求。第 5 節的對照組請使用本章已提供、驗證過的 `run_fastqc_multiqc.sh`；你可以拿 AI 產生的 `run_qc_pipeline.sh` 和它比較差異。
 
 ---
 
-## 3. 檔案結構與腳本說明
+## 4. 檔案結構與腳本說明
 
 ```text
 04-ai-assisted-bio-pipeline/
@@ -92,9 +125,11 @@
 
 ---
 
-## 4. 實戰操作：在 VS Code 整合終端機中執行質控流程
+## 5. 對照組：在登入節點手動執行質控流程
 
-請在 VS Code 視窗中按下 **``Ctrl + ` ``** 展開整合式終端機，執行以下小規模微型原型驗證：
+這是不經過 AI、也不經過 Slurm 的手動版本：4 個微型樣本直接在登入節點跑，只需數秒。第三堂的第 03 章 Lab 9（容器）會用到這裡產生的 `demo_data/fastqc_out/`，請在 Lab 9 之前執行一次。
+
+按下 **``Ctrl + ` ``** 展開整合式終端機：
 
 ### 步驟 1：下載示範 FASTQ 資料
 ```bash
@@ -137,13 +172,15 @@ MultiQC 報告位置: demo_data/multiqc_out/multiqc_report.html
 
 ---
 
-## 5. 檢視互動式報告：VS Code 連接埠轉送與本機預覽
+## 6. 檢視互動式報告：連接埠轉送與本機預覽
 
-產生的 `multiqc_report.html` 位於遠端 Nano4 伺服器上。在 VS Code Remote-SSH 架構下，有兩種極為優雅的預覽方式：
+產生的 `multiqc_report.html` 位於遠端 Nano4 伺服器上。在 Antigravity / VS Code Remote-SSH 架構下，有兩種預覽方式：
 
-### 方式 A：一鍵啟動預覽並透過 VS Code 連接埠轉送 (Port Forwarding)
+### 方式 A：一鍵啟動預覽並透過連接埠轉送 (Port Forwarding)
 ```bash
-bash view_multiqc_report.sh
+cd "$HOME/Nano4-Docs/04-ai-assisted-bio-pipeline/scripts"
+bash view_multiqc_report.sh                                   # 第 5 節對照組的報告
+bash view_multiqc_report.sh /work/$USER/slurm_lab/qc_skill/<報告所在資料夾>   # 第 2 節 Agent 產生的報告
 ```
 **終端機提示：**
 ```text
@@ -168,13 +205,13 @@ tmux kill-session -t svc-multiqc-report
 ```
 
 ### 方式 B：VS Code 檔案總管直接下載
-在 VS Code 以 File ➔ Open Folder 開啟 `/home/<您的帳號>/Nano4-Docs`，於左側檔案總管展開 `04-ai-assisted-bio-pipeline/demo_data/multiqc_out/`，在 `multiqc_report.html` 按右鍵 ➔ 選擇 **「下載... (Download...)」**，存至筆電桌面雙擊打開！
+在左側檔案總管找到 `multiqc_report.html`（第 2 節：`/work/<帳號>/slurm_lab/qc_skill/` 底下；第 5 節：`Nano4-Docs/04-ai-assisted-bio-pipeline/demo_data/multiqc_out/`），按右鍵 ➔ 選擇 **「下載... (Download...)」**，存至筆電桌面雙擊打開！
 
 ---
 
-## 6. 練習：讀懂 MultiQC 報告
+## 7. 練習：讀懂 MultiQC 報告
 
-打開第 5 節的 MultiQC 報告，回答下列問題（約 5–10 分鐘）：
+打開第 6 節的 MultiQC 報告，回答下列問題（約 5–10 分鐘）：
 
 1. **General Statistics** 表格：4 個樣本各有幾條 reads？GC 含量大約是多少？
 2. **Sequence Length Distribution**：reads 的長度範圍是多少？為什麼這一項會出現黃色警告？
@@ -195,9 +232,9 @@ tmux kill-session -t svc-multiqc-report
 
 ---
 
-## 7. 登入節點之限制與進入 Slurm 排程的必要性
+## 8. 登入節點之限制與進入 Slurm 排程的必要性
 
-在登入節點上執行微型樣本（4 個樣本、各 1000 條 Reads）僅花費數秒鐘，是驗證程式碼邏輯的極佳方式。
+第 5 節在登入節點上執行微型樣本（4 個樣本、各 1000 條 Reads）僅花費數秒鐘，是驗證程式碼邏輯的極佳方式。
 
 **然而，在真實科研專案中：**
 * 真實樣本文庫通常有 **數十到數千個樣本**。
@@ -205,12 +242,13 @@ tmux kill-session -t svc-multiqc-report
 * 若直接在登入節點執行大型 FastQC、BWA 比對、SAMtools 排序或 QIIME 2 DADA2 去噪，會佔用高達數十個 CPU 核心與幾百 GB 記憶體，導致整台登入節點卡死。
 * **國網中心官方安全鐵律**：登入節點上執行超過 5 分鐘的重度運算，系統守護程式將會**自動無預警強制清除該用戶的所有行程（Killed）**！
 
-因此，我們必須學習如何使用 **AI Agent** 將這套在登入節點驗證完成的生醫分析流程，自動重構為 **Slurm 批次作業腳本**，並派送到 Nano4 的 `ngs62g` 計算節點執行（本課程唯一使用的佇列，每個作業固定 `-c 8 --mem=62G`）！
+這也是第 2 節一開始就請 **AI Agent** 把分析寫成 **Slurm 批次作業**、派送到 Nano4 的 `ngs62g` 計算節點執行的原因（本課程唯一使用的佇列，每個作業固定 `-c 8 --mem=62G`）。
 
 ---
 
 > 💡 **學習脈絡導讀 (Roadmap)**：  
-> * 在 **第 03 章**，您已經學會了 Nano4 的 Slurm 語法、`ngs62g` 佇列規格與 `wallet` 計費規則。  
-> * 在 **第 05 章**，我們將**透過 AI Agent（如 Antigravity / Claude Code / OpenCode CLI）自動將本章的 Shell 質控流程重構成符合 Nano4 規範的 Slurm 生產級管線**！
+> * 在 **第 03 章**，您學會了 Nano4 的 Slurm 語法，並把和 AI Agent 合作的經驗存成 `my-nano4-slurm`。  
+> * 本章用這個 skill 完成了 FASTQ 質控與報告判讀。  
+> * 在 **第 05 章**（第三堂），我們請 AI Agent 把登入節點的分析流程重構為離線與外網直連兩種 Slurm 管線；**第 06 章**再把您的 skill 和課程提供的 Skills 比較。
 
 👉 **下一課**：[第 05 章：AI Agent 自動化 Slurm 排程](../05-ai-agent-slurm-pipeline/)

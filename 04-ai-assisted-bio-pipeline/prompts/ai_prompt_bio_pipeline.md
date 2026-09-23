@@ -1,6 +1,6 @@
 # AI 提示詞範本：請 AI Agent 撰寫 FASTQ 質控分析管線
 
-您可以直接複製以下提示詞（Prompt），貼給 VS Code 中的 AI 助手（例如 **Claude Code**、**Roo Code** 或 **OpenCode**），讓 AI 助理自動為您生成分析腳本：
+您可以直接複製以下提示詞（Prompt），貼給 Antigravity 中的 AI Agent（**Antigravity 內建 Agent**、**Codex** 或 **Claude Code**），讓 AI 助理自動為您生成分析腳本：
 
 ---
 

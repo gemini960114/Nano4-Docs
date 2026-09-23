@@ -6,6 +6,7 @@
 //   ../AGENTS.md          -> ./agents_governance
 //   ../README.md          -> ./00_course_syllabus
 //   ../COURSE_PLAN.md     -> ./course_plan
+//   ./docs/public/...     -> /...                 (root README images)
 //   ./file-in-chapter     -> GitHub blob URL      (tree URL when it ends in /)
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -55,6 +56,8 @@ function fromChapter(dir, target) {
 
 function fromRoot(target) {
   if (/^(https?:|mailto:|#)/.test(target)) return undefined
+  // docs/public/ is served at the site root, e.g. ./docs/public/images/a.png -> /images/a.png
+  if (target.startsWith('./docs/public/')) return target.slice('./docs/public'.length)
   if (target === './AGENTS.md') return './agents_governance'
   if (target === './COURSE_PLAN.md') return './course_plan'
   return chapterPage(target, '\\./')

@@ -2,7 +2,7 @@
 
 本目錄為國網中心晶創26（Nano4 / `nano4.nchc.org.tw`）超級電腦量身設計的 **AI Agent 專家技能庫（Skills Hub）**。
 
-透過將這些技能掛載至使用者的 Agent 環境（如 Google Antigravity、Claude Code、OpenCode CLI、Cursor 等），AI 助手將從通用程式設計師，進化為**精通 Nano4 超算排程、專案錢包授權、QoS 防呆規則與大數據生醫管線的專屬專家**。
+透過將這些技能掛載至使用者的 Agent 環境（本課程的 Antigravity 內建 Agent、Codex、Claude Code，以及 Cursor 等），AI 助手將從通用程式設計師，進化為**精通 Nano4 超算排程、專案錢包授權、QoS 防呆規則與大數據生醫管線的專屬專家**。
 
 ---
 
@@ -12,6 +12,9 @@
 > ```bash
 > cd "$HOME/Nano4-Docs"
 > ```
+
+> [!TIP]
+> **第三堂的主軸：把您的 skill 和課程 Skills 比較。** 第二堂您在第 03 章 Lab 11 做了 `my-nano4-slurm`；本章的 Skills 是講師整理的版本。兩者比較後，把值得學的地方補進自己的 skill，見本章最後的「練習：比較我的 skill 與課程 Skills」。
 
 ## 📦 技能庫清單 (Skills Catalog)
 
@@ -35,11 +38,14 @@ cd "$HOME/Nano4-Docs/06-skills-hub"
 bash sync_skills.sh
 ```
 
-執行後，所有技能會複製到兩個位置：`~/.agents/skills/`（OpenCode、Antigravity 等工具讀取）與 `~/.claude/skills/`（Claude Code 讀取）。AI Agent 下次啟動時就會辨識並載入這些技能。
+執行後，所有技能會複製到三個位置：`~/.agents/skills/`（Codex 讀取）、`~/.claude/skills/`（Claude Code 讀取）與 `~/.gemini/config/skills/`（Antigravity 讀取）。三個 Agent 開新對話時就會載入這些技能。
+
+> [!NOTE]
+> 以 `$HOME/Nano4-Docs` 為工作資料夾時，Antigravity 與 Codex 也會直接載入 repository 裡 `.agents/skills/` 的同一批技能，不需要安裝；`sync_skills.sh` 讓您在其他資料夾（例如 `/work/<帳號>`）也能使用。
 
 ### 方法二：現代標準 `npx skills add` 全域安裝
 
-（需先有 Node.js / npm；登入節點若沒有 `npx`，請改用方法一。兩種方法擇一即可；使用 Claude Code 的學員請用方法一，它會同時安裝到 `~/.claude/skills/`。）
+（需先有 Node.js / npm；登入節點若沒有 `npx`，請改用方法一。兩種方法擇一即可；本課程建議用方法一，它會同時安裝到三個 Agent 的技能目錄。）
 
 相容 [skills.sh](https://skills.sh/) 規範，支援 Google Antigravity、Claude Code、Cursor 等各類 AI Agent：
 
@@ -109,7 +115,7 @@ bash "$HOME/Nano4-Docs/06-skills-hub/slurm-job-advisor/scripts/validate_slurm.sh
 
 ## 💡 AI Agent 實戰調用示範
 
-當您在 Antigravity（或 VS Code 中的 Claude Code / OpenCode）對 AI 說：
+當您在 Antigravity（內建 Agent、Codex 或 Claude Code）對 AI 說：
 
 > **使用者提問**：  
 > 「我想在 Nano4 上跑一個 FASTQ 質控任務，有 8 個樣本，幫我寫一份 Slurm 批次腳本。」
@@ -119,6 +125,27 @@ AI Agent 偵測到掛載的 `slurm-job-advisor` 技能後，將自動進行以�
 2. **主動防呆**：為生醫任務推薦 `ngs62g` 分區，並依官方規格**主動加入 `#SBATCH --cpus-per-task=8` 與 `#SBATCH --mem=62G`**，防止初學者漏寫導致的 `QOSMaxMemoryPerJob` 卡死。
 3. **自動使用萬用日誌格式**：`#SBATCH --output=%x-%j.out`，避免子目錄不存在的崩潰問題。
 4. **自動調用 `sbatch --test-only`** 進行免扣點預檢，確認帳號與分區組合可被接受；CPU / 記憶體是否超過 QoS 上限，則由技能內建的佇列規則另外比對（`--test-only` 不會檢查 QoS）。
+
+---
+
+## 🧪 練習：比較我的 skill 與課程 Skills
+
+**目標**：第二堂您把和 Agent 合作的經驗存成 `my-nano4-slurm`；課程的 `slurm-job-advisor`、`ai-agent-slurm-pipeline` 解決的是類似的問題。比較兩者，把值得學的地方補進自己的 skill。
+
+1. 在 Antigravity 開啟 `$HOME/Nano4-Docs`，選一個 Agent 開新對話，輸入：
+   ```text
+   請比較我的 skill ~/.agents/skills/my-nano4-slurm/SKILL.md 和課程提供的 06-skills-hub/slurm-job-advisor/SKILL.md、06-skills-hub/ai-agent-slurm-pipeline/SKILL.md。
+   用表格列出：兩邊都有的規則、只有課程 Skills 有的檢查、只有我的 skill 有的經驗。先不要修改任何檔案。
+   ```
+2. 和同學討論：課程 Skills 有哪些檢查是您在 Lab 10 沒有遇到、但真實研究會遇到的（例如 `validate_slurm.sh` 抓出 `sbatch --test-only` 漏掉的規格錯誤）？您的 skill 又記下了哪些課程 Skills 沒寫的經驗？
+3. 挑一到兩項補進自己的 skill：
+   ```text
+   請把剛才表格中「只有課程 Skills 有的檢查」裡，對我最有用的兩項補進 my-nano4-slurm，保留我原本的經驗，改完後讓我看修改的地方。
+   ```
+4. 重新安裝，讓三個 Agent 都讀到新版本：
+   ```bash
+   bash "$HOME/Nano4-Docs/03-slurm-syntax-and-job-management/scripts/install_my_skill.sh"
+   ```
 
 ---
 

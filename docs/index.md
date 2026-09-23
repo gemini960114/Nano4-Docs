@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "國網晶創26 (Nano4) GP1 生醫 HPC 教學手冊"
   text: "以 VS Code (Antigravity) 與 AI Agent 為核心工作台"
-  tagline: "從 SSH/2FA 登入、VS Code 遠端開發、國網 Taiwan AI RAP 地端大模型，到 GP1 生醫節點上的 FASTQ 質控、AI 自動化 Slurm 排程與 nf-core/ampliseq 16S 真實案例"
+  tagline: "從 SSH/2FA 登入、Antigravity 遠端連線與三個 AI Agent，到用自然語言在 GP1 生醫節點完成 FASTQ 質控、做出自己的 Slurm skill，以及 nf-core/ampliseq 16S 真實案例"
   actions:
     - theme: brand
       text: 進入課程總綱
@@ -20,18 +20,18 @@ features:
     link: /guide/01_nano4_ssh_and_2fa
     linkText: 探索連線與儲存
   - icon: 💻
-    title: 第 02 章｜VS Code Remote-SSH 與 AI 工具鏈
-    details: 以 VS Code / Antigravity Remote-SSH 遠端開發（搭配 ssh-proxy 只需一次 2FA 認證）、OpenCode CLI 串接國網 Taiwan AI RAP 地端大模型，並導入 AGENTS.md 治理規範。
+    title: 第 02 章｜Antigravity Remote-SSH 與三個 AI Agent
+    details: 以 Antigravity Remote-SSH 連上 Nano4（搭配 ssh-proxy 只需一次 2FA 認證），裝上 Antigravity 內建 Agent、Codex、Claude Code 三個 AI Agent 並導入 AGENTS.md 治理規範，最後用一句自然語言把 FastQC / MultiQC 作業派送到計算節點。
     link: /guide/02_vscode_and_ai_tools
     linkText: 配置現代化 AI 開發環境
   - icon: 📊
     title: 第 03 章｜Slurm 語法與作業調度
-    details: 本課程使用 GOV115088 → ngs62g，每個作業固定 -c 8 --mem=62G；學會 sbatch、陣列與相依作業、seff 效能分析，自己改寫陣列作業處理樣本，並用 Apptainer 容器執行 MultiQC。
+    details: 本課程使用 GOV115088 → ngs62g，每個作業固定 -c 8 --mem=62G；先親手學會 sbatch、陣列與相依作業、seff 效能分析，再用自然語言請 AI Agent 完成同樣的工作，並把經驗存成自己的 skill。
     link: /guide/03_slurm_syntax_and_job_management
     linkText: 規模化調度超級算力
   - icon: 🧬
     title: 第 04 章｜AI 輔助生醫質控管線
-    details: 以 FASTQ 質控為跨領域通用範例，引導 AI 編寫分析流程，於登入節點微型測試，透過 VS Code 轉送預覽互動報表並練習讀懂品質指標。
+    details: 用自己的 skill 請 AI Agent 完成 FASTQ 質控，透過連接埠轉送預覽互動報表，並和 Agent 一起讀懂品質指標；另附登入節點手動執行的對照組。
     link: /guide/04_ai_assisted_bio_pipeline
     linkText: 快速原型與數據探索
   - icon: 🚀

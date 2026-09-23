@@ -433,7 +433,7 @@ diff -u "$HOME/Nano4-Docs/07-nfcore-ampliseq-case-study/config/nano4.config" \
 bash scripts/04_inspect_results.sh
 ```
 
-HTML 報告可用第 04 章 §5 的方式開啟，或在 VS Code / Antigravity 檔案總管對檔案按右鍵下載到自己的電腦。
+HTML 報告可用第 04 章 §6 的方式開啟，或在 VS Code / Antigravity 檔案總管對檔案按右鍵下載到自己的電腦。
 
 閱讀順序：
 

@@ -26,7 +26,7 @@ export default withMermaid(defineConfig({
         text: '章節導覽',
         items: [
           { text: '第 01 章：登入、2FA 與環境管理', link: '/guide/01_nano4_ssh_and_2fa' },
-          { text: '第 02 章：VS Code Remote-SSH 與 AI 工具鏈', link: '/guide/02_vscode_and_ai_tools' },
+          { text: '第 02 章：Antigravity Remote-SSH 與三個 AI Agent', link: '/guide/02_vscode_and_ai_tools' },
           { text: '第 03 章：Slurm 語法與作業調度', link: '/guide/03_slurm_syntax_and_job_management' },
           { text: '第 04 章：AI 輔助生醫質控管線', link: '/guide/04_ai_assisted_bio_pipeline' },
           { text: '第 05 章：AI Agent 自動化 Slurm 排程', link: '/guide/05_ai_agent_slurm_pipeline' },
@@ -45,7 +45,7 @@ export default withMermaid(defineConfig({
         items: [
           { text: '📌 課程總綱與學習地圖', link: '/guide/00_course_syllabus' },
           { text: '🔑 第 01 章：登入、2FA 與環境管理', link: '/guide/01_nano4_ssh_and_2fa' },
-          { text: '💻 第 02 章：VS Code Remote-SSH 與 AI 工具鏈', link: '/guide/02_vscode_and_ai_tools' }
+          { text: '💻 第 02 章：Antigravity Remote-SSH 與三個 AI Agent', link: '/guide/02_vscode_and_ai_tools' }
         ]
       },
       {

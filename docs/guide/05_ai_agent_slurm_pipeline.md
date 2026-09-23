@@ -1,6 +1,6 @@
 # 第 05 章：AI Agent 自動化 Slurm 排程重構與批次派送實戰 (Nano4 雙實戰案例)
 
-本教學手冊展示如何引導 **AI Agent（Antigravity / Claude Code / OpenCode CLI）**，將前述章節在登入節點執行的互動式生醫分析管線，自動重構並封裝為生產級的 **Slurm 批次排程作業**，同時完整實作 **「事前下載離線運算」** 與 **「計算節點外網直連動態下載」** 兩種關鍵生產環境架構。
+本教學手冊展示如何引導 **AI Agent（Antigravity 內建 Agent / Codex / Claude Code）**，將前述章節在登入節點執行的互動式生醫分析管線，自動重構並封裝為生產級的 **Slurm 批次排程作業**，同時完整實作 **「事前下載離線運算」** 與 **「計算節點外網直連動態下載」** 兩種關鍵生產環境架構。
 
 ---
 
@@ -36,7 +36,7 @@
 
 ## 2. 請 AI Agent 自動重構 Slurm 腳本 (Prompt 技巧)
 
-在 **Antigravity 或 VS Code Remote-SSH** 中，開啟您安裝好的 AI 助手（如 Antigravity 內建 Agent、Claude Code 或 OpenCode CLI）。OpenCode、Codex 等工具會自動讀取專案根目錄的 `AGENTS.md` 規範（Nano4 專屬的 `ngs62g` 官方規格 `-c 8 --mem=62G`、WekaFS `/work` 規範）；Claude Code 則讀取 `CLAUDE.md`，本 repo 的 `CLAUDE.md` 已匯入 `AGENTS.md`（需在 VS Code 以 `$HOME/Nano4-Docs` 為工作資料夾開啟）；若您使用的工具沒有自動讀取，請在對話開頭要求它「先閱讀 AGENTS.md」。無論使用哪種工具，prompt 中仍請明確寫出 `ngs62g` 與 `-c 8 --mem=62G`：
+在 Antigravity 以 `$HOME/Nano4-Docs` 為工作資料夾，開啟任一個 Agent（Antigravity 內建 Agent、Codex 或 Claude Code）。三個 Agent 都會讀到 Nano4 規則（Codex 讀 `AGENTS.md`、Claude Code 讀匯入 `AGENTS.md` 的 `CLAUDE.md`、Antigravity 讀 `.agents/rules/nano4.md`，見第 02 章 §4）；不確定時，在對話開頭要求它「先閱讀 AGENTS.md」。第二堂做好的 `my-nano4-slurm` skill 也會自動載入。無論使用哪個 Agent，prompt 中仍請明確寫出 `ngs62g` 與 `-c 8 --mem=62G`：
 
 ```text
 你是一位熟悉國網中心 Nano4 (晶創26) 超級電腦 Slurm 排程器與生物資訊分析的專家。
@@ -182,9 +182,9 @@ seff <JOB_ID>
 | 章節 | 主題 |
 | :---: | :--- |
 | 01 | Nano4 登入與雙因子認證（SSH 22、IDExpert 2FA、DTN 2222） |
-| 02 | VS Code Remote-SSH 與 AI 工具鏈（Antigravity / Codex / OpenCode） |
+| 02 | Antigravity Remote-SSH 與三個 AI Agent（Antigravity 內建 Agent / Codex / Claude Code） |
 | 03 | Slurm 語法與作業調度（`ngs62g` 與 NGS 分區） |
-| 04 | AI 輔助生醫質控管線（FASTQ 下載與 FastQC / MultiQC 微型實作） |
+| 04 | AI 輔助生醫質控管線（用我的 skill 做 FastQC / MultiQC 並讀懂報告） |
 | 05 | AI Agent 自動化 Slurm 排程（離線 vs 直連） |
 | 06 | AI Agent 技能總匯庫（Skills Hub） |
 | 07 | nf-core/ampliseq 真實 16S 案例 |
