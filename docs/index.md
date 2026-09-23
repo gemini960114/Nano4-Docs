@@ -10,8 +10,8 @@ hero:
       text: 進入課程總綱
       link: /guide/00_course_syllabus
     - theme: alt
-      text: Nano4 官方操作手冊
-      link: https://man.twcc.ai/@nano4-manual/documentation
+      text: GP1 官方使用說明
+      link: https://man.twcc.ai/xOYzPATVS_aDlbuqMrwhyg
 
 features:
   - icon: 🔑

@@ -110,6 +110,7 @@ flowchart TB
 ## 🔗 國網中心官方參考技術文件
 
 本教學深度整合了國網中心官方指南與實戰驗證，相關手冊請參閱：
+* [GP1 生醫核心設施完整使用說明（官方）](https://man.twcc.ai/xOYzPATVS_aDlbuqMrwhyg)
 * [晶創26 (Nano4) 使用者操作手冊 (TWCC / HackMD)](https://man.twcc.ai/@nano4-manual/documentation)
 * [晶創26系統架構及規格](https://man.twcc.ai/@nano4-manual/SJuKzVlwbx)
 * [Nano4 登入與傳輸節點](https://man.twcc.ai/@nano4-manual/BydP-_lvZg)

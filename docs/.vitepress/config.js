@@ -29,7 +29,8 @@ export default withMermaid(defineConfig({
         ]
       },
       { text: 'AI 規範 (AGENTS.md)', link: '/guide/agents_governance' },
-      { text: 'Nano4 官方手冊', link: 'https://man.twcc.ai/@nano4-manual/documentation' }
+      { text: 'Nano4 官方手冊', link: 'https://man.twcc.ai/@nano4-manual/documentation' },
+      { text: 'GP1 生醫節點說明', link: 'https://man.twcc.ai/xOYzPATVS_aDlbuqMrwhyg' }
     ],
     sidebar: [
       {
@@ -71,7 +72,13 @@ export default withMermaid(defineConfig({
       provider: 'local'
     },
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/gemini960114/Nano4-Docs' }
+      { icon: 'github', link: 'https://github.com/gemini960114/Nano4-Docs' },
+      {
+        // 右上角快速入口：國網中心 GP1 生醫核心設施完整說明
+        icon: { svg: '<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z\"/><path d=\"M4 4.5v17M8 6h8M8 10h8\"/></svg>' },
+        link: 'https://man.twcc.ai/xOYzPATVS_aDlbuqMrwhyg',
+        ariaLabel: 'GP1 生醫核心設施官方說明'
+      }
     ],
     footer: {
       message: '本教學手冊深度整合國網中心官方指南與實務踩坑經驗，實際配置請以各服務官方資訊為準。',
