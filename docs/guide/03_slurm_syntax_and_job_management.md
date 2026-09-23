@@ -675,10 +675,7 @@ seff <JOB_ID>
 3. 用第 04 章 §5 的方式開啟報告，和第 04 章用模組產生的報告比較：內容相同，但這次完全沒有 `module load`。
 
 > [!TIP]
-> 若拉取時出現 `toomanyrequests`，代表 Docker Hub 的下載次數達到上限。請改用講師事先準備的映像檔：
-> ```bash
-> sbatch --export=ALL,MULTIQC_SIF=<講師提供的路徑>/multiqc_1.35.sif templates/singularity_job.slurm
-> ```
+> 若日誌出現 `toomanyrequests`，代表 Docker Hub 的下載次數暫時達到上限（全班同時下載時可能發生）。請等 10–15 分鐘後再執行一次 `sbatch templates/singularity_job.slurm`。映像檔下載成功後會保留在 `/work/<帳號>/apptainer_lab/multiqc_1.35.sif`，之後不需要再下載。
 
 ---
 

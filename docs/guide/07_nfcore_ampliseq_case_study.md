@@ -392,11 +392,47 @@ diff -u "$HOME/Nano4-Docs/07-nfcore-ampliseq-case-study/config/nano4.config" \
 
 ## 5. 第三階段：查看與解讀結果
 
+### 5.1 還沒跑完真實資料？先看講師的示範結果
+
+真實資料（3.4）約需 1 小時 40 分鐘。課堂上請先下載講師事先跑好的結果，在自己的電腦用瀏覽器打開即可，不需要連上 Nano4：
+
+📦 **[第 07 章示範結果（GitHub Release）](https://github.com/gemini960114/Nano4-Docs/releases/tag/ampliseq-demo-2026-09-23)**
+
+| 檔案 | 內容 | 建議 |
+| :--- | :--- | :--- |
+| [`ampliseq_summary_report.html`](https://github.com/gemini960114/Nano4-Docs/releases/download/ampliseq-demo-2026-09-23/ampliseq_summary_report.html)（8.5 MB） | nf-core 總結報告：每個步驟保留的 reads、分類結果、多樣性 | **先看這份** |
+| [`ampliseq_multiqc_report.html`](https://github.com/gemini960114/Nano4-Docs/releases/download/ampliseq-demo-2026-09-23/ampliseq_multiqc_report.html)（2.6 MB） | 原始 reads 與 Cutadapt 品質報告 | 第二份 |
+| `overall_summary.tsv`、`ASV_table.tsv`、`ASV_tax_species.silva_138_2.tsv`、`rel-table-6_genus.tsv` | 主要結果表格 | 可用 Excel 開啟 |
+| `ampliseq_results-real.tar.gz`（17 MB） | 完整結果，保留資料夾結構 | 想對照下方閱讀順序時再下載 |
+
+> 報告中的執行路徑已將講師帳號改寫為 `USER`。示範結果與你自己跑出來的結果應該非常接近；若差很多，先回頭檢查 samplesheet 與 primer。
+
+**看報告時回答這幾個問題**（答案為講師 2026-09-23 的實測結果）：
+
+1. 6 個樣本分別有多少 reads 通過 Cutadapt 與 DADA2？最後得到幾個 ASV？
+2. 門（phylum）與屬（genus）層級最多的是哪些？
+3. Control 與 MSEW 的 Shannon 多樣性看起來有差嗎？
+4. Beta diversity 的 PERMANOVA p 值是多少？可以說兩組微生物相不同嗎？
+
+<details>
+<summary><b>參考答案（先自己作答再展開）</b></summary>
+
+1. 每個樣本約 12–30 萬條 raw reads，Cutadapt 保留約 88–97%；經過 DADA2 過濾、去噪、合併與去除嵌合體後，每個樣本剩約 9–24 萬條，全部樣本共得到 **125 個 ASV**（見 `overall_summary.tsv`）。
+2. 幾乎全部是 **Bacillota**（約 99.7%）；屬層級以 **Lactobacillus**（約 87%）與 **Staphylococcus**（約 12%）為主，符合出生第 10 天（PD10）幼鼠腸道的特徵。
+3. MSEW 組的 Shannon 值（約 0.43–1.03）整體比 Control 組（約 0.13–0.54）高，但每組只有 3 個樣本，差異可能只是個體變異。
+4. Bray-Curtis 的 PERMANOVA **p = 0.291**，沒有統計顯著。即使 PCoA 圖上兩組看起來有分開，也不代表統計上不同；樣本數太少，不能據此宣稱重現論文結論。
+
+</details>
+
+### 5.2 檢查你自己跑出來的結果
+
 真實資料（3.4）完成後，先列出主要報告與表格（此 script 只檢查 `results-real`）：
 
 ```bash
 bash scripts/04_inspect_results.sh
 ```
+
+HTML 報告可用第 04 章 §5 的方式開啟，或在 VS Code / Antigravity 檔案總管對檔案按右鍵下載到自己的電腦。
 
 閱讀順序：
 

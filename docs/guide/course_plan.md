@@ -41,8 +41,8 @@
 | 課前一週 | 確認計畫錢包額度 | `wallet GOV115088` |
 | 課前一天 | 講師帳號完整跑過當堂所有練習 | 講義中的 `sbatch` 範例與新增練習都已於 2026-09-23 實測通過 |
 | 課前一天 | 確認 `ngs62g` 空閒狀況 | `sinfo -p ngs62g -o "%C"`，顯示「已用/空閒/其他/總數」核心 |
-| 第二堂前 | 準備 MultiQC 容器備用映像檔 | Lab 9 由學員從 Docker Hub 拉取 `multiqc/multiqc:v1.35`；若出現 `toomanyrequests`，改用講師事先拉好、學員可讀取的 `.sif` 檔（見 §4） |
 | 進階課前 | 確認第 07 章 `config/nano4.config` 的 `queueSize = 5`（見 §6） | 已於 2026-09-23 調整並實測 |
+| 進階課前 | 確認第 07 章示範結果可下載 | [GitHub Release `ampliseq-demo-2026-09-23`](https://github.com/gemini960114/Nano4-Docs/releases/tag/ampliseq-demo-2026-09-23)：兩份 HTML 報告、4 個結果表格與完整結果壓縮檔；報告中的帳號已改寫為 `USER` |
 | 每堂課 | 準備一台可投影的電腦示範 Windows 與 macOS 兩種 ssh-proxy 啟動方式 | 第一堂最常見的問題 |
 
 ---
@@ -91,11 +91,7 @@
 
 **第二堂結束檢核點**：每位學員都能 (1) 完成 Lab 8，4 個日誌各自對應一個樣本，(2) 在瀏覽器打開自己的 MultiQC 報告，(3) Lab 9 的日誌顯示 `容器內的 MultiQC：multiqc, version 1.35`。
 
-**Lab 9 備用映像檔**：Docker Hub 對未登入的下載次數有限制，全班從同一出口 IP 拉取時可能出現 `toomanyrequests`。建議課前由講師在計算節點執行一次 `apptainer pull multiqc_1.35.sif docker://multiqc/multiqc:v1.35`，放在學員可讀取的位置；需要時請學員改用：
-
-```bash
-sbatch --export=ALL,MULTIQC_SIF=<講師提供的路徑>/multiqc_1.35.sif templates/singularity_job.slurm
-```
+**Lab 9 下載限制**：映像檔由每位學員自行從 Docker Hub 下載，講師不另外提供。Docker Hub 對未登入的下載次數有限制，全班同時下載時可能有人出現 `toomanyrequests`；請該學員等 10–15 分鐘後重新提交即可，下載成功的 `.sif` 會保留在學員自己的 `/work/<帳號>/apptainer_lab/`。可請學員分兩批提交，降低同時下載的人數。
 
 **第 04 章 §6 參考答案**（依教材附的 4 個 FASTQ，2026-09-23 實測）：
 
@@ -123,7 +119,7 @@ sbatch --export=ALL,MULTIQC_SIF=<講師提供的路徑>/multiqc_1.35.sif templat
 | 1:15–1:25 | 休息 | | 執行一次 `squeue --me` 看第 07 章進度 | |
 | 1:25–1:50 | 安裝 Skills，並用 Skill 抓錯 | 第 06 章 | 執行 `sync_skills.sh`；完成「讓 Skill 抓出不合規的 Slurm 腳本」練習 | 重點：`sbatch --test-only` 會讓 `--mem=16G` 的錯誤腳本通過，Skill 的 `validate_slurm.sh` 才抓得到 |
 | 1:50–2:00 | 檢查官方測試結果 | 第 07 章 §3.3 | 查看 log 最後的 `Pipeline completed successfully` | 若仍在跑，先講 §1 資料來源 |
-| 2:00–2:35 | 解讀結果 | 第 07 章 §5 | 用官方測試的輸出練習看 MultiQC、分類與多樣性結果 | 真實資料（§3.4）需約 1 小時 40 分鐘，課堂上由講師展示事先跑好的結果 |
+| 2:00–2:35 | 解讀結果 | 第 07 章 §5.1 | 從 Release 下載 `ampliseq_summary_report.html` 與 `ampliseq_multiqc_report.html`，用瀏覽器開啟並回答 §5.1 的 4 個問題 | 真實資料（§3.4）需約 1 小時 40 分鐘，不在課堂上執行。重點：125 個 ASV、Lactobacillus 約 87%、PERMANOVA p = 0.291（不顯著）；答案在講義中可展開 |
 | 2:35–2:50 | AI 重做與 Skill 封裝（示範） | 第 07 章 §4、§6 | 講師示範 | 學員課後自行完成，依 §7 繳交 |
 | 2:50–3:00 | 總結、說明繳交內容 | 第 07 章 §7 | — | |
 
@@ -143,14 +139,14 @@ sbatch --export=ALL,MULTIQC_SIF=<講師提供的路徑>/multiqc_1.35.sif templat
 | 第 03 章 Lab 4 陣列作業（`%4`） | 4 | 80 | 沒問題 |
 | 第 03 章 Lab 8 陣列作業（`1-4`） | 4 | 80 | 沒問題 |
 | 第 03 章 Lab 6 `salloc` | 1 | 20 | 沒問題；提醒用完 `exit` |
-| 第 03 章 Lab 9 容器 | 1 | 20 | 運算沒問題；注意 Docker Hub 下載次數（見 §4 備用映像檔） |
+| 第 03 章 Lab 9 容器 | 1 | 20 | 運算沒問題；注意 Docker Hub 下載次數（見 §4「Lab 9 下載限制」） |
 | 第 05 章 Case A / B | 1 | 20 | 沒問題 |
 | 第 07 章官方測試（`queueSize = 5`） | 1 + 5 | 約 120 | 沒問題 |
 
 建議：
 
 - `07-nfcore-ampliseq-case-study/config/nano4.config` 的 `executor.queueSize` 已由 10 調為 5，實測官方測試時間不變（約 28 分鐘）。學員超過 30 人時，可再調低（例如 3），但官方測試會跑得更久。
-- 第 07 章 §3.4 真實資料不要全班同時執行，改由講師事先跑好並展示結果。
+- 第 07 章 §3.4 真實資料不要全班同時執行，改用講師事先跑好、放在 [GitHub Release `ampliseq-demo-2026-09-23`](https://github.com/gemini960114/Nano4-Docs/releases/tag/ampliseq-demo-2026-09-23) 的示範結果。
 
 ---
 

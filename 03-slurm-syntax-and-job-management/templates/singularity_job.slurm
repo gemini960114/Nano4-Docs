@@ -31,9 +31,8 @@ WORK_DIR="/work/${USER}/apptainer_lab"
 
 # MultiQC 官方 Docker Hub 映像檔（固定版本，不用 latest）
 IMAGE_URI="docker://multiqc/multiqc:v1.35"
-# 若講師已事先提供映像檔（例如 Docker Hub 下載次數達上限時），可改用：
-#   sbatch --export=ALL,MULTIQC_SIF=/path/to/multiqc_1.35.sif templates/singularity_job.slurm
-SIF_IMAGE="${MULTIQC_SIF:-${WORK_DIR}/multiqc_1.35.sif}"
+# 下載成功後保留在 /work，之後重新提交會直接使用，不需要再下載
+SIF_IMAGE="${WORK_DIR}/multiqc_1.35.sif"
 
 # 容器快取放在 /work，避免塞滿 $HOME
 export APPTAINER_CACHEDIR="/work/${USER}/.apptainer_cache"
