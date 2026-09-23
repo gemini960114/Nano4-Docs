@@ -486,16 +486,18 @@ Memory Efficiency: 3.47% of 62.00 GB
   ```bash
   singularity exec -B /work/${USER}:/mnt /work/${USER}/ubuntu_22.04.sif ls /mnt   # 在容器內列出掛載的 /work 目錄
   ```
-* **GPU 深度學習支援 (啟用 `--nv`)**：
+* **（GPU 參考，本次課程不操作）GPU 深度學習支援 (啟用 `--nv`)**：
   ```bash
   singularity exec --nv -B /work/${USER}:/mnt pytorch.sif python3 -c "import torch; print('GPU 可用:', torch.cuda.is_available())"
   ```
+
+> 💡 本課程的容器實作請見 **Lab 9**：在 Slurm 作業中從 Docker Hub 拉取 `multiqc/multiqc:v1.35`，用容器執行 MultiQC。Nano4 上 `singularity` 與 `apptainer` 指令相同，兩者皆可使用。
 
 ---
 
 ## 8. 初學者循序漸進實作演練 (Hands-on Labs)
 
-針對剛接觸超級電腦排程的初學者，請依序完成以下 7 個動手實驗（Lab 3 為 GPU 參考，本次課程跳過）。所有 Lab 都在本章目錄執行：
+針對剛接觸超級電腦排程的初學者，請依序完成以下 9 個動手實驗（Lab 3 為 GPU 參考，本次課程跳過；Lab 8、9 需要第 04 章的資料）。所有 Lab 都在本章目錄執行：
 
 ```bash
 cd "$HOME/Nano4-Docs/03-slurm-syntax-and-job-management"
@@ -604,6 +606,79 @@ cd "$HOME/Nano4-Docs/03-slurm-syntax-and-job-management"
 seff <JOB_ID>
 ```
 確認 CPU 與 Memory 利用率，體驗 HPC 資源優化的核心理念！
+
+---
+
+### 🧪 Lab 8：自己改寫陣列作業，一個子任務處理一個樣本
+
+**目標**：把 Lab 4 的陣列範本改成真正處理資料：第 04 章有 4 個 FASTQ 樣本，讓每個子任務計算一個樣本的 read 數。這是本章唯一需要自己動手改腳本的練習。
+
+> [!NOTE]
+> 需要第 04 章附的 4 個 FASTQ（`04-ai-assisted-bio-pipeline/demo_data/fastq_raw/`，已隨教材 repository 提供）。
+
+1. 複製 Lab 4 的範本：
+   ```bash
+   cp templates/array_job.slurm my_array_fastq.slurm
+   ```
+2. 用 VS Code 打開 `my_array_fastq.slurm`，完成三處修改：
+   - 把 `--array=1-10%4` 改成 `--array=1-4`（4 個樣本 → 4 個子任務）。
+   - 把作業名稱改成 `array_fastq`。
+   - 把 `sleep 5` 那段換成：依 `${SLURM_ARRAY_TASK_ID}` 挑出第 N 個 FASTQ，計算 read 數並印出。
+
+   提示：
+   ```bash
+   FASTQ_DIR="$HOME/Nano4-Docs/04-ai-assisted-bio-pipeline/demo_data/fastq_raw"
+   mapfile -t FASTQ_FILES < <(ls "${FASTQ_DIR}"/*.fastq.gz)
+   FASTQ="${FASTQ_FILES[$((SLURM_ARRAY_TASK_ID - 1))]}"   # 陣列從 0 開始，所以要減 1
+   READS=$(( $(gzip -dc "${FASTQ}" | wc -l) / 4 ))       # FASTQ 每 4 行是一條 read
+   ```
+3. 提交並查看結果：
+   ```bash
+   sbatch my_array_fastq.slurm
+   cat array_fastq-*_*.out
+   ```
+   **預期結果**：4 個日誌，各自對應一個樣本（輸出格式可自訂，以下為參考解答的格式）：
+   ```text
+   子任務 1 | 節點 25a-cpn01 | 樣本 sample_01_R1.fastq.gz | reads = 1000
+   子任務 2 | 節點 25a-cpn01 | 樣本 sample_02_R1.fastq.gz | reads = 1000
+   ...
+   ```
+
+卡住時可對照參考解答 [`templates/array_fastq.slurm`](./templates/array_fastq.slurm)。
+
+---
+
+### 🧪 Lab 9：用 Apptainer 容器執行 MultiQC
+
+**目標**：不載入任何模組，改用容器在計算節點上執行 MultiQC，把第 04 章的 FastQC 結果彙整成報告。體會「容器把工具和它需要的環境整包帶著走」，這也是第 07 章 nf-core 的運作方式。
+
+> [!IMPORTANT]
+> 需要先完成第 04 章（產生 `04-ai-assisted-bio-pipeline/demo_data/fastqc_out/`）。
+
+1. 提交容器作業：
+   ```bash
+   sbatch templates/singularity_job.slurm
+   ```
+   作業會依序：確認主機上沒有 `multiqc` → 從 Docker Hub 拉取 `multiqc/multiqc:v1.35` 並轉成 `.sif` 檔 → 在容器內執行 MultiQC。
+2. 查看日誌：
+   ```bash
+   cat apptainer_multiqc-*.out
+   ```
+   **預期結果**（第一次拉取約 40 秒，之後會直接使用已下載的 `.sif` 檔）：
+   ```text
+   [1] 主機上的 multiqc：找不到（正常，沒有載入模組）
+   [2] 拉取映像檔 docker://multiqc/multiqc:v1.35 ...
+   [3] 容器內的 MultiQC：multiqc, version 1.35
+   [4] 以容器執行 MultiQC ...
+   報告位置        : /work/<帳號>/apptainer_lab/multiqc_out/multiqc_report.html
+   ```
+3. 用第 04 章 §5 的方式開啟報告，和第 04 章用模組產生的報告比較：內容相同，但這次完全沒有 `module load`。
+
+> [!TIP]
+> 若拉取時出現 `toomanyrequests`，代表 Docker Hub 的下載次數達到上限。請改用講師事先準備的映像檔：
+> ```bash
+> sbatch --export=ALL,MULTIQC_SIF=<講師提供的路徑>/multiqc_1.35.sif templates/singularity_job.slurm
+> ```
 
 ---
 

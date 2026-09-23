@@ -110,4 +110,4 @@ bash <此 skill 的 scripts 目錄>/validate_slurm.sh your_job.slurm
 sbatch --test-only your_job.slurm
 # 注意：--test-only 只檢查帳號/分區組合，不檢查 QoS 上限 (例如 ngs62g 的 8 核 / 62GB)
 ```
-若預檢成功印出 `sbatch: Job <ID> to start at ...`，即可放心告知使用者正式提交：`sbatch your_job.slurm`！
+`validate_slurm.sh` 只有在靜態檢查（帳號、分區、`ngs62g` 固定 `-c 8 --mem=62G`、日誌目錄）與 `--test-only` 都通過時才會回傳 0 並顯示「驗證通過」；任何一項失敗都會回傳 1。只憑 `--test-only` 印出 `Job <ID> to start at ...` 並不足以代表腳本合規。驗證通過後，才告知使用者正式提交：`sbatch your_job.slurm`。

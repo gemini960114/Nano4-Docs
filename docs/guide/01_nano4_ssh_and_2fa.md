@@ -702,8 +702,17 @@ cd "$HOME/Nano4-Docs/01-nano4-ssh-and-2fa/scripts"
 > [!NOTE]
 > **💡 超算新手必備心智模型 (Mental Model)：**
 > 1. **登入節點 (Login Node)** = **大樓警衛接待大廳**。您在這裡連線、查看檔案、編輯腳本、做微型測試。**嚴禁在此炒菜或跑大運算**，否則會被警衛（系統監控）強制終止！
-> 2. **計算節點 (Compute Node)** = **高科技無塵工廠**。裡面有數百張 H200 與 GB200。一般人不能直接走進去，必須透過提交「工單（Job Script）」委派任務。
+> 2. **計算節點 (Compute Node)** = **高科技無塵工廠**。裡面有 GP1 生醫 CPU 節點（本課程使用）與 H200 / GB200 GPU 節點。一般人不能直接走進去，必須透過提交「工單（Job Script）」委派任務。
 > 3. **Slurm 排程器** = **總工廠廠長**。負責審查工單、查看目前哪台機器空閒、把任務派去執行，跑完將日誌輸出到檔案通知您。
+
+| 練習 | 內容 | 本課程 |
+| :---: | :--- | :--- |
+| 1 | 登入後的環境健檢 | **必做** |
+| 2 | 用 Port 2222 雙向傳檔 | 選做（需要在自己電腦操作） |
+| 3 | 載入生醫模組、體驗 `module purge` | **必做** |
+| 4 | 用 `uv` 建立 Python 環境 | 選做（會寫 Python 的學員） |
+| 5 | 第一次提交 Slurm 批次作業 | **必做** |
+| 6 | `salloc` 互動式計算節點 | 建議 |
 
 ---
 
@@ -760,42 +769,55 @@ cd "$HOME/Nano4-Docs/01-nano4-ssh-and-2fa/scripts"
 
 ---
 
-### 🧪 練習 3：軟體環境模組切換與 Hello World 編譯 (Lmod)
+### 🧪 練習 3：載入生醫模組並體驗 `module purge` (Lmod)
 
-**目標**：體驗如何切換編譯器與 CUDA 模組，並在 HPC 上編譯執行第一支 C 語言程式。
+**目標**：學會用模組載入本課程會用到的生醫工具（FastQC、MultiQC 與它們需要的 Java），並理解為什麼 Slurm 腳本第一行要 `module purge`。
 
-1. **清空雜亂環境並載入指定 GCC 編譯器**：
+1. **清空環境，確認工具還不存在**：
    ```bash
-   # 徹底清空模組
-   ml purge
-   
-   # 載入 GCC 11.5
-   ml load gcc/11.5
-   
-   # 驗證編譯器
-   gcc --version | head -n 1
+   module purge
+   command -v fastqc || echo "fastqc: 尚未載入"
    ```
-2. **寫一段最簡單的 C 語言程式**（先切到 `/work`，避免把編譯產物留在課程 repo 裡）：
+2. **查詢並載入生醫模組**：
    ```bash
-   cd /work/$USER
-   cat << 'EOF' > hello.c
-   #include <stdio.h>
-   int main() {
-       printf("Hello, Nano4 HPC! GCC Version: %d.%d\n", __GNUC__, __GNUC_MINOR__);
-       return 0;
-   }
-   EOF
+   module avail biology/FastQC
+   module load biology/JDK/26.0.1 biology/FastQC/0.11.9 biology/MultiQC
    ```
-3. **編譯並執行**：
+3. **確認工具與版本**：
    ```bash
-   gcc hello.c -o hello
-   ./hello
+   fastqc --version      # FastQC v0.11.9
+   multiqc --version     # multiqc, version 1.35
+   java -version         # java version "26.0.1"
+   module list           # 列出目前載入的模組
    ```
-4. **（參考，本次課程可跳過）載入 CUDA 模組確認 GPU 編譯器**：
+4. **再次清空，工具又不見了**：
    ```bash
-   ml load cuda/12.6
-   nvcc --version
+   module purge
+   command -v fastqc || echo "fastqc: 已隨 module purge 移除"
    ```
+
+> [!NOTE]
+> 計算節點**沒有系統 Java**。只載入 `biology/FastQC` 而沒有載入 `biology/JDK` 時，FastQC 會找不到 Java、不產生任何報告，但指令仍可能回傳成功。第 04、05 章的腳本都會一起載入這三個模組。
+
+<details>
+<summary><b>延伸（選做）：載入 GCC 編譯並執行 C 程式</b></summary>
+
+```bash
+module purge
+module load gcc/11.5
+cd /work/$USER
+cat << 'EOF' > hello.c
+#include <stdio.h>
+int main() {
+    printf("Hello, Nano4 HPC! GCC Version: %d.%d\n", __GNUC__, __GNUC_MINOR__);
+    return 0;
+}
+EOF
+gcc hello.c -o hello
+./hello
+```
+
+</details>
 
 ---
 

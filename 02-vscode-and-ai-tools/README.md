@@ -25,7 +25,7 @@
 - [6. 國網中心地端大模型：Taiwan AI RAP 設定實務](#6-國網中心地端大模型taiwan-ai-rap-設定實務)
 - [7. 國網中心支援模型清單與場景推薦](#7-國網中心支援模型清單與場景推薦)
 - [8. 超算專屬 AI Agent 治理守則：AGENTS.md 實務](#8-超算專屬-ai-agent-治理守則agentsmd-實務)
-- [9. 初學者動手實戰練習 (Hands-on Labs 1 ~ 4)](#9-初學者動手實戰練習-hands-on-labs-1--4)
+- [9. 初學者動手實戰練習 (Hands-on Labs 1 ~ 5)](#9-初學者動手實戰練習-hands-on-labs-1--5)
 - [10. 多登入節點與 Agent session 清理](#10-多登入節點與-agent-session-清理)
 - [11. 常見踩坑與連線排錯 (FAQ)](#11-常見踩坑與連線排錯-faq)
 
@@ -359,34 +359,75 @@ cp "$HOME/Nano4-Docs/02-vscode-and-ai-tools/templates/opencode.json" ~/.config/o
 
 ---
 
-## 9. 初學者動手實戰練習 (Hands-on Labs 1 ~ 4)
+## 9. 初學者動手實戰練習 (Hands-on Labs 1 ~ 5)
 
-### 🧪 練習 1：在本地 VS Code 開啟遠端工作區
-1. 依照第 2 節步驟，在您個人筆電打開 VS Code。
-2. 透過 Remote-SSH 連線至 `nano4`。
+| 練習 | 內容 | 本課程 |
+| :---: | :--- | :--- |
+| 1 | 在 VS Code / Antigravity 開啟遠端工作區 | **必做** |
+| 2 | 確認 ssh-proxy 只需認證一次 | **必做** |
+| 3 | 請 AI 解釋 Slurm 範本並比較回答 | 建議（需要 Antigravity、Gemini 或 Codex 其中一種） |
+| 4 | 測試 OpenCode 與 Taiwan AI RAP 連線 | 選做（需要 Taiwan AI RAP API Token） |
+| 5 | 人工驗證 AI 的建議 | **必做** |
+
+### 🧪 練習 1：在 VS Code / Antigravity 開啟遠端工作區
+1. 依照第 2 節步驟，在您個人筆電打開 VS Code 或 Antigravity。
+2. 透過 Remote-SSH 連線至 `nano4`（完成練習 2 後改連 `nano4-proxy`）。
 3. 開啟 `/work/$USER` 目錄，在檔案清單中點擊右鍵新增一個檔案 `my_test.py`。
 4. 寫入一行 `print("Hello from VS Code Remote on Nano4!")` 並存檔（`Ctrl + S`）。
 5. 按下 **``Ctrl + ` ``** 打開整合終端，執行 `python my_test.py`，驗證程式碼確實在 Nano4 登入節點上執行！
 
 ---
 
-### 🧪 練習 2：Gemini 與 Codex 雙工具對話比較
-以同一個任務測試兩個工具：請它們解釋 `sbatch` 腳本中的 `--account`、`--partition`、`--mem`，並要求提出一個安全的修改方案。
+### 🧪 練習 2：確認 ssh-proxy 只需認證一次
+**目標**：完成第 2 節步驟 E 後，確認之後的連線都不再要求 OTP。
 
-兩個工具都使用同一支範本：`03-slurm-syntax-and-job-management/templates/standard_cpu_job.slurm`。
+1. 在**本機**終端機 / PowerShell 啟動 proxy，完成一次密碼與 OTP 認證，並讓視窗保持開著：
+   ```bash
+   # Windows
+   .\ssh-proxy-windows-x64.exe nano4 --max-lifetime 10h
+   # macOS Apple Silicon
+   ./ssh-proxy-macos-arm64 nano4 --max-lifetime 10h
+   ```
+2. 另開一個本機終端機，連續連線兩次：
+   ```bash
+   ssh nano4-proxy hostname
+   ssh nano4-proxy 'echo $USER; hfsquota'
+   ```
+   **預期結果**：兩次都直接顯示結果（例如 `25a-lgn03` 與您的帳號），**不會再要求密碼或 OTP**。
+3. 在 VS Code / Antigravity 選 `Connect to Host... → nano4-proxy`，依序用 **Open Folder** 開啟 `/work/<帳號>`，再切換到 `/home/<帳號>/Nano4-Docs`。
+   **預期結果**：切換資料夾時不再出現 OTP 提示。
+4. 在 VS Code 整合終端執行 `hostname`，與步驟 2 的結果比較：透過 proxy 的連線都會落在同一台登入節點。
 
-- Gemini：在本機開啟 [Gemini](https://gemini.google.com/)，貼上相同 prompt 與 `standard_cpu_job.slurm` 的內容（可先在 VS Code 開啟檔案後複製）。
-- Codex：在登入節點的教材目錄執行：
-  ```bash
-  cd "$HOME/Nano4-Docs"
-  codex "請先閱讀 AGENTS.md，說明 03-slurm-syntax-and-job-management/templates/standard_cpu_job.slurm 的風險，但先不要修改檔案。"
-  ```
-
-比較兩份回答的假設、資源建議與安全檢查，不直接複製任何一方的指令。
+> 若出現 `Connection refused`，代表 proxy 已停止（例如視窗被關掉或超過時間上限），請回到步驟 1 重新啟動。
 
 ---
 
-### 🧪 練習 3：測試 OpenCode CLI 與模型連線
+### 🧪 練習 3：請 AI 解釋 Slurm 範本並比較回答
+以同一個任務測試兩個 AI 工具：請它們解釋 `sbatch` 腳本中的 `--account`、`--partition`、`--cpus-per-task`、`--mem`，並說明為什麼本課程一律使用 `-c 8 --mem=62G`。
+
+兩個工具都使用同一支範本：`03-slurm-syntax-and-job-management/templates/standard_cpu_job.slurm`。可從下列工具任選兩種：
+
+- **Antigravity 內建 Agent**（推薦）：在已連上 `nano4-proxy` 的 Antigravity 開啟 `$HOME/Nano4-Docs` 資料夾，對 Agent 輸入：
+  ```text
+  請先閱讀 AGENTS.md，再解釋 03-slurm-syntax-and-job-management/templates/standard_cpu_job.slurm 每一個 #SBATCH 參數的用途，但先不要修改檔案。
+  ```
+- **Gemini**：在本機開啟 [Gemini](https://gemini.google.com/)，貼上相同 prompt 與 `standard_cpu_job.slurm` 的內容（可先在 VS Code 開啟檔案後複製）。
+- **Codex**：在登入節點的教材目錄執行：
+  ```bash
+  cd "$HOME/Nano4-Docs"
+  codex "請先閱讀 AGENTS.md，解釋 03-slurm-syntax-and-job-management/templates/standard_cpu_job.slurm 每一個 #SBATCH 參數的用途，但先不要修改檔案。"
+  ```
+
+比較兩份回答：
+- 是否都正確說出 `GOV115088` 只能使用 `ngs62g`？
+- 是否有工具建議把 `--mem` 調小？（依國網官方規定，`ngs62g` 必須固定 `-c 8 --mem=62G`，這是錯誤建議。）
+- 讀過 `AGENTS.md` 的工具與沒讀的工具，回答有什麼差別？
+
+---
+
+### 🧪 練習 4：測試 OpenCode CLI 與 Taiwan AI RAP 連線（選做）
+需要先完成第 6 節，在 `opencode.json` 填入 Taiwan AI RAP API Token。
+
 1. 在 VS Code 整合終端中執行：
    ```bash
    opencode models
@@ -395,12 +436,12 @@ cp "$HOME/Nano4-Docs/02-vscode-and-ai-tools/templates/opencode.json" ~/.config/o
    ```bash
    opencode run "請用一句話說明為什麼在 HPC 上不能使用 sudo 指令？"
    ```
-3. 觀察終端機中 AI 的回答，並與練習 2 的 Gemini/Codex 結果比較。
+3. 觀察終端機中 AI 的回答，並與練習 3 的結果比較。
 
 ---
 
-### 🧪 練習 4：三方結果驗證與人工作業
-先讓 Gemini、Codex 或 OpenCode 提出方案，再由學生手動執行：
+### 🧪 練習 5：人工驗證 AI 的建議
+AI 的回答只是建議，最後要由學生自己驗證。無論練習 3 採用了哪些建議，都手動執行：
 
 ```bash
 cd "$HOME/Nano4-Docs"

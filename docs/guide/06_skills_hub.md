@@ -69,6 +69,44 @@ bash "$HOME/Nano4-Docs/06-skills-hub/slurm-job-advisor/scripts/validate_slurm.sh
 
 ---
 
+## 🧪 練習：讓 Skill 抓出不合規的 Slurm 腳本
+
+**目標**：`sbatch --test-only` 只檢查帳號與分區，不會發現「`ngs62g` 記憶體沒有用 62G」這類違反官方規格的錯誤。本練習用 `slurm-job-advisor` 的驗證工具抓出這些錯誤，再讓 AI Agent 依 Skill 修正。
+
+1. 準備一份正確、兩份故意寫錯的腳本：
+   ```bash
+   mkdir -p /work/$USER/skill_lab && cd /work/$USER/skill_lab
+   cp "$HOME/Nano4-Docs/03-slurm-syntax-and-job-management/templates/standard_cpu_job.slurm" good.slurm
+   sed 's/^#SBATCH --mem=62G .*/#SBATCH --mem=16G/' good.slurm > bad_mem.slurm
+   sed 's/^#SBATCH --partition=ngs62g .*/#SBATCH --partition=ngs32g/' good.slurm > bad_partition.slurm
+   ```
+2. 先用 `sbatch --test-only` 檢查 `bad_mem.slurm`：
+   ```bash
+   sbatch --test-only bad_mem.slurm
+   ```
+   **會顯示 `Job ... to start at ...`**，也就是排程器沒有發現記憶體設定錯誤。
+3. 改用 Skill 的驗證工具檢查三份腳本：
+   ```bash
+   V="$HOME/Nano4-Docs/06-skills-hub/slurm-job-advisor/scripts/validate_slurm.sh"
+   bash "$V" good.slurm;          echo "exit=$?"
+   bash "$V" bad_mem.slurm;       echo "exit=$?"
+   bash "$V" bad_partition.slurm; echo "exit=$?"
+   ```
+   **預期結果**：
+
+   | 腳本 | 驗證結果 | 回傳值 |
+   | :--- | :--- | :---: |
+   | `good.slurm` | `🎉 [驗證通過]` | 0 |
+   | `bad_mem.slurm` | `❌ [規格錯誤] 'ngs62g' 官方規格為 --mem=62G，目前設定為 16G！` | 1 |
+   | `bad_partition.slurm` | `❌ [授權錯誤] 計畫 GOV115088 只能使用 ngs62g` | 1 |
+4. 讓 AI Agent 修正：在 Antigravity（或 Claude Code）開啟 `/work/<帳號>/skill_lab`，輸入：
+   ```text
+   請使用 slurm-job-advisor skill 檢查 bad_mem.slurm 與 bad_partition.slurm，說明錯在哪裡並修正，修正後執行 validate_slurm.sh 確認通過，但不要提交作業。
+   ```
+5. 自己再執行一次步驟 3，確認三份腳本都顯示 `🎉 [驗證通過]`。
+
+---
+
 ## 💡 AI Agent 實戰調用示範
 
 當您在 Antigravity（或 VS Code 中的 Claude Code / OpenCode）對 AI 說：
