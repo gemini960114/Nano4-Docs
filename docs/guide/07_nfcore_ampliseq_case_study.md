@@ -290,7 +290,7 @@ column -ts $'\t' \
 `-profile test,singularity` 會載入 test 資料設定與 Singularity 執行環境；
 國網 `site.config` 與本章 `config/nano4.config` 才負責將各個 nf-core process 送進 Slurm。
 pipeline 與容器都來自國網離線環境，只有 test profile 的小型輸入與 taxonomy 會從網路下載。
-課前實測（2026-09-23）約 27 分鐘完成，共 125 個 Slurm 子工作、0 個失敗（實際時間視排隊狀況而定）。最後顯示 `Pipeline completed successfully` 即為成功。
+課前實測（2026-09-23）約 28 分鐘完成，共 125 個 Slurm 子工作、0 個失敗（實際時間視排隊狀況而定）。最後顯示 `Pipeline completed successfully` 即為成功。
 
 ```bash
 export NFCORE_ACCOUNT=GOV115088
@@ -319,7 +319,7 @@ Slurm driver job
 
 ### 3.4 執行真實資料
 
-只有在下載工作和官方 test 都成功後才提交。官方 test 約需 27 分鐘，若期間重新開過終端機，請先重新設定變數：
+只有在下載工作和官方 test 都成功後才提交。官方 test 約需 28 分鐘，若期間重新開過終端機，請先重新設定變數：
 
 ```bash
 cd "$HOME/Nano4-Docs/07-nfcore-ampliseq-case-study"
@@ -341,6 +341,8 @@ sbatch \
 - DADA2 taxonomy `silva=138.2`（國網離線資料只有 SILVA 138 的 QIIME 2 格式與 GTDB，因此由計算節點下載一次到 `cache/taxonomy/`）；
 - `-resume` 支援安全續跑；
 - container、taxonomy 與 work cache 位於 `/work/${USER}`。
+
+課前實測（2026-09-23）約 1 小時 40 分鐘完成，共 79 個 Slurm 子工作、0 個失敗。其中 QIIME 2 稀釋曲線（`QIIME2_ALPHARAREFACTION`）一個步驟就佔約 1 小時 30 分鐘，這段時間 `squeue` 只會看到它一個子作業在跑，log 也不再更新，屬正常現象，不是卡住。
 
 > [!NOTE]
 > nf-core/ampliseq 2.18.0 使用 `--FW_primer` 與 `--RV_primer`。開發版文件可能
