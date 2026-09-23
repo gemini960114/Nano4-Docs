@@ -2,7 +2,8 @@
 
 本章是前六章的整合實戰。學生先親手完成一次公開 paired-end 16S
 資料分析，再讓 AI Agent 使用相同輸入重做，最後比較兩者並把可靠流程
-封裝成 `nfcore-ampliseq-nano4` Skill。
+封裝成 `nfcore-ampliseq-nano4` Skill。講師事先跑好的完整結果放在
+[GitHub Release](https://github.com/gemini960114/Nano4-Docs/releases/tag/ampliseq-demo-2026-09-23)，真實資料還沒跑完時可先下載觀看（見 §5.1）。
 
 ```text
 人工操作一次

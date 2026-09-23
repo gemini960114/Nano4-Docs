@@ -23,13 +23,13 @@
 
 | 章節編號 | 教學主題 | 說明與適用場景 | 核心工作台角色 | 快速連結 |
 | :---: | :--- | :--- | :--- | :---: |
-| **01** | **登入、2FA 與環境管理** | 登入節點連線 (`nano4.nchc.org.tw:22`)、IDExpert 2FA、專屬 DTN 埠號 (`Port 2222`) 傳檔、WekaFS 高速儲存架構 (`/home` vs `/work`) 與極速 Python 套件管理 `uv`。 | **超算地基**<br>初始化 `$HOME` 與建立 `/work` Python 虛擬環境 | [前往章節](./01_nano4_ssh_and_2fa) |
+| **01** | **登入、2FA 與環境管理** | 登入節點連線 (`nano4.nchc.org.tw:22`)、IDExpert 2FA、專屬 DTN 埠號 (`Port 2222`) 傳檔、WekaFS 高速儲存架構 (`/home` vs `/work`)、以 `module` 載入生醫工具（FastQC / MultiQC / JDK），並送出第一個 `ngs62g` 作業。 | **超算地基**<br>初始化 `$HOME`、載入生醫模組、第一個 Slurm 作業 | [前往章節](./01_nano4_ssh_and_2fa) |
 | **02** | **VS Code Remote-SSH 與 AI 工具鏈** | 本機 VS Code / Antigravity Remote-SSH 連線設定（搭配 `ssh-proxy` 只需一次 2FA 認證）、整合 OpenCode CLI 串接國網 Taiwan AI RAP 地端大模型，並導入專屬 **`AGENTS.md`** 系統治理規範。 | **開發大腦**<br>本地 IDE 無縫連線，召喚 AI 助理協同程式設計 | [前往章節](./02_vscode_and_ai_tools) |
-| **03** | **Slurm 語法與作業調度** | 以本課程的 `GOV115088` → `ngs62g`（固定 `-c 8 --mem=62G`）為標準範例，練習 `sbatch`、陣列與相依作業、`salloc` 互動節點、`wallet` 額度與 `seff` 效能分析；H200/GB200 分區僅供參考。 | **調度指揮所**<br>語法高亮編寫排程、內建終端派送與資源除錯 | [前往章節](./03_slurm_syntax_and_job_management) |
-| **04** | **AI 輔助生醫質控管線** | 以生醫 FASTQ 質控為具象化案例（架構全領域通用），在 VS Code 內引導 AI 編寫分析管線、登入節點微型測試，並透過連接埠轉送在瀏覽器即時預覽 MultiQC 互動報告。 | **微型原型實踐**<br>小數據原型開發、邏輯驗證與報告即時轉送預覽 | [前往章節](./04_ai_assisted_bio_pipeline) |
+| **03** | **Slurm 語法與作業調度** | 以本課程的 `GOV115088` → `ngs62g`（固定 `-c 8 --mem=62G`）為標準範例，練習 `sbatch`、陣列與相依作業、`salloc` 互動節點、`seff` 效能分析，自己改寫陣列作業逐一處理 FASTQ 樣本，並用 **Apptainer 容器**（Docker Hub `multiqc/multiqc`）在計算節點執行 MultiQC；H200/GB200 分區僅供參考。 | **調度指揮所**<br>排程、改寫腳本與容器化執行 | [前往章節](./03_slurm_syntax_and_job_management) |
+| **04** | **AI 輔助生醫質控管線** | 以生醫 FASTQ 質控為具象化案例（架構全領域通用），在 VS Code 內引導 AI 編寫分析管線、登入節點微型測試，透過連接埠轉送在瀏覽器即時預覽 MultiQC 互動報告，並練習讀懂報告中的品質指標。 | **微型原型實踐**<br>小數據原型開發、報告預覽與判讀 | [前往章節](./04_ai_assisted_bio_pipeline) |
 | **05** | **AI Agent 自動化 Slurm 排程** | 引導 AI Agent 將登入節點的分析流程重構為 Slurm 批次作業：實作「事前下載離線運算 (Case A)」與「計算節點外網直連動態下載 (Case B)」兩種架構。 | **全流程自動化**<br>AI 排程重構、直接連網批次運算與成果交付 | [前往章節](./05_ai_agent_slurm_pipeline) |
-| **06** | **AI Agent 技能總匯庫 (Skills Hub)** | 將 Nano4 領域知識打包為 AI Agent 專家技能 (`nano4-slurm-operations`, `slurm-job-advisor`, `ai-agent-slurm-pipeline`, `nfcore-ampliseq-nano4`)，支援 `wallet` 預檢、佇列 QoS 防呆與 `sbatch --test-only` 帳號/分區預檢。 | **專家技能庫**<br>掛載超算領域專家技能，賦予 AI 即時作戰能力 | [前往章節](./06_skills_hub) |
-| **07** | **nf-core/ampliseq 真實 16S 案例** | 先手動以官方 test profile 驗證環境，再用保留原始 metadata 與 primer 的公開 paired-end 16S 資料完成分析、判讀結果，最後交由 AI 重現並封裝成 Skill。 | **完整案例實戰**<br>手動操作 → AI 重現 → Skill 固化 | [前往章節](./07_nfcore_ampliseq_case_study) |
+| **06** | **AI Agent 技能總匯庫 (Skills Hub)** | 將 Nano4 領域知識打包為 AI Agent 專家技能 (`nano4-slurm-operations`, `slurm-job-advisor`, `ai-agent-slurm-pipeline`, `nfcore-ampliseq-nano4`)，支援 `wallet` 預檢、`ngs62g` 官方規格檢查，並用 `validate_slurm.sh` 抓出 `sbatch --test-only` 漏掉的錯誤。 | **專家技能庫**<br>掛載超算領域專家技能，賦予 AI 即時作戰能力 | [前往章節](./06_skills_hub) |
+| **07** | **nf-core/ampliseq 真實 16S 案例** | 先手動以官方 test profile 驗證環境，再用保留原始 metadata 與 primer 的公開 paired-end 16S 資料完成分析、判讀結果，最後交由 AI 重現並封裝成 Skill；講師的完整示範結果可從 [GitHub Release](https://github.com/gemini960114/Nano4-Docs/releases/tag/ampliseq-demo-2026-09-23) 下載觀看。 | **完整案例實戰**<br>手動操作 → AI 重現 → Skill 固化 | [前往章節](./07_nfcore_ampliseq_case_study) |
 | **附錄** | **HPC 專屬 AI Agent 治理守則 (AGENTS.md)** | 全工作區通用系統守則，規範嚴禁 sudo、WekaFS `/work` 儲存分層、module purge、ngs62g 記憶體限制與日誌萬用命名。 | **系統憲法**<br>防止 AI 產生危險指令與超算違規行為 | [查看守則](./agents_governance) |
 
 ---
@@ -41,25 +41,25 @@
 ```mermaid
 flowchart TD
     subgraph S1["第一階段：起跑與建置現代化遠端工作台 (Environment Bootstrap)"]
-        C1["第 01 課：Nano4 登入、2FA 與環境管理<br>• SSH Port 22 連線, IDExpert 2FA<br>• DTN Port 2222 傳檔, WekaFS /work<br>• uv 極速環境建立"]
+        C1["第 01 課：Nano4 登入、2FA 與環境管理<br>• SSH Port 22 連線, IDExpert 2FA<br>• WekaFS /work 與 hfsquota<br>• module 載入生醫工具、第一個 Slurm 作業"]
         C2["第 02 課：VS Code Remote-SSH 與 AI 工具鏈<br>• VS Code / Antigravity Remote-SSH 連線<br>• ssh-proxy 只需一次 2FA 認證<br>• OpenCode CLI 串接國網 Taiwan AI RAP LLM<br>• 導入 AGENTS.md 治理規範"]
         C1 --> C2
     end
 
     subgraph S2["第二階段：掌握超算排程調度核心 (Slurm Scheduling & Governance)"]
-        C3["第 03 課：Slurm 語法與作業調度<br>• GOV115088 → ngs62g（-c 8 --mem=62G）<br>• 陣列、相依作業與 salloc 互動節點<br>• wallet 計費與 seff 效能分析（GPU 佇列僅供參考）"]
+        C3["第 03 課：Slurm 語法與作業調度<br>• GOV115088 → ngs62g（-c 8 --mem=62G）<br>• 陣列、相依作業與 salloc 互動節點<br>• 自己改寫陣列作業處理 FASTQ<br>• Apptainer 容器執行 MultiQC"]
         C2 --> C3
     end
 
     subgraph S3["第三階段：微型原型驗證與可視化 (Interactive Prototyping)"]
-        C4["第 04 課：AI 輔助生醫管線與報告預覽<br>• 在登入節點引導 AI 撰寫 FASTQ 質控管線<br>• 微型資料邏輯驗證<br>• VS Code 連接埠轉送即時預覽 MultiQC HTML 報告"]
+        C4["第 04 課：AI 輔助生醫質控管線<br>• 在登入節點引導 AI 撰寫 FASTQ 質控管線<br>• 微型資料邏輯驗證<br>• 連接埠轉送預覽並讀懂 MultiQC 報告"]
         C3 --> C4
     end
 
     subgraph S4["第四階段：AI 自動重構與生產級排程 (Production AI Pipeline)"]
         C5["第 05 課：AI Agent 自動化排程重構與派送<br>• AI 自動遵守 AGENTS.md 重構生醫管線為 Slurm<br>• 案例 A：事前資料下載 / 高速離線運算<br>• 案例 B：Nano4 計算節點外網直連 / 動態下載"]
-        C6["第 06 課：Nano4 AI Agent 技能總匯庫 (Skills Hub)<br>• nano4-slurm-operations (唯讀預檢)<br>• slurm-job-advisor (資源規劃與 QoS 防呆)<br>• ai-agent-slurm-pipeline (管線自動串接)<br>• nfcore-ampliseq-nano4 (nf-core 案例封裝)"]
-        C7["第 07 課：nf-core/ampliseq 真實 16S 案例<br>• 官方 test profile 驗證環境<br>• 公開 paired-end 資料完整分析<br>• 手動操作 → AI 重現 → Skill 固化"]
+        C6["第 06 課：Nano4 AI Agent 技能總匯庫 (Skills Hub)<br>• nano4-slurm-operations (唯讀預檢)<br>• slurm-job-advisor (資源規劃與規格檢查)<br>• ai-agent-slurm-pipeline (管線自動串接)<br>• nfcore-ampliseq-nano4 (nf-core 案例封裝)"]
+        C7["第 07 課：nf-core/ampliseq 真實 16S 案例<br>• 官方 test profile 驗證環境<br>• 公開 paired-end 資料完整分析與示範結果<br>• 手動操作 → AI 重現 → Skill 固化"]
         C4 --> C5
         C3 -.->|Slurm 規範注入| C5
         C5 -->|技能沉澱與模組化| C6

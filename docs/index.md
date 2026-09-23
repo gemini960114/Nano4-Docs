@@ -16,7 +16,7 @@ hero:
 features:
   - icon: 🔑
     title: 第 01 章｜登入、2FA 與環境管理
-    details: Nano4 登入節點連線 (Port 22)、IDExpert 2FA、專用 DTN 傳檔 (Port 2222)、WekaFS 高速儲存 (/work) 與極速 uv 套件管理。
+    details: Nano4 登入節點連線 (Port 22)、IDExpert 2FA、WekaFS 高速儲存 (/work)、以 module 載入 FastQC / MultiQC 等生醫工具，並送出第一個 Slurm 作業。
     link: /guide/01_nano4_ssh_and_2fa
     linkText: 探索連線與儲存
   - icon: 💻
@@ -26,12 +26,12 @@ features:
     linkText: 配置現代化 AI 開發環境
   - icon: 📊
     title: 第 03 章｜Slurm 語法與作業調度
-    details: 本課程使用 GOV115088 → ngs62g，每個作業固定 -c 8 --mem=62G；學會 sbatch、陣列與相依作業、wallet 計費與 seff 效能分析。
+    details: 本課程使用 GOV115088 → ngs62g，每個作業固定 -c 8 --mem=62G；學會 sbatch、陣列與相依作業、seff 效能分析，自己改寫陣列作業處理樣本，並用 Apptainer 容器執行 MultiQC。
     link: /guide/03_slurm_syntax_and_job_management
     linkText: 規模化調度超級算力
   - icon: 🧬
     title: 第 04 章｜AI 輔助生醫質控管線
-    details: 以 FASTQ 質控為跨領域通用範例，引導 AI 編寫分析流程，於登入節點微型測試並透過 VS Code 轉送即時預覽互動 HTML 報表。
+    details: 以 FASTQ 質控為跨領域通用範例，引導 AI 編寫分析流程，於登入節點微型測試，透過 VS Code 轉送預覽互動報表並練習讀懂品質指標。
     link: /guide/04_ai_assisted_bio_pipeline
     linkText: 快速原型與數據探索
   - icon: 🚀
@@ -41,12 +41,12 @@ features:
     linkText: 實現全流程自主調度
   - icon: 🧰
     title: 第 06 章｜AI Agent 技能總匯庫 (Skills Hub)
-    details: 沉澱 Nano4 領域知識為專家技能 (nano4-slurm-operations, slurm-job-advisor, ai-agent-slurm-pipeline, nfcore-ampliseq-nano4)，內建預檢與防呆。
+    details: 沉澱 Nano4 領域知識為專家技能 (nano4-slurm-operations, slurm-job-advisor, ai-agent-slurm-pipeline, nfcore-ampliseq-nano4)，內建預檢與規格檢查，能抓出 sbatch --test-only 漏掉的錯誤。
     link: /guide/06_skills_hub
     linkText: 探索 AI 專家技能庫
   - icon: 🦠
     title: 第 07 章｜nf-core/ampliseq 真實 16S 案例
-    details: 使用國網離線 nf-core 環境，先手動完成官方 test 與公開 paired-end 16S 分析，再讓 AI Agent 重做、比較並封裝成可重用 Skill。
+    details: 使用國網離線 nf-core 環境，先手動完成官方 test 與公開 paired-end 16S 分析，再讓 AI Agent 重做、比較並封裝成可重用 Skill；附講師完整示範結果供下載觀看。
     link: /guide/07_nfcore_ampliseq_case_study
     linkText: 進入完整案例
   - icon: 📜

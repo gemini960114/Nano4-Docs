@@ -35,6 +35,10 @@
    - 切換編譯器或官方套件使用 `module load`（或簡寫 `ml`），例如 `ml load gcc/11.5`；生醫工具位於 `biology/` 階層，例如 `module load biology/JDK/26.0.1 biology/FastQC/0.11.9 biology/MultiQC`。
    - 計算節點沒有系統 Java：FastQC、Nextflow 等 Java 工具必須載入 `biology/JDK` 或 `biology/Nextflow` 模組。
    - 撰寫 Slurm 排程腳本時，**執行內容第一行必須加入 `module purge`**，以杜絕環境污染！
+3. **容器 (Apptainer / Singularity)**：
+   - Nano4 的 `singularity` 即 `apptainer`；請在 Slurm 作業中執行 `apptainer pull` 與 `apptainer exec`，不要在登入節點拉取大型映像檔。
+   - 快取必須導向工作區：`export APPTAINER_CACHEDIR="/work/${USER}/.apptainer_cache"`；`.sif` 檔存放在 `/work/${USER}`。
+   - 映像檔一律固定版本（例如 `docker://multiqc/multiqc:v1.35`），不要使用 `latest`。
 
 ---
 

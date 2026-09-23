@@ -2,7 +2,7 @@
 
 本教學手冊全面解析在國網中心**晶創26（Nano4 / `nano4.nchc.org.tw`）**超級電腦叢集中最核心的資源排程系統 —— **Slurm (Simple Linux Utility for Resource Management)**。
 
-本章以 GP1 生醫 NGS CPU 節點（`25a-cpn*`）與本課程的 `ngs62g` 佇列為主軸，進行系統化的語法剖析、實戰範本與除錯清單；H200 / GB200 GPU 節點與大記憶體節點的內容保留作為參考。
+本章以 GP1 生醫 NGS CPU 節點（`25a-cpn*`）與本課程的 `ngs62g` 佇列為主軸，進行系統化的語法剖析、實戰範本與除錯清單；H200 / GB200 GPU 節點與大記憶體節點的內容保留作為參考。章末 Lab 除了送出範本作業，也包含自己改寫陣列作業處理第 04 章的 FASTQ 樣本（Lab 8），以及用 Apptainer 容器在計算節點執行 MultiQC（Lab 9）。
 
 ---
 
