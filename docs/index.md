@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "國網晶創26 (Nano4) GP1 生醫 HPC 教學手冊"
   text: "以 VS Code (Antigravity) 與 AI Agent 為核心工作台"
-  tagline: "從 SSH/2FA 登入、VS Code 遠端開發、國網 Medusa 地端大模型，到 GP1 生醫節點上的 FASTQ 質控、AI 自動化 Slurm 排程與 nf-core/ampliseq 16S 真實案例"
+  tagline: "從 SSH/2FA 登入、VS Code 遠端開發、國網 Taiwan AI RAP 地端大模型，到 GP1 生醫節點上的 FASTQ 質控、AI 自動化 Slurm 排程與 nf-core/ampliseq 16S 真實案例"
   actions:
     - theme: brand
       text: 進入課程總綱
@@ -21,7 +21,7 @@ features:
     linkText: 探索連線與儲存
   - icon: 💻
     title: 第 02 章｜VS Code Remote-SSH 與 AI 工具鏈
-    details: 本地 VS Code 免密碼遠端開發、OpenCode CLI 串接國網 Medusa 地端大模型、Antigravity CLI 與 AGENTS.md 治理規範。
+    details: 以 VS Code / Antigravity Remote-SSH 遠端開發（搭配 ssh-proxy 只需一次 2FA 認證）、OpenCode CLI 串接國網 Taiwan AI RAP 地端大模型，並導入 AGENTS.md 治理規範。
     link: /guide/02_vscode_and_ai_tools
     linkText: 配置現代化 AI 開發環境
   - icon: 📊

@@ -4,7 +4,7 @@
 
 但如果每次寫程式都得使用黑底白字的文字終端機（如 vim 或 nano），對於初學者來說開發門檻較高。在晶創26（Nano4）環境中，**最主流、最流暢且最推薦的現代化開發方式，就是使用您個人電腦上的 Visual Studio Code（或以 VS Code 為基礎、內建 AI Agent 的 Google Antigravity）透過「Remote - SSH」直連 Nano4**！
 
-本章將帶您在個人電腦打造直通超級電腦的圖形化開發工作台，並在遠端環境中配置 **AI 開發工具鏈（Antigravity、ChatGPT、Gemini、Codex CLI、OpenCode CLI 與國網 Medusa 地端大模型 API）**，以及導入超算專屬的 **`AGENTS.md`** 治理守則，讓 AI 成為您探索超算的隨身神隊友！
+本章將帶您在個人電腦打造直通超級電腦的圖形化開發工作台，並在遠端環境中配置 **AI 開發工具鏈（Antigravity、ChatGPT、Gemini、Codex CLI、OpenCode CLI 與國網 Taiwan AI RAP 地端大模型 API）**，以及導入超算專屬的 **`AGENTS.md`** 治理守則，讓 AI 成為您探索超算的隨身神隊友！
 
 ---
 
@@ -22,7 +22,7 @@
 - [3. 遠端工作區必備擴充套件安裝 (Python, Jupyter, AI)](#3-遠端工作區必備擴充套件安裝-python-jupyter-ai)
 - [4. AI 工具選擇與雙工具操作練習](#4-ai-工具選擇與雙工具操作練習)
 - [5. 終端 AI 命令行工具配置：Codex、OpenCode 與 Antigravity](#5-終端-ai-命令行工具配置codexopencode-與-antigravity)
-- [6. 國網中心地端大模型 (Medusa / GenAI API) 設定實務](#6-國網中心地端大模型-medusa--genai-api-設定實務)
+- [6. 國網中心地端大模型：Taiwan AI RAP 設定實務](#6-國網中心地端大模型taiwan-ai-rap-設定實務)
 - [7. 國網中心支援模型清單與場景推薦](#7-國網中心支援模型清單與場景推薦)
 - [8. 超算專屬 AI Agent 治理守則：AGENTS.md 實務](#8-超算專屬-ai-agent-治理守則agentsmd-實務)
 - [9. 初學者動手實戰練習 (Hands-on Labs 1 ~ 4)](#9-初學者動手實戰練習-hands-on-labs-1--4)
@@ -184,7 +184,7 @@ xattr -d com.apple.quarantine ssh-proxy-macos-arm64
 | **Jupyter 互動運算** | `ms-toolsai.jupyter` | 執行 `.ipynb` Notebook 的運算引擎 |
 | **Jupyter 渲染器** | `ms-toolsai.jupyter-renderers` | 支援 Plotly 互動圖表與 DataFrame 表格檢視 |
 | **Claude AI 助手** | `anthropic.claude-code` | Anthropic 官方 Claude 程式碼輔助工具 |
-| **Roo Code / Cline** | `rooveterinaryinc.roo-cline` | 支援自訂 API (可接國網 Medusa) 的 AI Agent |
+| **Roo Code / Cline** | `rooveterinaryinc.roo-cline` | 支援自訂 API (可接國網 Taiwan AI RAP) 的 AI Agent |
 
 > ChatGPT 與 Gemini 主要在學員本機的 Web/Desktop 應用程式中使用，不需要安裝到 Nano4。Codex CLI、OpenCode CLI 才是可直接操作 repository 的終端工具。
 
@@ -210,7 +210,7 @@ bash install_vscode_extensions.sh
 | [ChatGPT](https://chatgpt.com/) | 本機 Web/Desktop | 解釋錯誤、審查腳本、提出改善方案 | 否 |
 | [Gemini](https://gemini.google.com/) | 本機 Web | 第二意見、比較提示詞與分析結果 | 否 |
 | [Codex CLI](https://developers.openai.com/codex/cli) | 本機或 Nano4 終端 | 讀取 repository、修改檔案、執行測試 | 可選 |
-| [OpenCode](https://opencode.ai) | Nano4 終端 | 連接 Medusa、產生與診斷 HPC 腳本 | 是 |
+| [OpenCode](https://opencode.ai) | Nano4 終端 | 連接 Taiwan AI RAP、產生與診斷 HPC 腳本 | 是 |
 
 ### 雙工具練習流程
 
@@ -233,10 +233,10 @@ export PATH="${HOME}/.local/bin:${PATH}"
 codex --version
 ```
 
-首次執行 `codex` 會要求登入 ChatGPT / OpenAI 帳號，請依畫面指示在本機瀏覽器完成授權。因為 Codex 跑在遠端登入節點，瀏覽器授權完成後若無法回到終端機，請改用裝置碼（device code）登入，例如 `codex login --device-auth`，在本機瀏覽器輸入畫面上的代碼即可；沒有帳號的學員可改用 OpenCode + 國網 Medusa。
+首次執行 `codex` 會要求登入 ChatGPT / OpenAI 帳號，請依畫面指示在本機瀏覽器完成授權。因為 Codex 跑在遠端登入節點，瀏覽器授權完成後若無法回到終端機，請改用裝置碼（device code）登入，例如 `codex login --device-auth`，在本機瀏覽器輸入畫面上的代碼即可；沒有帳號的學員可改用 OpenCode + 國網 Taiwan AI RAP。
 
 ### B. OpenCode CLI
-[OpenCode](https://opencode.ai) 是一個輕量、模組化且支援 OpenAI 相容協議（相容國網中心 Medusa API）的終端 AI 工具。
+[OpenCode](https://opencode.ai) 是一個輕量、模組化且支援 OpenAI 相容協議（相容國網中心 Taiwan AI RAP API）的終端 AI 工具。
 
 * **安裝指令**：
   ```bash
@@ -260,9 +260,12 @@ source ~/.bashrc
 
 ---
 
-## 6. 國網中心地端大模型 (Medusa / GenAI API) 設定實務
+## 6. 國網中心地端大模型：Taiwan AI RAP 設定實務
 
-國網中心提供專屬的地端大模型推論服務（**Medusa / GenAI Portal**），讓研究人員可以直接調用高效能開源大模型，無需自行租用昂貴的商業 API！
+國網中心提供專屬的地端大模型推論服務 **[Taiwan AI RAP](https://rap.genai.nchc.org.tw/)**，讓研究人員可以直接調用高效能開源大模型，無需自行租用昂貴的商業 API！
+
+> [!NOTE]
+> Taiwan AI RAP 的前身為「Medusa / GenAI Portal」。下方設定檔中的 provider 名稱（`medusa-portal`、`medusa-inner`）與 API 網址沿用服務端的既有名稱，請照範本填寫，不需要改名。
 
 ### A. 設定檔位置：`~/.config/opencode/opencode.json`
 
@@ -321,7 +324,7 @@ cp "$HOME/Nano4-Docs/02-vscode-and-ai-tools/templates/opencode.json" ~/.config/o
 ```
 
 > [!TIP]
-> 請使用 `nano ~/.config/opencode/opencode.json`，將 `YOUR_MEDUSA_PORTAL_KEY` 或 `YOUR_MEDUSA_INNER_KEY` 替換為您在國網 GenAI Portal 取得的個人 API Token！
+> 請使用 `nano ~/.config/opencode/opencode.json`，將 `YOUR_MEDUSA_PORTAL_KEY` 或 `YOUR_MEDUSA_INNER_KEY` 替換為您在 [Taiwan AI RAP](https://rap.genai.nchc.org.tw/) 取得的個人 API Token！
 >
 > 範本預設模型是 `medusa-inner/gemma-4-26B-A4B-it`。若您只取得 Portal Key，請把最後一行改成 `"model": "medusa-portal/gpt-oss-120b"`；`medusa-inner` 需另外取得 Inner Key。
 
@@ -329,7 +332,7 @@ cp "$HOME/Nano4-Docs/02-vscode-and-ai-tools/templates/opencode.json" ~/.config/o
 
 ## 7. 國網中心支援模型清單與場景推薦
 
-下表與本章 `opencode.json` 範本列出的模型一致（`provider/模型` 為 OpenCode 中的選用名稱）。實際可用清單以 `opencode models` 與 GenAI Portal 為準。
+下表與本章 `opencode.json` 範本列出的模型一致（`provider/模型` 為 OpenCode 中的選用名稱）。實際可用清單以 `opencode models` 與 Taiwan AI RAP 為準。
 
 | OpenCode 模型名稱 | 參數量 | 特點與專長領域 | 推薦應用場景 |
 | :--- | :---: | :--- | :--- |
