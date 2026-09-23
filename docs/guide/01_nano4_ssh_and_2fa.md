@@ -22,13 +22,14 @@
 - [3-C. 取得課程教材 repository](#_3-c-取得課程教材-repository)
 - [4. 極速登入技巧：設定本地端 SSH Config](#_4-極速登入技巧-設定本地端-ssh-config)
 - [5. 大檔案傳輸必備：資料傳輸節點 (DTN Port 2222) 實作](#_5-大檔案傳輸必備-資料傳輸節點-dtn-port-2222-實作)
-- [6. 登入後第一步：環境健檢與三大儲存空間架構 (/home vs /work vs /project)](#_6-登入後第一步-環境健檢與三大儲存空間架構-home-vs-work-vs-project)
-- [7. HPC 軟體環境管理：Environment Modules / Lmod (ml/module)](#_7-hpc-軟體環境管理-environment-modules-lmod-ml-module)
-- [8. HPC 容器化運算：Singularity / Apptainer 實務](#_8-hpc-容器化運算-singularity-apptainer-實務)
-- [9. 現代極速 Python 套件管理：uv 實務 (解決 Inode 爆量痛點)](#_9-現代極速-python-套件管理-uv-實務-解決-inode-爆量痛點)
-- [10. 晶創26 Slurm 資源管理與完整佇列速查 (H200, GB200 與 NGS 生醫運算)](#_10-晶創26-slurm-資源管理與完整佇列速查-h200-gb200-與-ngs-生醫運算)
-- [11. 初學者實戰演練：從零開始的 6 個 HPC 入門練習 (Beginner Hands-on Labs)](#_11-初學者實戰演練-從零開始的-6-個-hpc-入門練習-beginner-hands-on-labs)
-- [12. 連線與環境常見踩坑與排錯 (FAQ)](#_12-連線與環境常見踩坑與排錯-faq)
+- [6. 從台灣杉三號（T3）搬遷資料到 Nano4](#_6-從台灣杉三號t3-搬遷資料到-nano4)
+- [7. 登入後第一步：環境健檢與三大儲存空間架構 (/home vs /work vs /project)](#_7-登入後第一步-環境健檢與三大儲存空間架構-home-vs-work-vs-project)
+- [8. HPC 軟體環境管理：Environment Modules / Lmod (ml/module)](#_8-hpc-軟體環境管理-environment-modules-lmod-ml-module)
+- [9. HPC 容器化運算：Singularity / Apptainer 實務](#_9-hpc-容器化運算-singularity-apptainer-實務)
+- [10. 現代極速 Python 套件管理：uv 實務 (解決 Inode 爆量痛點)](#_10-現代極速-python-套件管理-uv-實務-解決-inode-爆量痛點)
+- [11. 晶創26 Slurm 資源管理與完整佇列速查 (H200, GB200 與 NGS 生醫運算)](#_11-晶創26-slurm-資源管理與完整佇列速查-h200-gb200-與-ngs-生醫運算)
+- [12. 初學者實戰演練：從零開始的 6 個 HPC 入門練習 (Beginner Hands-on Labs)](#_12-初學者實戰演練-從零開始的-6-個-hpc-入門練習-beginner-hands-on-labs)
+- [13. 連線與環境常見踩坑與排錯 (FAQ)](#_13-連線與環境常見踩坑與排錯-faq)
 
 ---
 
@@ -229,7 +230,69 @@ rsync -avzP -e "ssh -p 2222" your_account@nano4.nchc.org.tw:/work/your_account/c
 
 ---
 
-## 6. 登入後第一步：環境健檢與三大儲存空間架構 (/home vs /work vs /project)
+
+## 6. 從台灣杉三號（T3）搬遷資料到 Nano4
+
+如果原本使用 `t3-c4.nchc.org.tw`，建議先登入 Nano4，再由 Nano4 主動連回 T3；資料先放在 `/work/$USER` 的暫存搬遷目錄，不要直接覆寫 Nano4 的 `$HOME`。
+
+> [!IMPORTANT]
+> 本節假設 T3 帳號可以由 Nano4 以 SSH 連線。若連線被網路政策、2FA 或主機維護阻擋，請改用國網核准的資料傳輸節點或向管理者確認，不要反覆重試造成帳號鎖定。大型搬遷前先用 `hfsquota` 確認 Nano4 `/work` 剩餘容量。
+
+### A. 先做小範圍 dry-run
+
+```bash
+hfsquota
+mkdir -p /work/$USER/t3-home-backup
+
+# 只預覽，不會寫入資料；替換成實際 T3 帳號
+rsync -avHSn --info=progress2 \
+  t3-c4.nchc.org.tw:/home/你的帳號/ \
+  /work/$USER/t3-home-backup/
+```
+
+來源路徑最後的 `/` 代表同步「目錄內容」。不要改成 `/home/你的帳號/*`，因為 shell 的 `*` 會漏掉 `.bashrc`、`.ssh`、`.config` 等隱藏檔案。
+
+### B. 搬遷 T3 的 `$HOME`
+
+確認 dry-run 清單正確後，再執行可續傳版本：
+
+```bash
+rsync -avHS --partial --info=progress2 \
+  t3-c4.nchc.org.tw:/home/你的帳號/ \
+  /work/$USER/t3-home-backup/
+```
+
+### C. 搬遷 T3 的 `/work`
+
+```bash
+mkdir -p /work/$USER/t3-work-backup
+rsync -avHSn --info=progress2 \
+  t3-c4.nchc.org.tw:/work/你的帳號/ \
+  /work/$USER/t3-work-backup/
+
+# 預覽確認後再移除 -n 執行正式同步
+rsync -avHS --partial --info=progress2 \
+  t3-c4.nchc.org.tw:/work/你的帳號/ \
+  /work/$USER/t3-work-backup/
+```
+
+### D. 搬遷後驗證與安全注意事項
+
+```bash
+# 查看兩個搬遷目錄的大小
+ du -sh /work/$USER/t3-home-backup /work/$USER/t3-work-backup
+
+# 需要完整 checksum 驗證時使用；大型資料集會花較久時間
+rsync -nrc --delete \
+  t3-c4.nchc.org.tw:/work/你的帳號/ \
+  /work/$USER/t3-work-backup/
+```
+
+- `rsync` 只複製資料，不會刪除 T3 原始檔；確認 Nano4 結果前不要清理 T3。
+- `.ssh`、token、設定檔可能包含敏感憑證；搬到 `/work` 後不要分享，也不要把舊 `.ssh` 直接覆蓋 Nano4 的 `$HOME/.ssh`。
+- `/work` 沒有備份且可能是短期工作區；完成搬遷後，依 GP1 官方規範將長期保存資料移到核准的 GP1-4 大容量儲存服務。
+
+## 7. 登入後第一步：環境健檢與三大儲存空間架構 (/home vs /work vs /project)
 
 登入成功後，請執行本章隨附的一鍵健康檢查腳本：
 
@@ -344,7 +407,7 @@ du -sh /work/$USER/* 2>/dev/null | sort -h | tail
 > [!WARNING]
 > `/work` 是短期高速工作區，不是備份區。正式資料流程應在 `provenance/` 保存 manifest、metadata、primer、參數、版本與 Slurm Job ID；分析完成後，將必要的結果與 provenance 複製到 GP1-4 大容量儲存或研究團隊核准的備份位置。不要使用 `chmod -R 777`，也不要把個資或未授權資料放到共享路徑。
 
-## 7. HPC 軟體環境管理：Environment Modules / Lmod (ml/module)
+## 8. HPC 軟體環境管理：Environment Modules / Lmod (ml/module)
 
 > 參考官方技術手冊：[Modules 基本說明](https://man.twcc.ai/@nano4-manual/BJyI6dgw-g)
 
@@ -402,7 +465,7 @@ cd 01-nano4-ssh-and-2fa/scripts
 
 ---
 
-## 8. HPC 容器化運算：Singularity / Apptainer 實務
+## 9. HPC 容器化運算：Singularity / Apptainer 實務
 
 在沒有 `sudo` 權限的超級電腦上，若需要複雜的系統函式庫、特殊 Ubuntu 套件或想直接執行 NVIDIA NGC、PyTorch 官方 Docker 映像檔，最佳方案就是 **Apptainer (前身為 Singularity)**！
 
@@ -444,7 +507,7 @@ cd 01-nano4-ssh-and-2fa/scripts
 
 ---
 
-## 9. 現代極速 Python 套件管理：uv 實務 (解決 Inode 爆量痛點)
+## 10. 現代極速 Python 套件管理：uv 實務 (解決 Inode 爆量痛點)
 
 在超級電腦上安裝 Python 套件最忌諱使用傳統 `conda`。因為一個 Conda 環境往往產生 5 ~ 10 萬個零碎小檔案，極易用盡 HPC 系統的 **Inode 檔案數量配額**，導致無法再建立任何新檔案。
 
@@ -506,7 +569,7 @@ cd 01-nano4-ssh-and-2fa/scripts
 
 ---
 
-## 10. 晶創26 Slurm 資源管理與完整佇列速查 (H200, GB200 與 NGS 生醫運算)
+## 11. 晶創26 Slurm 資源管理與完整佇列速查 (H200, GB200 與 NGS 生醫運算)
 
 > 參考官方技術手冊：[Slurm 佇列](https://man.twcc.ai/@nano4-manual/SJM_FuxDWe)、[Job 提交與管理範例](https://man.twcc.ai/@nano4-manual/BkRXxZ_JMg)、[GB200 使用說明](https://man.twcc.ai/@nano4-manual/Syl9p2jPMl)
 
@@ -589,7 +652,7 @@ cd 01-nano4-ssh-and-2fa/scripts
 
 ---
 
-## 11. 初學者實戰演練：從零開始的 6 個 HPC 入門練習 (Beginner Hands-on Labs)
+## 12. 初學者實戰演練：從零開始的 6 個 HPC 入門練習 (Beginner Hands-on Labs)
 
 如果您從未接觸過 Linux 超級電腦或 Slurm 排程系統，請完全不用擔心！本節專門為**零基礎初學者**設計，透過 6 個漸進式動手練習，帶您循序漸進解鎖超算操作。
 
@@ -825,7 +888,7 @@ salloc --account=GOV113021 --partition=dev --nodes=1 --gres=gpu:1 --cpus-per-tas
 
 ---
 
-## 12. 連線與環境常見踩坑與排錯 (FAQ)
+## 13. 連線與環境常見踩坑與排錯 (FAQ)
 
 ### Q1：輸入 `ssh nano4` 後一直卡住，顯示 Connection timed out？
 * **原因 1**：您目前連線的網路位於**台灣境外（國外 IP）**。晶創26預設僅放行台灣境內 IP。若在國外，請透過 VPN 回台灣學術網路，或請計畫主持人至 iService 提出特殊服務申請。
