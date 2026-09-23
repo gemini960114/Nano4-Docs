@@ -18,6 +18,14 @@
 > [!WARNING]
 > 本章所有 `GOV...`、`MST...` 都是說明用範例；提交前必須以 `wallet` 和 association 查到的 project ID 取代，不能直接照抄。
 
+> [!IMPORTANT]
+> **本次課程採 CPU-only 配置。** 機房雖然有 H200/其他 GPU 節點，但本次不申請 GPU、
+> 不使用 `dev`/`ngs1gpu`～`ngs8gpu`，Slurm 腳本也不加入 `--gres=gpu`。
+> 本課程以 GP1 CPU 服務與 NGS CPU 分區為主，實際 account、partition、`--mem` 與核心數
+> 必須先以 `wallet`、association 和 `scontrol show partition` 驗證。
+> 官方 GP1 說明：[Nano4 生醫專用節點使用說明](https://man.twcc.ai/xOYzPATVS_aDlbuqMrwhyg)。
+
+
 ## 📌 目錄 (Table of Contents)
 - [1. 為什麼需要 Slurm？排程器運作本質](#_1-為什麼需要-slurm-排程器運作本質)
 - [2. Nano4 官方硬體規格與佇列分區表 (Partitions)](#_2-nano4-官方硬體規格與佇列分區表-partitions)
@@ -94,7 +102,7 @@ flowchart TD
     P_General --> GB200["NVIDIA GB200 NVL72 分區<br/>gb200-dev (2h), gb200-r1 (24h)"]
 
     P_Bio --> NGS_CPU["NGS CPU / 記憶體分區<br/>ngstest (10m), ngs8g ~ ngs1000g<br/>ngs62g (4d, 8C/62G)<br/>ngs248c / 496c"]
-    P_Bio --> NGS_Fat["NGS 超大記憶體 Fat Node<br/>ngs1500g, ngs2t, ngs3t, ngs6t (6.2TB RAM)"]
+    P_Bio --> NGS_Fat["NGS 超大記憶體 Fat Node<br/>ngs1500g, ngs2t, ngs3t, ngs6t (6.0TB RAM)"]
     P_Bio --> NGS_GPU["NGS 專屬 GPU 分區<br/>ngs1gpu ~ ngs8gpu (14天)"]
 ```
 
@@ -128,13 +136,13 @@ flowchart TD
 #### 3. NGS 生技醫藥專用分區 (`GOV115088` / `MST109178` 專屬)
 | 佇列名稱 | 節點類型 | CPU 上限 | 記憶體標準 / 上限 | 最長時間 | 適用任務 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`ngstest`** | 25a-cpn* | 4 核心 | 4 GB | **10 分鐘** | 快速語法除錯、微型測試 |
-| **`ngsconsole`**| 25a-cpn* | 4 核心 | 8 GB | **30 分鐘** | 互動式命令列操作 |
+| **`ngstest`** | 25a-cpn* | **1 核心** | **8 GB** | **10 分鐘** | 快速語法除錯、微型測試 |
+| **`ngsconsole`**| 25a-cpn* | **1 核心** | **8 GB** | **不限時** | 互動式命令列操作 |
 | **`ngs62g`** (核心)| 25a-cpn* | **8 核心** | **62 GB** (嚴格上限) | **4 天** (96h) | **生醫最常用分區 (FASTQ QC, Amplicon)** |
 | **`ngs250g` / `500g`**| 25a-cpn* | 32~64 核心 | 250 ~ 500 GB | 3 ~ 4 天 | 基因體比對、Variant Calling |
-| **`ngs248c` / `496c`**| 25a-cpn* | 248 / 496 核心 | 節點獨佔 | 5 天 | 大規模 CPU 基因體平行運算 |
-| **`ngs1500g` ~ `ngs6t`**| 25a-mpn* (Fat) | 128 核心 | **高達 6.2 TB RAM** | 5 天 | **巨量記憶體組裝 (De novo assembly)** |
-| **`ngs1gpu` ~ `ngs8gpu`**| 25a-hgpn* | 1 ~ 8 GPU | 141GB/GPU | **14 天** | 生醫專屬 GPU (AlphaFold, Parabricks) |
+| **`ngs248c` / `496c`**| 25a-cpn* | **124×2 / 124×4** | 不設限 | **不限時** | 大規模 CPU 基因體平行運算 |
+| **`ngs1500g` ~ `ngs6t`**| 25a-mpn* (Fat) | 32～124 核心 | **1.5～6.0 TB** | **不限時** | **巨量記憶體組裝 (De novo assembly)** |
+| **`ngs1gpu` ~ `ngs8gpu`**| 25a-hgpn* | 12～96 核心 | **200～1600 GB** | **14 天** | 生醫專屬 GPU（本次課程不使用） |
 
 > [!WARNING]
 > **💥 國網 Nano4 初學者第一大坑：`ngs62g` 記憶體未指定直接報錯！**  
@@ -407,7 +415,7 @@ Memory Efficiency: 13.44% of 16.00 GB
    - **優化**：調降申請核心數為 1 或 2，或修改程式啟用多核心平行運算。
 2. **記憶體溢出崩潰 (OOM - Out of Memory, ExitCode 137)**：
    - **原因**：程式使用的記憶體超過了 `--mem` 申請的配額，被 Linux 核心 OOM Killer 強制終止。
-   - **解法**：在 `ngs62g` 中加大 `--mem=62G`；若仍不足，請切換至大記憶體專用分區（如 `ngs250g` 或高達 6.2TB 的 `ngs2t`/`ngs6t`）！
+   - **解法**：在 `ngs62g` 中加大 `--mem=62G`；若仍不足，請切換至大記憶體專用分區（如 `ngs250g` 或高達 6.0TB 的 `ngs2t`/`ngs6t`）！
 
 ---
 

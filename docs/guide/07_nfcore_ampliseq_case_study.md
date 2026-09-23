@@ -101,6 +101,13 @@ Control/MSEW、litter、dam、sex 與時間點都直接來自作者 metadata，�
 
 ## 3. 第一階段：學生手動操作
 
+> [!IMPORTANT]
+> **本章只使用 CPU，不申請 GPU。** 官方 GP1 說明列出 CPU、GPU 與大記憶體節點；本次 nf-core/ampliseq
+> 案例使用 GP1 CPU 服務與 NGS CPU partition（通常可從 `ngs32g` 或 `ngs62g` 開始），
+> 不使用 `ngs1gpu`～`ngs8gpu`，也不在命令列加入 `--gres=gpu`。
+> 若使用 GP1 核心設施，請先依官方流程加入可用服務計畫；實際 account 仍以你的
+> Slurm association、`wallet` 與 preflight 結果為準。
+
 ### 3.1 Preflight
 
 ```bash

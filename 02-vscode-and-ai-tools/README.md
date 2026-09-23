@@ -18,7 +18,8 @@
 - [7. 國網中心支援模型清單與場景推薦](#_7-國網中心支援模型清單與場景推薦)
 - [8. 超算專屬 AI Agent 治理守則：AGENTS.md 實務](#_8-超算專屬-ai-agent-治理守則-agents-md-實務)
 - [9. 初學者動手實戰練習 (Hands-on Labs 1 ~ 4)](#_9-初學者動手實戰練習-hands-on-labs-1-4)
-- [10. 常見踩坑與連線排錯 (FAQ)](#_10-常見踩坑與連線排錯-faq)
+- [10. 多登入節點與 Agent session 清理](#_10-多登入節點與-agent-session-清理)
+- [11. 常見踩坑與連線排錯 (FAQ)](#_11-常見踩坑與連線排錯-faq)
 
 ---
 
@@ -313,7 +314,38 @@ sbatch --test-only --account="<PROJECT_ID>" path/to/job.slurm
 記錄哪個工具的建議被採用、哪些建議被拒絕，以及實際驗證結果。
 ---
 
-## 10. 常見踩坑與連線排錯 (FAQ)
+## 10. 多登入節點與 Agent session 清理
+
+Nano4 登入節點可能把同一次 SSH/VS Code/Antigravity 連線分派到
+`25a-lgn01`～`25a-lgn05` 的不同主機。若舊主機上的 VS Code Server、Codex、Gemini、
+ChatGPT、Claude 或 Antigravity agent 沒有正常結束，重新連線到另一台主機時可能
+看起來像「session 卡住」或無法接續原本的對話。
+
+本教材提供兩支清理腳本。它們只會處理**目前使用者自己的程序**，但會終止所有匹配的
+AI/IDE agent；執行前請先儲存檔案、結束不需要保留的工作，並確認沒有正在執行的分析。
+
+```bash
+cd "$HOME/Nano4-Docs"
+chmod +x 02-vscode-and-ai-tools/scripts/kill.sh \
+           02-vscode-and-ai-tools/scripts/kill_login.sh
+
+# 只清理目前這台登入節點：會先列出匹配程序，再要求確認
+bash 02-vscode-and-ai-tools/scripts/kill.sh
+
+# 清理五台登入節點上的 stale agent（明確使用 --yes）
+bash 02-vscode-and-ai-tools/scripts/kill_login.sh
+```
+
+清理完成後，重新啟動 VS Code Remote-SSH 或 Antigravity，讓它在目前取得的登入節點
+建立新的 agent session。若某台主機無法連線，腳本會顯示警告並繼續處理其他主機。
+
+> [!CAUTION]
+> `kill_login.sh` 不是一般登出指令；它會在五台登入節點上使用 `pkill -9` 終止匹配
+> 程序。不要在有重要互動工作或未保存修改時執行。
+
+---
+
+## 11. 常見踩坑與連線排錯 (FAQ)
 
 ### Q1：VS Code Remote-SSH 連線時卡在「Waiting for 2FA...」？
 * **原因**：VS Code 在連線時，終端驗證提示有時會縮在視窗頂部或終端輸出分頁中。
