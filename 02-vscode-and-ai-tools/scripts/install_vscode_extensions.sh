@@ -12,7 +12,8 @@ echo "========================================================"
 # Antigravity 的遠端 CLI 叫 antigravity-ide；VS Code 叫 code
 CODE_CMD=""
 for c in antigravity-ide code; do
-    if command -v "$c" &>/dev/null; then CODE_CMD="$c"; break; fi
+    # 存完整路徑，否則後面的 [ -x ] 會把裸指令名稱當成目前目錄下的檔案
+    if command -v "$c" &>/dev/null; then CODE_CMD="$(command -v "$c")"; break; fi
 done
 if [ -z "${CODE_CMD}" ]; then
     # 不在 PATH 時，到兩種伺服器的安裝目錄尋找 remote-cli
