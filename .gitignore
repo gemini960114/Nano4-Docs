@@ -20,3 +20,8 @@ docs/.vitepress/.temp/
 .nextflow.log*
 *-[0-9]*.out
 *-[0-9]*.err
+
+# 本地端製作投影片用，不進版本控制
+slide.md
+slide.pptx
+!slides/*.pdf
