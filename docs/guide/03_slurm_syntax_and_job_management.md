@@ -4,7 +4,7 @@
 
 本章以 GP1 生醫 NGS CPU 節點（`25a-cpn*`）與本課程的 `ngs62g` 佇列為主軸，進行系統化的語法剖析、實戰範本與除錯清單；H200 / GB200 GPU 節點與大記憶體節點的內容保留作為參考。
 
-本章分成兩部分，對應第二堂課：
+本章分成三部分，對應第二堂課：
 
 0. **暖身**（第 8 節 Lab 0）：在沒有任何規則檔的資料夾，用一段自然語言請 Agent 產生資料、寫分析程式並送出作業，看看不知道 Nano4 規則的 AI 會怎麼做。
 1. **親手做**（第 8 節 Lab 1–8）：送出標準、陣列與相依作業，用 `seff` 檢查資源，並自己改寫陣列作業處理 FASTQ 樣本。先弄懂 Slurm 在做什麼，才看得出 AI 做得對不對。
@@ -661,7 +661,7 @@ seff <JOB_ID>
    ```bash
    cp templates/array_job.slurm my_array_fastq.slurm
    ```
-2. 用 VS Code 打開 `my_array_fastq.slurm`，完成三處修改：
+2. 用 Antigravity（或 VS Code）打開 `my_array_fastq.slurm`，完成三處修改：
    - 把 `--array=1-10%4` 改成 `--array=1-4`（4 個樣本 → 4 個子任務）。
    - 把作業名稱改成 `array_fastq`。
    - 把 `sleep 5` 那段換成：依 `${SLURM_ARRAY_TASK_ID}` 挑出第 N 個 FASTQ，計算 read 數並印出。
@@ -849,7 +849,7 @@ seff <JOB_ID>
 ---
 
 > 💡 **從排程指令到生物資訊與 AI Agent 實戰 (Roadmap)**：  
-> 掌握了 Nano4 的 Slurm 基礎語法與 `ngs62g` 分區規格後，下一步我們將進階至真實生物資訊資料處理！  
-> 在下一章中，我們將結合 VS Code、AI 輔助與 Slurm，在登入節點以微型資料完成 FASTQ 質控（FastQC / MultiQC）；完整的 16S 擴增子分析則在第 07 章進行。
+> 掌握了 Nano4 的 Slurm 基礎語法，也做出了自己的 skill `my-nano4-slurm`。  
+> 在下一章中，我們用這個 skill 請 AI Agent 完成 FASTQ 質控（FastQC / MultiQC），並一起讀懂報告；完整的 16S 擴增子分析則在第 07 章進行。
 
 👉 **下一課**：[第 04 章：AI 輔助生醫質控管線](./04_ai_assisted_bio_pipeline)

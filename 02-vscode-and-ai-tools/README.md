@@ -90,7 +90,7 @@ Host nano4
    ```text
    /work/your_account
    ```
-   （教材 repository 位於 `/home/your_account/Nano4-Docs`；本章練習 4、6 要讓 Agent 讀到教材裡的 `AGENTS.md`，屆時改用 File ➔ Open Folder 開啟這個資料夾。）
+   （教材 repository 位於 `/home/your_account/Nano4-Docs`；本章練習 3–6 要讓 Agent 讀到教材裡的 `AGENTS.md`，屆時改用 File ➔ Open Folder 開啟這個資料夾。）
 3. 按下確定，您就能在左側清單中看到所有遠端檔案與目錄！
 
 ### 步驟 E（強烈建議）：用 ssh-proxy 只做一次 2FA 認證

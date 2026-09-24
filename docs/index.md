@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "國網晶創26 (Nano4) GP1 生醫 HPC 教學手冊"
   text: "以 Antigravity 與 AI Agent 為核心工作台"
-  tagline: "三堂課：連線與 AI Agent → Slurm 與我的 skill → nf-core 真實案例"
+  tagline: "三堂課：連線與 AI Agent → Slurm 與我的 skill → 進階與真實案例"
   actions:
     - theme: brand
       text: 進入課程總綱

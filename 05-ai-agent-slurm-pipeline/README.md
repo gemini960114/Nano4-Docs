@@ -1,6 +1,6 @@
 # 第 05 章：AI Agent 自動化 Slurm 排程重構與批次派送實戰 (Nano4 雙實戰案例)
 
-本教學手冊展示如何引導 **AI Agent（Antigravity 內建 Agent / Codex / Claude Code）**，將前述章節在登入節點執行的互動式生醫分析管線，自動重構並封裝為生產級的 **Slurm 批次排程作業**，同時完整實作 **「事前下載離線運算」** 與 **「計算節點外網直連動態下載」** 兩種關鍵生產環境架構。
+本教學手冊展示如何引導 **AI Agent（Antigravity 內建 Agent / Codex / Claude Code）**，將第 04 章 §5 在登入節點手動執行的互動式生醫分析管線，自動重構並封裝為生產級的 **Slurm 批次排程作業**，同時完整實作 **「事前下載離線運算」** 與 **「計算節點外網直連動態下載」** 兩種關鍵生產環境架構。
 
 ---
 
@@ -25,7 +25,7 @@
 
 ## 1. 為什麼要將腳本派送至 Slurm 佇列？
 
-在第 04 章中，我們示範了在登入節點執行小量 FASTQ 質控。然而：
+第 04 章 §5 的對照組在登入節點執行 `run_fastqc_multiqc.sh`，處理小量 FASTQ 質控。然而：
 * 登入節點（`25a-lgn01~05`）是多人共用，系統 Cgroups 限制個人 CPU 與記憶體，嚴禁執行長時間或高資源運算。
 * 只有將任務打包送入 **Slurm 計算節點 (Compute Node)**，才能申請：
   * **多核心 CPU**（本課程計畫 `GOV115088` 使用 `ngs62g`，每個作業固定 8 核心；生醫平台計畫另可用 `ngs248c`/`ngs496c` 數百核）。
@@ -36,7 +36,7 @@
 
 ## 2. 請 AI Agent 自動重構 Slurm 腳本 (Prompt 技巧)
 
-在 Antigravity 以 `$HOME/Nano4-Docs` 為工作資料夾，開啟任一個 Agent（Antigravity 內建 Agent、Codex 或 Claude Code）。三個 Agent 都會讀到 Nano4 規則（Codex 讀 `AGENTS.md`、Claude Code 讀匯入 `AGENTS.md` 的 `CLAUDE.md`、Antigravity 讀 `.agents/rules/nano4.md`，見第 02 章 §4）；不確定時，在對話開頭要求它「先閱讀 AGENTS.md」。第二堂做好的 `my-nano4-slurm` skill 也會自動載入。無論使用哪個 Agent，prompt 中仍請明確寫出 `ngs62g` 與 `-c 8 --mem=62G`：
+在 Antigravity 以 `$HOME/Nano4-Docs` 為工作資料夾，開啟任一個 Agent（Antigravity 內建 Agent、Codex 或 Claude Code）。三個 Agent 都會讀到 Nano4 規則（Codex 讀 `AGENTS.md`、Claude Code 讀匯入 `AGENTS.md` 的 `CLAUDE.md`、Antigravity 讀 `.agents/rules/nano4.md`，見第 02 章 §4）；不確定時，在對話開頭要求它「先閱讀 AGENTS.md」。第二堂做好的 `my-nano4-slurm` 與 `Nano4-Docs/.agents/skills/` 裡的課程 Skills 也會一起載入。無論使用哪個 Agent，prompt 中仍請明確寫出 `ngs62g` 與 `-c 8 --mem=62G`：
 
 ```text
 你是一位熟悉國網中心 Nano4 (晶創26) 超級電腦 Slurm 排程器與生物資訊分析的專家。
@@ -189,8 +189,8 @@ seff <JOB_ID>
 | 06 | AI Agent 技能總匯庫（Skills Hub） |
 | 07 | nf-core/ampliseq 真實 16S 案例 |
 
-這 7 門課程由淺入深：從**安全遠端連線**、**VS Code Remote AI 開發環境**，到**Slurm 排程器**；接著在登入節點完成**生醫管線微型驗證**，本章再由 **AI Agent 將流程重構為 Slurm 批次管線**。
+這 7 門課程由淺入深：從**安全遠端連線**、**Antigravity 與三個 AI Agent**，到**Slurm 排程器與自己的 skill**；接著用 skill 完成**生醫質控**，本章再由 **AI Agent 將流程重構為 Slurm 批次管線**。
 
-下一步的 **第 06 章** 會把本章的經驗打包成 AI Agent 可重用的 Skills；最後的 **第 07 章** 中，我們將使用真實 16S 資料驗證前面建立的 Slurm、Nextflow、Singularity 與 Skills Hub 能力，並練習讓 AI Agent 在 Skill 的規範下重現整套分析。
+下一步的 **第 06 章** 介紹課程提供的 Skills，並和您在第 03 章做的 `my-nano4-slurm` 比較、補強；最後的 **第 07 章** 中，我們將使用真實 16S 資料驗證前面建立的 Slurm、Nextflow、Singularity 與 Skills Hub 能力，並練習讓 AI Agent 在 Skill 的規範下重現整套分析。
 
 👉 **下一課**：[第 06 章：AI Agent 技能總匯庫 (Skills Hub)](../06-skills-hub/)

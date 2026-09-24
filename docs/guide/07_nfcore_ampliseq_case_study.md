@@ -5,6 +5,9 @@
 封裝成 `nfcore-ampliseq-nano4` Skill。講師事先跑好的完整結果放在
 [GitHub Release](https://github.com/gemini960114/Nano4-Docs/releases/tag/ampliseq-demo-2026-09-23)，真實資料還沒跑完時可先下載觀看（見 §5.1）。
 
+> [!NOTE]
+> **課堂安排（第三堂）**：開課先送出 §3.2 下載資料與 §3.3 官方 test profile（約 28 分鐘），等待時上第 05、06 章；§3.4 真實資料（約 1 小時 40 分鐘）、§4 AI 重做與 §6 Skill 封裝由講師示範，學生課後完成並依 §7 繳交。
+
 ```text
 人工操作一次
     ↓
@@ -490,6 +493,9 @@ Skill 不會把本章六個樣本硬編碼成所有研究的標準。它封裝�
 
 4. skill-review.md
    哪些規則適合封裝、哪些生物學判斷仍需人工負責
+
+5. my-nano4-slurm/SKILL.md
+   第 03 章做的 skill，含第 06 章比較後補強的內容
 ```
 
 完成本章後，學生不只是「會跑 nf-core」，而是能理解、監督、驗證並重用

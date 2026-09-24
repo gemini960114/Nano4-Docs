@@ -6,7 +6,7 @@
 
 > [!TIP]
 > **🎯 本章在全系列中的定位：雲端超算工作台的核心地基 (Core Foundation)**  
-> 在晶創26（Nano4）環境中，系統不提供網頁版 Code-Server，主要透過 **終端機 SSH** 或本機 **VS Code Remote-SSH** 連線進行開發與排程調度。  
+> 在晶創26（Nano4）環境中，系統不提供網頁版 Code-Server，主要透過 **終端機 SSH** 或本機 **Antigravity（或 VS Code）Remote-SSH** 連線進行開發與排程調度。  
 > 學習本章有兩大核心關鍵：  
 > 1. **帳號家目錄初始化**：國網中心官方規定，首次啟用主機帳號時，**必須先經由 SSH 登入登入節點（`nano4.nchc.org.tw`）一次**，系統才會自動建立您的 `$HOME` 家目錄；若未執行此步驟，後續所有批次作業皆無法正常派送。  
 > 2. **建立正確的運算環境觀念**：大型資料一律放在 `/work` 高速儲存區（WekaFS，注意：Nano4 高速區為 `/work`，非舊機器的 `/work1`！），並用 `module` 載入 FastQC、MultiQC 等生醫工具（計算節點沒有系統 Java，需一併載入 `biology/JDK`）。需要 Python 環境時，可再用 `uv` 在 `/work` 建立（選做）。  
@@ -711,8 +711,8 @@ cd "$HOME/Nano4-Docs/01-nano4-ssh-and-2fa/scripts"
 | 2 | 用 Port 2222 雙向傳檔 | 選做（需要在自己電腦操作） |
 | 3 | 載入生醫模組、體驗 `module purge` | **必做** |
 | 4 | 用 `uv` 建立 Python 環境 | 選做（會寫 Python 的學員） |
-| 5 | 第一次提交 Slurm 批次作業 | **必做** |
-| 6 | `salloc` 互動式計算節點 | 建議 |
+| 5 | 第一次提交 Slurm 批次作業 | 時間夠再做（第一堂由第 02 章練習 6 示範送作業，第二堂第 03 章完整練習） |
+| 6 | `salloc` 互動式計算節點 | 時間夠再做 |
 
 ---
 
@@ -992,5 +992,5 @@ salloc --account=GOV113021 --partition=dev --nodes=1 --gres=gpu:1 --cpus-per-tas
 ---
 
 恭喜您！完成本章後，您已經熟練掌握了晶創26（Nano4）的登入連線、Port 2222 高速傳輸、WekaFS 儲存空間規劃、Lmod 模組、Apptainer 容器化、極速 `uv` Python 環境、NGS 生醫運算佇列與 Slurm 排程調度的完整技能！  
-👉 **下一步**：進入 **[第 02 章：VS Code Remote-SSH 與 AI 工具鏈](../02-vscode-and-ai-tools/)**，學習如何打造現代化遠端 AI 工作台！
+👉 **下一步**：進入 **[第 02 章：Antigravity Remote-SSH 與三個 AI Agent](../02-vscode-and-ai-tools/)**，用 Antigravity 連上 Nano4 並裝上三個 AI Agent！
 

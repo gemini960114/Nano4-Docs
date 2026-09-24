@@ -57,7 +57,7 @@
 | 0:00–0:15 | 開場、確認課前準備 | 課程總綱 | 舉手確認課前作業 1–6 完成情況 | 未完成 2FA 綁定者請助教一對一協助 |
 | 0:15–0:25 | Nano4 與 GP1 架構：登入節點、計算節點、DTN、`/work` | 第 01 章 §1 | — | 強調 GP1 生醫節點是 Nano4 的一部分；本課程只用 `ngs62g` |
 | 0:25–0:45 | SSH 登入與 2FA、設定 `~/.ssh/config`、取得教材 | 第 01 章 §3、§4 | 用 `ssh nano4` 登入；`git clone` 課程教材到 `$HOME/Nano4-Docs` | Windows 需確認已安裝 OpenSSH Client；推播沒收到時改選 OTP |
-| 0:45–1:00 | 儲存空間與模組 | 第 01 章 §7、§8 | 第 01 章**練習 1** 環境健檢、**練習 3** 載入生醫模組 | 大型資料放 `/work/$USER`；計算節點沒有 Java，FastQC 要和 `biology/JDK` 一起載入（練習 6 的 Agent 常漏掉這點） |
+| 0:45–1:00 | 儲存空間與模組 | 第 01 章 §7、§8 | 第 01 章**練習 1** 環境健檢、**練習 3** 載入生醫模組 | 大型資料放 `/work/$USER`；計算節點沒有 Java，FastQC 要和 `biology/JDK` 一起載入（第 02 章練習 6 的 Agent 常漏掉這點） |
 | 1:00–1:25 | Antigravity Remote-SSH 連線 | 第 02 章 §1、§2 步驟 A–D | 第 02 章**練習 1** 開啟遠端工作區 | 學員會體驗到「每開一次資料夾就要再認證一次」，作為下一段的動機 |
 | 1:25–1:35 | 休息 | | | 助教處理前面卡住的學員 |
 | 1:35–2:00 | **ssh-proxy：只認證一次** | 第 02 章 §2 步驟 E | **練習 2** | 最容易出錯的一段。確認 `User` 已改成自己的帳號、proxy 視窗保持開啟；啟動時加 `--max-lifetime 10h` |
@@ -115,7 +115,7 @@
 | 0:10–0:25 | **先送出第 07 章作業** | 第 07 章 §2.2、§3.2、§3.3 | 執行先備檢查 → 送出 `01_prepare_real_data.slurm`（約 5 分鐘）→ 送出 `02_run_official_test.slurm`（約 28 分鐘） | 兩個作業都用 `NFCORE_ACCOUNT=GOV115088`、`NFCORE_PARTITION=ngs62g`；送出後就不用管它 |
 | 0:25–0:35 | 第 07 章故事：一位研究生的一天 | 第 07 章 §0 | — | 用故事說明為什麼先跑 test、pipeline 做了哪些步驟；§0.6 教學員看懂 `squeue` 畫面 |
 | 0:35–0:50 | Apptainer 容器 | 第 04 章 §5、第 03 章 §7、Lab 9 | 先執行第 04 章 §5 對照組（約 15 秒），再送出 **Lab 9** | 這次完全沒有 `module load`；nf-core 也是用容器運作。第一次拉取約 40 秒 |
-| 0:50–1:15 | 讓 AI Agent 把流程改寫成 Slurm 管線 | 第 05 章 §1–§4 | **Case A** 離線運算模式 | 比較 Agent 產生的腳本與講義提供的腳本；Agent 已載入 `my-nano4-slurm`，看看它是否不需提醒就做對 |
+| 0:50–1:15 | 讓 AI Agent 把流程改寫成 Slurm 管線 | 第 05 章 §1–§4 | **Case A** 離線運算模式 | 比較 Agent 產生的腳本與講義提供的腳本；工作資料夾是 `Nano4-Docs`，Agent 同時載入自己的 `my-nano4-slurm` 與 `.agents/skills` 裡的課程 Skills，看看它是否不需提醒就做對 |
 | 1:15–1:25 | 休息 | | 執行一次 `squeue --me` 看第 07 章進度 | 外網直連模式（第 05 章 §5 Case B）改為講師示範或課後自學 |
 | 1:25–1:45 | 安裝課程 Skills，並用 Skill 抓錯 | 第 06 章 | 執行 `sync_skills.sh`；完成「讓 Skill 抓出不合規的 Slurm 腳本」練習 | 重點：`sbatch --test-only` 會讓 `--mem=16G` 的錯誤腳本通過，`validate_slurm.sh` 才抓得到 |
 | 1:45–2:05 | **比較我的 skill 與課程 Skills** | 第 06 章「練習：比較我的 skill 與課程 Skills」 | 請 Agent 列出比較表、挑兩項補進自己的 skill、重新 `install_my_skill.sh` | 引導討論：課程 Skills 有哪些檢查是 Lab 10 沒遇到的？學員的 skill 又記下了哪些課程沒寫的經驗？ |
