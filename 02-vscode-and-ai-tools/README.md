@@ -245,8 +245,8 @@ Agent 會從**您開啟的工作資料夾**讀取規則檔，並從固定的資�
 | 1 | 在 Antigravity 開啟遠端工作區 | **必做** |
 | 2 | 確認 ssh-proxy 只需認證一次 | **必做** |
 | 3 | 裝上三個 AI Agent 並打招呼 | **必做**（至少 Antigravity 內建 Agent） |
-| 4 | 三個 Agent 解釋同一支 Slurm 範本並比較 | **必做**（可用的 Agent 都試） |
-| 5 | 人工驗證 AI 的建議 | **必做** |
+| 4 | 請 Agent 解釋 Slurm 範本 | **必做**（選一個 Agent；時間夠再換一個比較） |
+| 5 | 請 AI 用自然語言查資源與權限，再自己驗證 | **必做** |
 | 6 | 手動送出 vs 自然語言派送 FastQC / MultiQC | **講師示範**，學員可跟著做 |
 
 ### 🧪 練習 1：在 Antigravity 開啟遠端工作區
@@ -293,10 +293,10 @@ Agent 會從**您開啟的工作資料夾**讀取規則檔，並從固定的資�
 
 ---
 
-### 🧪 練習 4：三個 Agent 解釋同一支 Slurm 範本並比較
-以同一個任務測試可用的 Agent：解釋 `sbatch` 腳本中的 `--account`、`--partition`、`--cpus-per-task`、`--mem`，並說明為什麼本課程一律使用 `-c 8 --mem=62G`。
+### 🧪 練習 4：請 Agent 解釋 Slurm 範本並比較
+請 Agent 解釋 `sbatch` 腳本中的 `--account`、`--partition`、`--cpus-per-task`、`--mem`，並說明為什麼本課程一律使用 `-c 8 --mem=62G`。課堂上先選一個 Agent；時間夠再把同一個 prompt 交給另一個 Agent 比較。
 
-對每個 Agent 輸入相同的 prompt：
+輸入的 prompt：
 ```text
 請先閱讀 AGENTS.md，再解釋 03-slurm-syntax-and-job-management/templates/standard_cpu_job.slurm 每一個 #SBATCH 參數的用途，但先不要修改檔案。
 ```
@@ -308,8 +308,51 @@ Agent 會從**您開啟的工作資料夾**讀取規則檔，並從固定的資�
 
 ---
 
-### 🧪 練習 5：人工驗證 AI 的建議
-AI 的回答只是建議，最後要由學生自己驗證。無論練習 4 採用了哪些建議，都手動執行：
+### 🧪 練習 5：請 AI 用自然語言查資源與權限，再自己驗證
+
+**目標**：用三句自然語言請 Agent 查詢 Nano4 的資源、計畫與權限，每一句都產出一份 Markdown 報告；接著自己執行指令驗證 AI 的結論。三個 prompt 都**只查詢、不送作業**，由淺入深：看得到哪些資源 → 我有哪些計畫 → 這個計畫能用哪些佇列。
+
+**A. 請 AI 查詢（約 10 分鐘）**
+
+在工作資料夾為 `Nano4-Docs` 的 Antigravity，依序對同一個 Agent 輸入下列三個 prompt，每一個都先看 Agent 要執行的指令再按允許：
+
+1. 查詢 Slurm Partition：
+   ```text
+   請使用 sinfo 與 scontrol show partition，列出這台 HPC 上的 Slurm Partition：名稱、節點數、狀態、每個節點的 CPU 核心數與記憶體、最長執行時間（MaxTime）。
+   只查詢、不要送出任何作業。結果整理成表格，存到 /work/$USER/day1_ai_query/partition.md。
+   ```
+2. 查詢我的計畫：
+   ```text
+   請執行 wallet，列出我名下所有計畫代碼（Project ID）、計畫名稱與剩餘額度（SU），整理成表格存到 /work/$USER/day1_ai_query/project.md。
+   ```
+3. 確認 `GOV115088` 能用哪些佇列：
+   ```text
+   請確認計畫 GOV115088 可以使用 ngs8g、ngs16g、ngs32g、ngs62g、ngs125g 之中的哪些 Partition：
+   1. 用 sacctmgr -nP show assoc user="$USER" account="gov115088" 確認我有這個計畫的 Slurm 授權（Slurm 裡的帳號名稱是小寫）。
+   2. 用 scontrol show partition 檢查這五個 Partition 的 AllowAccounts。
+   3. 對能用的 Partition，用 sacctmgr show qos p_<Partition 名稱> 查出每個作業可申請的核心與記憶體上限。
+   判斷依據必須來自指令的輸出，不要只引用 AGENTS.md。用表格列出每個 Partition 能不能用、依據與規格。
+   只查詢、不要送出任何作業。結果存到 /work/$USER/day1_ai_query/permission.md。
+   ```
+
+**預期結果**：`/work/<帳號>/day1_ai_query/` 下有 `partition.md`、`project.md`、`permission.md` 三份報告；`permission.md` 的結論應該是**只有 `ngs62g` 可用**（它的 `AllowAccounts` 列出 `gov115088`，QoS `p_ngs62g` 為 `cpu=8,mem=62G`），其餘四個佇列只開放 `mst109178`、`ent109430`。
+
+**B. 自己驗證 AI 的結論（約 5 分鐘）**
+
+AI 的回答只是建議，最後要由學生自己驗證。手動執行：
+
+```bash
+scontrol show partition ngs62g | grep -o "AllowAccounts=[^ ]*"
+sacctmgr -nP show qos p_ngs62g format=Name,MaxTRESPerJob
+```
+
+**預期結果**：
+```text
+AllowAccounts=mst109178,ent109430,gov115088
+p_ngs62g|cpu=8,mem=62G
+```
+
+再驗證練習 4 那支範本：
 
 ```bash
 cd "$HOME/Nano4-Docs"
@@ -322,7 +365,7 @@ sbatch --test-only --account=GOV115088 03-slurm-syntax-and-job-management/templa
 
 > `sbatch --test-only` **不會檢查 QoS 與官方規格**（例如 `ngs62g` 必須固定 `-c 8 --mem=62G`），這部分仍需自行對照第 01 章的佇列表。
 
-記錄哪個 Agent 的建議被採用、哪些建議被拒絕，以及實際驗證結果。
+比對 `permission.md` 和自己查到的結果是否一致，並記錄哪個 Agent 的建議被採用、哪些建議被拒絕。
 
 ---
 

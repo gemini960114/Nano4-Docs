@@ -23,7 +23,7 @@
 | 1:25–1:35 | ☕ 休息 |
 | 1:35–2:00 | ssh-proxy：只認證一次 |
 | 2:00–2:25 | 裝上三個 AI Agent、AGENTS.md |
-| 2:25–2:40 | 三個 Agent 比較、人工驗證 |
+| 2:25–2:40 | 用自然語言請 AI 查資源與權限、人工驗證 |
 | 2:40–3:00 | 結尾示範：手動 vs 自然語言派送作業 |
 
 ---
@@ -988,9 +988,9 @@ AI 助手預設**不知道**超級電腦是多人共用的，可能會建議：
 
 ---
 
-## 🧪 練習 4：三個 Agent 解釋同一支範本（10 分鐘）
+## 🧪 練習 4：請 Agent 解釋 Slurm 範本（5 分鐘）
 
-對每個 Agent 輸入相同的 prompt：
+選一個 Agent 輸入下列 prompt（時間夠再換另一個 Agent 比較）：
 
 ```text
 請先閱讀 AGENTS.md，再解釋 03-slurm-syntax-and-job-management/templates/standard_cpu_job.slurm 每一個 #SBATCH 參數的用途，但先不要修改檔案。
@@ -1007,9 +1007,63 @@ AI 助手預設**不知道**超級電腦是多人共用的，可能會建議：
 
 ---
 
-## 🧪 練習 5：人工驗證 AI 的建議（5 分鐘）
+## 🧪 練習 5 A：用自然語言請 AI 查資源（1/2）
+
+三個 prompt 由淺入深，都**只查詢、不送作業**，每一個產出一份報告：
+
+**Prompt 1：查詢 Slurm Partition**
+
+```text
+請使用 sinfo 與 scontrol show partition，列出這台 HPC 上的 Slurm Partition：名稱、節點數、狀態、每個節點的 CPU 核心數與記憶體、最長執行時間（MaxTime）。
+只查詢、不要送出任何作業。結果整理成表格，存到 /work/$USER/day1_ai_query/partition.md。
+```
+
+**Prompt 2：查詢我的計畫**
+
+```text
+請執行 wallet，列出我名下所有計畫代碼（Project ID）、計畫名稱與剩餘額度（SU），整理成表格存到 /work/$USER/day1_ai_query/project.md。
+```
+
+---
+
+## 🧪 練習 5 A：確認 GOV115088 能用哪些佇列（2/2）
+
+**Prompt 3：驗證計畫權限**
+
+```text
+請確認計畫 GOV115088 可以使用 ngs8g、ngs16g、ngs32g、ngs62g、ngs125g 之中的哪些 Partition：
+1. 用 sacctmgr -nP show assoc user="$USER" account="gov115088" 確認我有這個計畫的 Slurm 授權（Slurm 裡的帳號名稱是小寫）。
+2. 用 scontrol show partition 檢查這五個 Partition 的 AllowAccounts。
+3. 對能用的 Partition，用 sacctmgr show qos p_<Partition 名稱> 查出每個作業可申請的核心與記憶體上限。
+判斷依據必須來自指令的輸出，不要只引用 AGENTS.md。用表格列出每個 Partition 能不能用、依據與規格。
+只查詢、不要送出任何作業。結果存到 /work/$USER/day1_ai_query/permission.md。
+```
+
+✅ `permission.md` 的結論應該是**只有 `ngs62g` 可用**，每個作業 `cpu=8,mem=62G`
+
+<!-- 講者備註：三個 prompt 在同一個 Agent 對話中依序輸入；提醒學員先看 Agent 要執行的指令再按允許 -->
+
+---
+
+## 🧪 練習 5 B：人工驗證 AI 的結論（1/2）
 
 AI 的回答只是建議，**最後要由你自己驗證**：
+
+```bash
+scontrol show partition ngs62g | grep -o "AllowAccounts=[^ ]*"
+sacctmgr -nP show qos p_ngs62g format=Name,MaxTRESPerJob
+```
+
+```text
+AllowAccounts=mst109178,ent109430,gov115088
+p_ngs62g|cpu=8,mem=62G
+```
+
+📌 比對 `permission.md` 和自己查到的結果是否一致。
+
+---
+
+## 🧪 練習 5 B：驗證練習 4 的範本（2/2）
 
 ```bash
 cd "$HOME/Nano4-Docs"
@@ -1093,14 +1147,14 @@ bash view_multiqc_report.sh /work/$USER/day1_qc/multiqc_out
 
 ## 練習 6：比較兩種送法
 
-| 檢查項目 | 手動腳本 | AI 產生的腳本 |
-| :--- | :---: | :---: |
-| `--account=GOV115088`、`--partition=ngs62g` | ✅ | ? |
-| `--cpus-per-task=8`、`--mem=62G` | ✅ | ? |
-| `module purge` 後載入 `biology/JDK/26.0.1 biology/FastQC/0.11.9 biology/MultiQC` | ✅ | ? |
-| 用 `sbatch` 送到計算節點，不在登入節點直接跑 | ✅ | ? |
-| 送出後沒有反覆查詢 `squeue` | ✅ | ? |
-| 用白話解讀品質結果 | — | ? |
+| 檢查項目　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　 | 手動腳本 | AI 產生的腳本 |
+| :---------------------------------------------------------------------------------| :--------:| :-------------:|
+| `--account=GOV115088`、`--partition=ngs62g`　　　　　　　　　　　　　　　　　　　| ✅　　　　| ?　　　　　　 |
+| `--cpus-per-task=8`、`--mem=62G`　　　　　　　　　　　　　　　　　　　　　　　　 | ✅　　　　| ?　　　　　　 |
+| `module purge` 後載入 `biology/JDK/26.0.1 biology/FastQC/0.11.9 biology/MultiQC` | ✅　　　　| ?　　　　　　 |
+| 用 `sbatch` 送到計算節點，不在登入節點直接跑　　　　　　　　　　　　　　　　　　 | ✅　　　　| ?　　　　　　 |
+| 送出後沒有反覆查詢 `squeue`　　　　　　　　　　　　　　　　　　　　　　　　　　　| ✅　　　　| ?　　　　　　 |
+| 用白話解讀品質結果　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　 | —　　　　| ?　　　　　　 |
 
 ⚠️ Agent 做錯時，**用說的**告訴它違反了 `AGENTS.md` 哪一條，讓它修正後重來。
 
@@ -1195,6 +1249,7 @@ bash 02-vscode-and-ai-tools/scripts/kill_login.sh
 
 **第二堂：Slurm 與我的 skill**
 
+- 開場暖身：在沒有規則檔的資料夾請 AI 送作業，看看它會漏掉什麼
 - 第 03 章：親手送出標準、陣列、相依作業，用 `seff` 檢查資源
 - 用自然語言請 Agent 多輪完成同樣的工作，並糾正它的錯誤
 - 把經驗存成**你自己的 skill**：`my-nano4-slurm`

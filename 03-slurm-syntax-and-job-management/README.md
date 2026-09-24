@@ -6,6 +6,7 @@
 
 本章分成兩部分，對應第二堂課：
 
+0. **暖身**（第 8 節 Lab 0）：在沒有任何規則檔的資料夾，用一段自然語言請 Agent 產生資料、寫分析程式並送出作業，看看不知道 Nano4 規則的 AI 會怎麼做。
 1. **親手做**（第 8 節 Lab 1–8）：送出標準、陣列與相依作業，用 `seff` 檢查資源，並自己改寫陣列作業處理 FASTQ 樣本。先弄懂 Slurm 在做什麼，才看得出 AI 做得對不對。
 2. **讓 AI Agent 接手**（第 9 節 Lab 10–11）：用自然語言請 Agent 完成同樣的工作，透過多輪對話糾正它的錯誤，最後請 Agent 把這些經驗存成**您自己的 skill**，接著在第 04 章用這個 skill 做 FASTQ 質控。
 
@@ -505,11 +506,43 @@ Memory Efficiency: 3.47% of 62.00 GB
 
 ## 8. 初學者循序漸進實作演練 (Hands-on Labs)
 
-針對剛接觸超級電腦排程的初學者，請依序完成以下動手實驗（Lab 3 為 GPU 參考，本次課程跳過；Lab 8 使用第 04 章附的 FASTQ；Lab 9 需要先完成第 04 章，改在第 04 章之後進行）。所有 Lab 都在本章目錄執行：
+針對剛接觸超級電腦排程的初學者，請依序完成以下動手實驗（Lab 0 是用 AI Agent 的暖身；Lab 3 為 GPU 參考，本次課程跳過；Lab 8 使用第 04 章附的 FASTQ；Lab 9 需要先完成第 04 章，改在第 04 章之後進行）。Lab 0 在 `/work/$USER/slurm_quickstart` 進行，Lab 1–9 都在本章目錄執行：
 
 ```bash
 cd "$HOME/Nano4-Docs/03-slurm-syntax-and-job-management"
 ```
+
+### 🧪 Lab 0（暖身）：沒有規則檔時，AI 會怎麼做？
+
+**目標**：第一堂的 Agent 都在 `Nano4-Docs` 裡工作，讀得到 `AGENTS.md`。這次刻意換到一個**空白資料夾**（沒有 `AGENTS.md`、`CLAUDE.md`、`.agents/rules/`），用一段自然語言請 Agent 從產生資料、寫 Python 分析程式到送出 Slurm 作業一次完成，再對照 `AGENTS.md` 看它哪裡做得不一樣。約 10 分鐘。
+
+1. 建立空白工作資料夾：
+   ```bash
+   mkdir -p /work/$USER/slurm_quickstart
+   ```
+2. 在 Antigravity 用 File ➔ Open Folder 開啟 `/work/<帳號>/slurm_quickstart`，選一個 Agent 開新對話，輸入：
+   ```text
+   請協助建立並派送一個 FASTQ 生物資訊分析作業，工作資料夾就是目前開啟的這個資料夾：
+   1. 在 data/ 產生一個包含 1,000 條 reads 的測試用 FASTQ 檔 data/test_sample.fastq。
+   2. 在 script/ 寫一支 Python 腳本 script/fastq_qc_stats.py，統計這個 FASTQ 的 reads 數、平均讀長與 GC 含量 %。
+   3. 在 script/ 寫一支 Slurm 腳本：計畫 GOV115088、佇列 ngs62g，每個作業申請 8 核心、62G 記憶體，在計算節點執行上面的 Python 腳本。
+   4. 送出前先告訴我你的計畫；送出後回報 Job ID，跑完把分析過程與結果寫成 report.md。
+   ```
+3. 作業跑完後，打開 Agent 寫的 Slurm 腳本與 `report.md`，對照 `AGENTS.md` 第 4 節逐項檢查：
+
+   | 檢查項目 | ✅ / ❌ |
+   | :--- | :---: |
+   | `--account=GOV115088`、`--partition=ngs62g`、`--cpus-per-task=8`、`--mem=62G` | |
+   | 執行內容第一行是 `module purge` | |
+   | 日誌用 `%x-%j.out` / `%x-%j.err`；若寫到 `logs/` 這類子目錄，送出前有先建立 | |
+   | Python 分析在計算節點上執行，不是在登入節點直接跑 | |
+   | 送出後沒有在迴圈中反覆查詢 `squeue` | |
+   | `report.md` 的 reads 數等於 1000 | |
+
+> [!TIP]
+> Prompt 裡已經寫明計畫、佇列與 `8 核心、62G`，所以作業應該能順利跑完；其他項目沒有提示，Agent 常會漏掉。記下 ❌ 的項目：Lab 10 會在放了 `AGENTS.md` 的資料夾重做類似的工作，比較有沒有規則檔的差別，Lab 11 再把這些教訓寫進自己的 skill。
+
+---
 
 ### 🧪 Lab 1：查詢個人專案錢包與可用的排程分區
 1. 查詢自己的可用點數：
@@ -724,7 +757,7 @@ seff <JOB_ID>
    為了省點數，請把記憶體改成 16G、核心改成 2 顆，再送一次 FastQC。
    ```
 
-3. 每一輪都對照第 8 節自己做的結果，記下 Agent 做對與做錯的地方：
+3. 每一輪都對照第 8 節自己做的結果，記下 Agent 做對與做錯的地方，並和 Lab 0（沒有規則檔）的檢查表比較：
 
    | 檢查項目 | 第 1 輪 | 第 2 輪 | 第 3 輪 | 第 4 輪 |
    | :--- | :---: | :---: | :---: | :---: |
