@@ -74,7 +74,29 @@
 
 ---
 
-## Nano4 長什麼樣子？
+## 第 01 章：13 個小節與 6 個練習
+
+| § | 主題 | 本堂課 |
+| :---: | :--- | :--- |
+| 1 | 叢集前門：登入節點 SSH:22 vs 傳輸節點 SFTP:2222 | 講解 |
+| 2 | 前置準備：iService 計畫與 IDExpert 2FA | 課前完成 |
+| 3 | SSH 登入、三種 2FA、取得課程教材 | **實作** |
+| 4 | 設定 SSH Config | **實作** |
+| 5 | 資料傳輸節點 DTN（Port 2222）→ 🧪 練習 2 | 選做 |
+| 6 | 從台灣杉三號（T3）搬遷資料 | 參考 |
+| 7 | 環境健檢與儲存空間 → 🧪 練習 1 | **實作** |
+| 8 | Lmod 模組 `module` → 🧪 練習 3 | **實作** |
+| 9 | Apptainer 容器 | 第三堂實作 |
+| 10 | `uv` Python 環境 → 🧪 練習 4 | 選做 |
+| 11 | Slurm 佇列 `ngs62g` → 🧪 練習 5、6 | 時間夠再做 |
+| 12 | 六個入門練習回顧 | — |
+| 13 | 常見問題 FAQ | 參考 |
+
+<!-- 講者備註：課堂上只帶 §3、§4、§7、§8 與練習 1、3；其他小節快速帶過，完整內容在線上講義第 01 章 -->
+
+---
+
+## §1 叢集前門：Nano4 長什麼樣子？
 
 ```text
           你的筆電
@@ -101,7 +123,18 @@ GP1 生醫節點是 **Nano4 的一部分**，和 GPU 節點共用登入節點與
 
 ---
 
-## 三個角色：一個比喻
+## §1 前端連線資訊：同一個主機名稱，兩個 Port
+
+| 節點 | 主機名稱 | Port | 用途 | 連線工具 |
+| :--- | :--- | :---: | :--- | :--- |
+| **登入節點** | `nano4.nchc.org.tw` | **22** | 下指令、寫腳本、送 Slurm 作業、輕量除錯 | Terminal、PowerShell、Antigravity / VS Code |
+| **資料傳輸節點（DTN）** | `nano4.nchc.org.tw` | **2222** | 大檔案傳輸，直通 `/home`、`/work` | WinSCP、FileZilla、Cyberduck、`scp`、`rsync` |
+
+⚠️ DTN **只能傳檔**，不開放 Shell 指令；用 `ssh` 連 Port 2222 會被拒絕。
+
+---
+
+## §1 三個角色：一個比喻
 
 | 角色 | 比喻 | 你在這裡做什麼 |
 | :--- | :--- | :--- |
@@ -113,15 +146,49 @@ GP1 生醫節點是 **Nano4 的一部分**，和 GPU 節點共用登入節點與
 
 ---
 
-## 新手必知三大鐵律
+## §1 新手必知三大鐵律
 
 1. **傳檔用 Port 2222**：資料傳輸節點和登入節點同一個主機名稱 `nano4.nchc.org.tw`，但傳檔要指定 `-P 2222`
-2. **只接受台灣境內 IP**：在國外請先連 VPN 回台灣學術網路
-3. **沒有 `sudo`**：超算是多人共用系統，軟體請用 `module`、`uv` 或 Apptainer 容器解決
+2. **登入節點是 x86_64**：GB200 是 Arm 架構，不能在登入節點替 GB200 編譯或建環境（本課程不使用 GB200）
+3. **只接受台灣境內 IP**：在國外請先連 VPN 回台灣學術網路，或事先向 iService 申請
 
 ---
 
-## SSH 登入 Nano4
+## §2 前置準備：iService 計畫與 IDExpert 2FA
+
+1. **註冊 iService 會員並加入計畫**：本課程計畫代號 **`GOV115088`**
+2. **建立主機帳號與密碼**：在 iService 建立 Linux 主機帳號，密碼要有英文大小寫、數字與特殊符號
+3. **綁定雙因子（2FA）App**：手機安裝 **IDExpert**，依 iService 雙因子認證設定手冊掃描 QR Code 完成綁定
+
+> 這三步是課前作業；還沒完成的同學請舉手，助教會協助你。
+
+---
+
+## §3 用什麼軟體登入 Nano4？
+
+每台電腦都已經內建 SSH，**不需要另外安裝軟體**：
+
+| 你的電腦 | 打開哪個軟體 | 怎麼打開 |
+| :--- | :--- | :--- |
+| Windows 10 / 11 | **PowerShell**（或 Windows Terminal） | 開始選單搜尋「PowerShell」 |
+| macOS | **終端機（Terminal）** | `Cmd + 空白鍵` 搜尋「終端機」 |
+| Linux | **Terminal** | `Ctrl + Alt + T` |
+
+打開後，先確認 SSH 可以用：
+
+```bash
+ssh -V
+```
+
+✅ 出現 `OpenSSH_...` 版本號就可以用
+
+💡 Windows 出現「找不到 ssh」：到「設定 → 系統 → 選用功能」安裝 **OpenSSH 用戶端**
+
+<!-- 講者備註：大部分學員用 Windows，請確認他們開的是 PowerShell 而不是舊的「命令提示字元」 -->
+
+---
+
+## §3-A SSH 登入 Nano4
 
 在**自己電腦**的終端機（Windows 請開 PowerShell）輸入：
 
@@ -135,7 +202,7 @@ ssh your_account@nano4.nchc.org.tw
 
 ---
 
-## 三種 2FA 方式
+## §3-B 三種 2FA 方式
 
 ```text
 Login method (1: Mobile APP OTP, 2: Mobile APP PUSH, 3: Email OTP):
@@ -151,7 +218,7 @@ Login method (1: Mobile APP OTP, 2: Mobile APP PUSH, 3: Email OTP):
 
 ---
 
-## 取得課程教材
+## §3-C 取得課程教材
 
 登入成功後，把教材下載到家目錄：
 
@@ -174,42 +241,148 @@ cd "$HOME/Nano4-Docs"
 
 ---
 
-## 讓登入更快：設定 SSH Config
+## §4 讓登入更快：設定 SSH Config
 
 在**自己電腦**編輯 `~/.ssh/config`（Windows：`C:\Users\<你>\.ssh\config`）：
 
 ```ssh-config
+# 晶創26 (Nano4) 登入節點 (x86_64 架構)
 Host nano4
     HostName nano4.nchc.org.tw
     User your_account
     Port 22
     ServerAliveInterval 60
     ServerAliveCountMax 3
+
+# 晶創26 (Nano4) 資料傳輸節點 (DTN 專用，Port 2222)
+Host nano4-dtn
+    HostName nano4.nchc.org.tw
+    User your_account
+    Port 2222
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
 ```
 
-之後只要輸入：
-
-```bash
-ssh nano4
-```
+之後只要輸入 `ssh nano4` 就能登入。
 
 > 每一條新連線還是要輸入密碼與 OTP。第 02 章的 **ssh-proxy** 會解決這個問題。
 
 ---
 
-## 儲存空間：什麼東西放哪裡？
+## §5 資料傳輸節點：大檔案一律走 Port 2222
+
+⚠️ **不要用登入節點（Port 22）傳數十 GB 的資料**：登入節點頻寬有限、多人共用
+
+**圖形化工具（WinSCP / FileZilla / Cyberduck）**
+
+| 欄位 | 填入 |
+| :--- | :--- |
+| 檔案協定 | SFTP |
+| 主機名稱 | `nano4.nchc.org.tw` |
+| 連接埠 | **`2222`**（預設 22 會連到登入節點） |
+| 帳號 / 密碼 | iService 主機帳號與密碼，登入時完成 IDExpert 2FA |
+
+---
+
+## §5 命令列傳檔：sftp / scp / rsync
+
+```bash
+# 互動式 SFTP（put 上傳、get 下載、quit 離開）
+sftp -P 2222 your_account@nano4.nchc.org.tw
+
+# 上傳檔案至 /work 高速暫存工作區
+scp -P 2222 dataset.tar.gz your_account@nano4.nchc.org.tw:/work/your_account/
+
+# 下載分析結果到本地端
+scp -P 2222 -r your_account@nano4.nchc.org.tw:/work/your_account/output/ ./local_results/
+
+# rsync：支援斷點續傳與進度顯示，最推薦
+rsync -avzP -e "ssh -p 2222" ./my_dataset/ your_account@nano4.nchc.org.tw:/work/your_account/my_dataset/
+```
+
+📌 `scp`、`sftp` 用大寫 `-P 2222`；`rsync` 要寫成 `-e "ssh -p 2222"`
+
+---
+
+## 🧪 練習 2：用 Port 2222 雙向傳檔（選做）
+
+⚠️ 步驟 1、2、4 在**自己電腦**的終端機執行，步驟 3 在 Nano4 上執行
+
+```bash
+# 1.（自己電腦）建立測試檔案
+echo "Hello Nano4! This is my first file." > hello_nano4.txt
+
+# 2.（自己電腦）上傳到 Nano4 的 /work，記得加 -P 2222
+scp -P 2222 hello_nano4.txt your_account@nano4.nchc.org.tw:/work/your_account/
+
+# 3.（Nano4）確認檔案已上傳
+cat /work/$USER/hello_nano4.txt
+
+# 4.（自己電腦）把檔案下載回來
+scp -P 2222 your_account@nano4.nchc.org.tw:/work/your_account/hello_nano4.txt ./downloaded_test.txt
+```
+
+💡 用 Port 22 傳檔會出現 `Connection refused`
+
+---
+
+## §6 從台灣杉三號（T3）搬遷資料（參考）
+
+只有原本使用台灣杉三號（`t3-c4.nchc.org.tw`）的學員需要：
+
+- 在 **Nano4 登入節點**執行，由 Nano4 主動連回 T3
+- 先搬到 `/work/$USER` 的暫存目錄，**不要直接覆寫** Nano4 的 `$HOME`
+- 先用 `-n` 預覽（dry-run），確認清單正確再正式同步
+
+```bash
+hfsquota
+mkdir -p /work/$USER/t3-home-backup
+
+# 只預覽，不會寫入資料；替換成實際 T3 帳號
+rsync -avHSn --info=progress2 \
+  <T3帳號>@t3-c4.nchc.org.tw:/home/<T3帳號>/ \
+  /work/$USER/t3-home-backup/
+```
+
+📌 資料量大時在 `tmux` 內執行；完整步驟 A–D 見講義第 01 章 §6。
+
+---
+
+## §7 登入後第一步：環境健檢
+
+執行本章隨附的一鍵健檢腳本：
+
+```bash
+cd "$HOME/Nano4-Docs/01-nano4-ssh-and-2fa/scripts"
+./quick_healthcheck.sh
+```
+
+報告會依序列出：
+
+1. 節點與系統資訊：主機名稱、作業系統、CPU 與記憶體
+2. 計畫與 SU 錢包餘額（`wallet`）
+3. `/home` 與 `/work` 的容量與剩餘空間
+4. Lmod、Apptainer、`uv` 是否可用
+5. Slurm 佇列概況（本課程 `ngs62g`）
+6. 外網連通性（NCBI、GitHub）
+
+---
+
+## §7 三大儲存空間：什麼東西放哪裡？
 
 | 路徑 | 放什麼 | 本課程配額 | 注意 |
 | :--- | :--- | :---: | :--- |
 | `$HOME`（`/home/帳號`） | 程式碼、Git repo、設定檔、skill | 約 100 GB | 不要放大量小檔案或快取 |
 | `/work/帳號` | FASTQ、分析結果、容器與暫存檔 | 約 100 GB | **沒有備份**，重要結果要自己備份 |
+| `/project` | 跨成員共享的計畫資料 | 需另外申請 | 由計畫主持人向國網簽約申請 |
 | `/tmp` | ❌ 不要放任何資料 | — | 隨時會被清除 |
 
 ⚠️ 是 **`/work`**，不是舊系統的 `/work1`。
+❌ 沒有 `sudo`：軟體請用 `module`、`uv` 或 Apptainer 容器解決。
 
 ---
 
-## 查詢自己的空間：`hfsquota`
+## §7 查詢自己的空間：`hfsquota`
 
 ```bash
 hfsquota
@@ -222,6 +395,8 @@ PATH                 USED      HARD LIMIT          USAGE %  STATUS
 ```
 
 ❌ 不要用 `df -h`：它顯示的是整個叢集好幾 PB 的容量，不是你的配額。
+
+📌 分析完成後，要長期保存的資料移到 GP1-4 大容量儲存服務，不要一直放在 `/work`。
 
 ---
 
@@ -249,18 +424,19 @@ cd "$HOME/Nano4-Docs/01-nano4-ssh-and-2fa/scripts"
 
 ---
 
-## 軟體從哪裡來？`module`
+## §8 軟體從哪裡來？`module`
 
-超算上不能 `sudo apt install`，官方已經把常用軟體裝好，用 `module` 載入：
+超算上不能 `sudo apt install`，官方已經把常用軟體裝好，用 `module`（簡寫 `ml`）載入：
 
-| 指令 | 用途 |
-| :--- | :--- |
-| `module avail biology/FastQC` | 查詢有哪些版本 |
-| `module load 名稱/版本` | 載入 |
-| `module list` | 列出目前載入的模組 |
-| `module purge` | 全部清空 |
+| 指令 | 簡寫 | 用途 |
+| :--- | :--- | :--- |
+| `module avail biology/FastQC` | `ml avail biology/FastQC` | 查詢有哪些版本 |
+| `module spider <名稱>` | `ml spider <名稱>` | 全域搜尋工具 |
+| `module load 名稱/版本` | `ml 名稱/版本` | 載入 |
+| `module list` | `ml` | 列出目前載入的模組 |
+| `module purge` | `ml purge` | 全部清空 |
 
-📌 生醫工具都在 `biology/` 底下。
+📌 生醫工具都在 `biology/` 底下，例如 `biology/FastQC`、`biology/Nextflow`、`biology/SAMtools`。
 
 ---
 
@@ -287,7 +463,7 @@ command -v fastqc || echo "fastqc: 已隨 module purge 移除"
 
 ---
 
-## 為什麼 FastQC 一定要搭配 JDK？
+## §8 為什麼 FastQC 一定要搭配 JDK？
 
 - 計算節點**沒有系統 Java**
 - 只載入 `biology/FastQC`、沒載入 `biology/JDK` 時：
@@ -299,7 +475,67 @@ command -v fastqc || echo "fastqc: 已隨 module purge 移除"
 
 ---
 
-## 為什麼需要 Slurm？
+## §9 Apptainer 容器（第三堂實作）
+
+沒有 `sudo` 又需要複雜的軟體環境時，用 **Apptainer**（前身為 Singularity）執行 Docker 映像檔：
+
+- 🛡️ 在容器內仍是一般使用者，不會破壞主機安全
+- 📦 整個環境打包成一個 `.sif` 檔，容易保存與搬移
+- Nano4 已預載 Apptainer 1.4.3（`apptainer` 與 `singularity` 都可以用）
+
+快取目錄一定要放 `/work`，避免塞爆 `$HOME`：
+
+```bash
+export APPTAINER_CACHEDIR="/work/${USER}/.apptainer_cache"
+export SINGULARITY_CACHEDIR="/work/${USER}/.singularity_cache"
+```
+
+📌 映像檔要在 Slurm 作業中拉取，不要在登入節點拉大型映像；第三堂 Lab 9 會實作。
+
+---
+
+## §10 `uv`：取代 conda 的 Python 套件管理
+
+- 一個 conda 環境常有 5～10 萬個小檔案，很容易用光 **Inode 配額**
+- `uv` 速度比 `pip` / `conda` 快 10～100 倍，並用硬連結避免重複檔案
+- 單一執行檔，不需要管理者權限
+
+找不到 `uv` 時，用使用者權限安裝到 `~/.local/bin`（不需要 `sudo`）：
+
+```bash
+export PATH="${HOME}/.local/bin:${PATH}"
+if ! command -v uv >/dev/null 2>&1; then
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    export PATH="${HOME}/.local/bin:${PATH}"
+fi
+uv --version
+```
+
+---
+
+## 🧪 練習 4：用 `uv` 建立 Python 環境（選做）
+
+```bash
+# 1. 快取放 /work，避免塞爆 $HOME
+export UV_CACHE_DIR="/work/${USER}/.uv_cache"
+
+# 2. 在 /work 建立虛擬環境
+uv venv /work/${USER}/lab_env
+
+# 3. 安裝套件
+uv pip install --python /work/${USER}/lab_env/bin/python rich requests
+
+# 4. 啟動環境並測試，最後離開
+source /work/${USER}/lab_env/bin/activate
+python -c "from rich import print; print('[bold green]🎉 Python 虛擬環境啟動成功！[/bold green]')"
+deactivate
+```
+
+📌 虛擬環境一律建在 `/work/$USER`，不要放在 `$HOME`
+
+---
+
+## §11 為什麼需要 Slurm？
 
 ```text
 [個人電腦思維]  雙擊程式 → 馬上在本機執行 → 關掉視窗就中斷
@@ -313,7 +549,7 @@ command -v fastqc || echo "fastqc: 已隨 module purge 移除"
 
 ---
 
-## `ngs62g` 規格：官方固定搭配
+## §11 `ngs62g` 規格：官方固定搭配
 
 | 佇列 | 核心 `-c` | 記憶體 `--mem` | 最長時間 | 本課程 |
 | :--- | :---: | :---: | :---: | :---: |
@@ -323,18 +559,102 @@ command -v fastqc || echo "fastqc: 已隨 module purge 移除"
 - 國網規定每個佇列都要用固定的「核心 × 記憶體」申請
 - 送到其他 `ngs*` 佇列會被拒絕
 - 計費以**核心小時**計算
+- H200 / GB200 GPU 佇列只供參考，本課程不使用
 
 ---
 
-## 第 01 章常見問題
+## 🧪 練習 5：第一次提交 Slurm 批次作業（1/2）
+
+複製 CPU 範本到自己的工作區，並檢視內容：
+
+```bash
+cp "$HOME/Nano4-Docs/01-nano4-ssh-and-2fa/scripts/sample_first_cpu_job.slurm" /work/$USER/my_first_cpu_job.slurm
+cd /work/$USER
+cat my_first_cpu_job.slurm
+```
+
+| 關鍵參數 | 意思 |
+| :--- | :--- |
+| `#SBATCH --account=GOV115088` | 本課程計畫代號 |
+| `#SBATCH --partition=ngs62g` | 生醫專屬 CPU 佇列 |
+| `#SBATCH --cpus-per-task=8` | 8 顆 CPU 核心 |
+| `#SBATCH --mem=62G` | 62 GB 記憶體（`ngs62g` 必須搭配 `-c 8 --mem=62G`） |
+
+❌ 純 CPU 佇列**不要**加 `--gres=gpu:1`
+
+---
+
+## 🧪 練習 5：送出、追蹤與檢查效能（2/2）
+
+```bash
+sbatch my_first_cpu_job.slurm      # → Submitted batch job 422203
+squeue --me                        # PD = 排隊中、R = 執行中
+cat first_cpu_job-*.out            # 跑完後看日誌
+seff <JOB_ID>                      # CPU 與記憶體使用效率
+```
+
+- `seff` 會印出 CPU 利用率（CPU Utilized）與記憶體利用率（Memory Efficiency）
+- `<JOB_ID>` 就是 `Submitted batch job` 後面的數字
+
+💡 作業幾秒就跑完，`squeue` 看不到是正常的。
+
+<!-- 講者備註：#SBATCH 每個參數的細節留到第二堂第 03 章 -->
+
+---
+
+## 🧪 練習 6：`salloc` 互動式計算節點（時間夠再做）
+
+```bash
+salloc --account=GOV115088 --partition=ngs62g --nodes=1 \
+       --cpus-per-task=8 --mem=62G -t 00:30:00 srun --pty /bin/bash
+```
+
+申請成功後，會直接進入計算節點：
+
+```text
+salloc: Granted job allocation 421820
+salloc: Nodes 25a-cpn01 are ready for job
+[user@25a-cpn01 ~]$
+```
+
+```bash
+hostname    # 應顯示 25a-cpn*；若顯示 25a-lgn* 表示仍在登入節點
+nproc       # 應顯示 8 (申請的核心數)
+exit        # ⚠️ 用完一定要離開，釋放資源（停止計費）
+```
+
+離開後執行 `squeue --me`，清單中沒有這個作業才代表資源已釋放。
+
+---
+
+## §12 六個入門練習回顧
+
+| 練習 | 內容 | 接在哪一節 | 本堂課 |
+| :---: | :--- | :---: | :--- |
+| 1 | 登入後的環境健檢 | §7 | **必做** |
+| 2 | 用 Port 2222 雙向傳檔 | §5 | 選做（在自己電腦操作） |
+| 3 | 載入生醫模組、體驗 `module purge` | §8 | **必做** |
+| 4 | 用 `uv` 建立 Python 環境 | §10 | 選做（會寫 Python 的學員） |
+| 5 | 第一次提交 Slurm 批次作業 | §11 | 時間夠再做（第二堂會完整練習） |
+| 6 | `salloc` 互動式計算節點 | §11 | 時間夠再做 |
+
+📌 沒做完的練習改為課後自學，講義第 01 章 §12 有完整步驟。
+
+<!-- 講者備註：練習 5 的送作業體驗由第 02 章練習 6 A 的結尾示範取代，第二堂第 03 章會完整教 Slurm -->
+
+---
+
+## §13 第 01 章常見問題
 
 | 狀況 | 解法 |
 | :--- | :--- |
 | `ssh` 卡住，`Connection timed out` | 是否在國外？單位防火牆擋 Port 22？改用手機熱點試試 |
+| SFTP / WinSCP 出現 `Connection refused` | 連到 Port 22 了，傳檔要用 **Port 2222** |
 | 推播一直沒收到 | 手動打開 IDExpert App；或 `Ctrl+C` 重來並改選 `1` OTP |
 | `Disk quota exceeded` | `hfsquota` 檢查；大檔案移到 `/work/$USER` |
 | `sudo` 被拒絕 | 正常。改用 `module`、`uv` 或容器 |
-| 在登入節點跑程式被 `Killed` | 超過 5 分鐘的重度運算會被系統清除，改用 `sbatch` |
+| 在登入節點跑程式被 `Killed` | 超過 5 分鐘的重度運算會被系統清除，改用 `sbatch` 或 `salloc` |
+| GB200 出現 `Exec format error`（參考） | 登入節點是 x86_64，要進 `gb200-dev` 節點重建環境 |
 
 ---
 
@@ -344,7 +664,24 @@ command -v fastqc || echo "fastqc: 已隨 module purge 移除"
 
 ---
 
-## 為什麼要用 Antigravity Remote-SSH？
+## 第 02 章：8 個小節與 6 個練習
+
+| § | 主題 | 本堂課 |
+| :---: | :--- | :--- |
+| 1 | 為什麼要用 Antigravity Remote-SSH | 講解 |
+| 2 | 連上 Nano4：步驟 A–E（含 ssh-proxy）→ 🧪 練習 1、2 | **實作** |
+| 3 | 裝上三個 AI Agent：安裝擴充套件、登入 | **實作** |
+| 4 | 三個 Agent 怎麼讀到規則與 Skills | 講解 |
+| 5 | `AGENTS.md` 治理守則 → 🧪 練習 3、4、5 | **實作** |
+| 6 | 動手練習 1～6（練習 6 是結尾示範） | **實作／示範** |
+| 7 | 多登入節點與 Agent session 清理 | 參考 |
+| 8 | 常見問題 FAQ | 參考 |
+
+<!-- 講者備註：§6 的六個練習分散在各小節後面；練習 6 由講師示範，學員可跟著做 -->
+
+---
+
+## §1 為什麼要用 Antigravity Remote-SSH？
 
 ```text
 [ 你的筆電 ]
@@ -364,7 +701,7 @@ command -v fastqc || echo "fastqc: 已隨 module purge 移除"
 
 ---
 
-## 步驟 A：安裝 Antigravity
+## §2 步驟 A：安裝 Antigravity
 
 1. 到 https://antigravity.google/ 下載安裝，用 Google 帳號登入
 2. `Ctrl + Shift + X` 開啟擴充套件，確認已有 **Remote - SSH**（已內建就略過）
@@ -377,7 +714,7 @@ command -v fastqc || echo "fastqc: 已隨 module purge 移除"
 
 ---
 
-## 步驟 B–C：連上 Nano4
+## §2 步驟 B–C：連上 Nano4
 
 1. 點左下角 `><` 圖示 → **Connect to Host...**
 2. 選 **`nano4`**（讀取第 01 章設定的 `~/.ssh/config`）
@@ -389,7 +726,7 @@ command -v fastqc || echo "fastqc: 已隨 module purge 移除"
 
 ---
 
-## 步驟 D ＋ 🧪 練習 1：開啟遠端工作區
+## §2 步驟 D ＋ 🧪 練習 1：開啟遠端工作區
 
 1. 檔案總管 → **Open Folder** → 輸入 `/work/your_account`
 2. 右鍵新增檔案 `my_test.py`，寫入：
@@ -408,7 +745,7 @@ command -v fastqc || echo "fastqc: 已隨 module purge 移除"
 
 ---
 
-## 問題：為什麼要一直認證？
+## §2 步驟 E 問題：為什麼要一直認證？
 
 Nano4 的**每一條新 SSH 連線**都要密碼 + OTP。
 Antigravity 在這些時候都會開新連線：
@@ -421,7 +758,7 @@ Antigravity 在這些時候都會開新連線：
 
 ---
 
-## 解法：ssh-proxy 只認證一次
+## §2 步驟 E 解法：ssh-proxy 只認證一次
 
 ```text
 Antigravity / VS Code / 終端機
@@ -441,7 +778,7 @@ nano4.nchc.org.tw:22
 
 ---
 
-## ssh-proxy 設定 1：下載
+## §2 ssh-proxy 設定 1：下載
 
 到 [Releases 頁面](https://github.com/gemini960114/ssh-proxy/releases/latest) 下載（免安裝 Python）：
 
@@ -455,7 +792,7 @@ Intel Mac 沒有預先編譯的檔案，需依 ssh-proxy README 用 `uv` 從原�
 
 ---
 
-## ssh-proxy 設定 2：加入 `nano4-proxy`
+## §2 ssh-proxy 設定 2：加入 `nano4-proxy`
 
 在**自己電腦**的 `~/.ssh/config` 再加一段（保留原本的 `Host nano4`）：
 
@@ -476,7 +813,7 @@ Host nano4-proxy
 
 ---
 
-## ssh-proxy 設定 3：啟動並認證一次
+## §2 ssh-proxy 設定 3：啟動並認證一次
 
 在**自己電腦**的終端機執行，並讓這個視窗**保持開著**：
 
@@ -517,7 +854,7 @@ ssh nano4-proxy 'echo $USER; hfsquota'
 
 ---
 
-## ssh-proxy 使用注意
+## §2 ssh-proxy 使用注意
 
 | 狀況 | 說明 |
 | :--- | :--- |
@@ -530,7 +867,7 @@ ssh nano4-proxy 'echo $USER; hfsquota'
 
 ---
 
-## 三個 AI Agent，自由切換
+## §3 三個 AI Agent，自由切換
 
 | Agent | 怎麼取得 | 需要的帳號 |
 | :--- | :--- | :--- |
@@ -545,7 +882,7 @@ ssh nano4-proxy 'echo $USER; hfsquota'
 
 ---
 
-## 安裝擴充套件：裝在遠端
+## §3-A 安裝擴充套件：裝在遠端
 
 連上 `nano4-proxy` 後，按 ``Ctrl + ` `` 開啟終端機：
 
@@ -561,7 +898,22 @@ bash install_vscode_extensions.sh
 
 ---
 
-## 登入各個 Agent
+## §3-A 腳本會安裝哪些套件？
+
+| 套件類別 | 識別碼 (Extension ID) | 核心功能 |
+| :--- | :--- | :--- |
+| **Codex** | `openai.chatgpt` | OpenAI 的 AI Agent |
+| **Claude Code** | `anthropic.claude-code` | Anthropic 的 AI Agent |
+| **Python 核心環境** | `ms-python.python` | Python 語法高亮、虛擬環境自動偵測 |
+| **Python 除錯器** | `ms-python.debugpy` | 斷點除錯、單步執行與變數檢視 |
+| **Jupyter 互動運算** | `ms-toolsai.jupyter` | 執行 `.ipynb` Notebook 的運算引擎 |
+| **Jupyter 渲染器** | `ms-toolsai.jupyter-renderers` | 支援 Plotly 互動圖表與 DataFrame 表格檢視 |
+
+📌 Antigravity 內建 Agent 不需要安裝；Codex 與 Claude Code 需要學員自己的帳號。
+
+---
+
+## §3-B 登入各個 Agent
 
 1. **Codex**：點左側活動列的 Codex 圖示 → **Sign in with ChatGPT**
 2. **Claude Code**：點左側活動列的 Claude 圖示 → 登入 Claude 帳號（或填 API key）
@@ -571,7 +923,7 @@ bash install_vscode_extensions.sh
 
 ---
 
-## Agent 要執行指令時，會先問你
+## §3-B Agent 要執行指令時，會先問你
 
 Codex、Claude Code 在執行指令或寫入檔案前，會跳出確認視窗：
 
@@ -584,20 +936,21 @@ Codex、Claude Code 在執行指令或寫入檔案前，會跳出確認視窗：
 
 ---
 
-## Agent 從哪裡讀到 Nano4 的規則？
+## §4 Agent 從哪裡讀到 Nano4 的規則與 Skills？
 
-| Agent | 讀取的規則檔 |
-| :--- | :--- |
-| Antigravity 內建 Agent | `.agents/rules/`（教材的 `nano4.md` 會引用 `AGENTS.md`） |
-| Codex | `AGENTS.md` |
-| Claude Code | `CLAUDE.md`（教材的 `CLAUDE.md` 匯入 `AGENTS.md`） |
+| Agent | 讀取的規則檔 | 工作資料夾的 Skills | 個人的 Skills |
+| :--- | :--- | :--- | :--- |
+| Antigravity 內建 Agent | `.agents/rules/`（教材的 `nano4.md` 會引用 `AGENTS.md`） | `.agents/skills/` | `~/.gemini/config/skills/` |
+| Codex | `AGENTS.md` | `.agents/skills/` | `~/.agents/skills/` |
+| Claude Code | `CLAUDE.md`（教材的 `CLAUDE.md` 匯入 `AGENTS.md`） | `.claude/skills/` | `~/.claude/skills/` |
 
 - 用 Open Folder 開啟 **`$HOME/Nano4-Docs`**，三個 Agent 都會讀到規則
 - 開啟其他資料夾時讀不到 → 在對話開頭說「請先閱讀 AGENTS.md」
+- Skills 第二堂才會用到：學員會做出自己的 skill `my-nano4-slurm`
 
 ---
 
-## AI 不知道超算的規矩
+## §5 AI 不知道超算的規矩
 
 AI 助手預設**不知道**超級電腦是多人共用的，可能會建議：
 
@@ -610,7 +963,7 @@ AI 助手預設**不知道**超級電腦是多人共用的，可能會建議：
 
 ---
 
-## `AGENTS.md`：給 AI 的 Nano4 守則
+## §5 `AGENTS.md`：給 AI 的 Nano4 守則
 
 1. **禁止 `sudo`**：軟體改用 `module`、`uv` 或 Apptainer 容器
 2. **大資料放 `/work/$USER`**：不塞爆 `$HOME`，不寫 `/tmp`
@@ -753,6 +1106,40 @@ bash view_multiqc_report.sh /work/$USER/day1_qc/multiqc_out
 
 ---
 
+## §7 多登入節點與 Agent session 清理
+
+- 連線可能被分到 `25a-lgn01`～`25a-lgn05` 不同主機；舊主機上的 Agent 沒有結束時，看起來會像 session 卡住
+- 💡 使用 ssh-proxy 時，所有連線固定在同一台登入節點，比較不會遇到
+
+```bash
+cd "$HOME/Nano4-Docs"
+chmod +x 02-vscode-and-ai-tools/scripts/kill.sh \
+           02-vscode-and-ai-tools/scripts/kill_login.sh
+
+# 只清理目前這台登入節點：會先列出匹配程序，再要求確認
+bash 02-vscode-and-ai-tools/scripts/kill.sh
+
+# 清理五台登入節點上的 stale agent（不會再詢問確認，會直接執行）
+bash 02-vscode-and-ai-tools/scripts/kill_login.sh
+```
+
+⚠️ 請從一般 SSH 終端機（`ssh nano4`）執行，**不要**在 Antigravity 整合終端機內執行，否則會立即斷線。
+
+---
+
+## §8 第 02 章常見問題
+
+| 狀況 | 解法 |
+| :--- | :--- |
+| 卡在「Waiting for 2FA...」 | 看視窗頂部輸入框，或 Output → Remote - SSH 分頁 |
+| 找不到 `/work` | File → Open Folder，手動輸入 `/work/你的帳號/` |
+| 連 `nano4-proxy` 出現 `Connection refused` | proxy 視窗被關掉或已逾時，重新啟動 |
+| 找不到 Codex 或 Claude Code | 確認左下角是 `SSH: nano4-proxy`，再裝到遠端 |
+| Agent 不知道 `GOV115088`、`ngs62g` | 工作資料夾要開 `$HOME/Nano4-Docs`，開新對話再問 |
+| Jupyter 選不到 Kernel | 遠端要裝 `ms-toolsai.jupyter`、`ms-python.python`，環境要裝 `ipykernel` |
+
+---
+
 ## 今天最重要的一件事
 
 **AI Agent 替你寫指令、送作業、解讀結果。**
@@ -763,18 +1150,6 @@ bash view_multiqc_report.sh /work/$USER/day1_qc/multiqc_out
 - 發現錯誤：用說的糾正它
 
 👉 第二堂：把這些「糾正 AI」的經驗，存成**你自己的 skill**
-
----
-
-## 第 02 章常見問題
-
-| 狀況 | 解法 |
-| :--- | :--- |
-| 卡在「Waiting for 2FA...」 | 看視窗頂部輸入框，或 Output → Remote - SSH 分頁 |
-| 找不到 `/work` | File → Open Folder，手動輸入 `/work/你的帳號/` |
-| 連 `nano4-proxy` 出現 `Connection refused` | proxy 視窗被關掉或已逾時，重新啟動 |
-| 找不到 Codex 或 Claude Code | 確認左下角是 `SSH: nano4-proxy`，再裝到遠端 |
-| Agent 不知道 `GOV115088`、`ngs62g` | 工作資料夾要開 `$HOME/Nano4-Docs`，開新對話再問 |
 
 ---
 
