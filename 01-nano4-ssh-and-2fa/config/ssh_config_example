@@ -5,12 +5,23 @@
 # ==============================================================================
 
 # 晶創26 (Nano4) x86_64 登入節點 (預設連線)
+# nano4.nchc.org.tw 每次會分派到不同的登入節點；140.110.109.162 固定連到 25a-lgn02
 Host nano4
-    HostName nano4.nchc.org.tw
-    User YOUR_ISERVICE_ACCOUNT
-    Port 22
-    ServerAliveInterval 60
-    ServerAliveCountMax 3
+  #HostName nano4.nchc.org.tw
+  HostName 140.110.109.162
+  User YOUR_ISERVICE_ACCOUNT
+
+  # 直接進入 OTP / MFA 驗證流程
+  PubkeyAuthentication no
+  KbdInteractiveAuthentication yes
+  PreferredAuthentications keyboard-interactive,password
+
+  # 維持及偵測連線狀態
+  ServerAliveInterval 30
+  ServerAliveCountMax 3
+
+  # 如果目前網路確實需要，再保留
+  IPQoS none
 
 # 晶創26 (Nano4) 高速資料傳輸節點 (DTN) - 專供 SFTP / SCP / rsync 大檔案傳輸使用
 # ⚠️ 注意：Nano4 資料傳輸服務運行於 Port 2222，且不開放互動式 Shell

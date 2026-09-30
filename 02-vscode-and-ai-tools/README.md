@@ -65,11 +65,21 @@ Remote-SSH 讓您的編輯器介面在個人電腦上執行，而檔案、終端
 在第 01 章中，我們已經在您本機的 `~/.ssh/config` 中加入了 `nano4` 設定：
 ```ssh-config
 Host nano4
-    HostName nano4.nchc.org.tw
-    User your_account
-    Port 22
-    ServerAliveInterval 60
-    ServerAliveCountMax 3
+  #HostName nano4.nchc.org.tw
+  HostName 140.110.109.162
+  User your_account
+
+  # 直接進入 OTP / MFA 驗證流程
+  PubkeyAuthentication no
+  KbdInteractiveAuthentication yes
+  PreferredAuthentications keyboard-interactive,password
+
+  # 維持及偵測連線狀態
+  ServerAliveInterval 30
+  ServerAliveCountMax 3
+
+  # 如果目前網路確實需要，再保留
+  IPQoS none
 ```
 
 ### 步驟 C：一鍵連入 Nano4
@@ -418,6 +428,7 @@ Claude Code 或 Antigravity agent 沒有正常結束，重新連線到另一台�
 看起來像「session 卡住」或無法接續原本的對話。
 
 > [!TIP]
+> 第 01 章的 `Host nano4` 已改用 `HostName 140.110.109.162`，每次都固定連到 `25a-lgn02`，可以避開這個問題。
 > 使用本章步驟 E 的 `ssh-proxy` 時，所有 Antigravity / VS Code / 終端機連線都走同一條已認證的連線，會固定在同一台登入節點上，比較不會遇到這個問題。
 
 本教材提供兩支清理腳本。它們只會處理**目前使用者自己的程序**，但會終止所有匹配的

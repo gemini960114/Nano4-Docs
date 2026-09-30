@@ -161,11 +161,21 @@ cd "$HOME/Nano4-Docs"
    ```ssh-config
    # 晶創26 (Nano4) 登入節點 (x86_64 架構)
    Host nano4
-       HostName nano4.nchc.org.tw
-       User your_account
-       Port 22
-       ServerAliveInterval 60
-       ServerAliveCountMax 3
+     #HostName nano4.nchc.org.tw
+     HostName 140.110.109.162
+     User your_account
+
+     # 直接進入 OTP / MFA 驗證流程
+     PubkeyAuthentication no
+     KbdInteractiveAuthentication yes
+     PreferredAuthentications keyboard-interactive,password
+
+     # 維持及偵測連線狀態
+     ServerAliveInterval 30
+     ServerAliveCountMax 3
+
+     # 如果目前網路確實需要，再保留
+     IPQoS none
 
    # 晶創26 (Nano4) 資料傳輸節點 (DTN 專用，Port 2222)
    Host nano4-dtn
@@ -175,6 +185,9 @@ cd "$HOME/Nano4-Docs"
        ServerAliveInterval 60
        ServerAliveCountMax 3
    ```
+   > [!NOTE]
+   > `nano4.nchc.org.tw` 每次會把連線分派到 `25a-lgn01`～`25a-lgn05` 的不同主機，造成 Antigravity / Agent session 接不上等問題。這裡改用 `140.110.109.162` 固定連到 `25a-lgn02`；原本的主機名稱保留在註解中，需要時可以換回來。
+
 3. 儲存退出（在 nano 按 `Ctrl+O` 儲存，`Ctrl+X` 退出）。
 4. **一秒極速連線**：
    ```bash
