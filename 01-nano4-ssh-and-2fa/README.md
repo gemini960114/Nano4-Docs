@@ -187,6 +187,8 @@ cd "$HOME/Nano4-Docs"
    ```
    > [!NOTE]
    > `nano4.nchc.org.tw` 每次會把連線分派到 `25a-lgn01`～`25a-lgn05` 的不同主機，造成 Antigravity / Agent session 接不上等問題。這裡改用 `140.110.109.162` 固定連到 `25a-lgn02`；原本的主機名稱保留在註解中，需要時可以換回來。
+   >
+   > 第 02 章步驟 E 會再加入 `Host nano4-proxy`（只需認證一次的 ssh-proxy 入口）；[`config/ssh_config_example`](./config/ssh_config_example) 已經包含這一段，也可以直接整份複製。
 
 3. 儲存退出（在 nano 按 `Ctrl+O` 儲存，`Ctrl+X` 退出）。
 4. **一秒極速連線**：

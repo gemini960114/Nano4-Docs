@@ -32,6 +32,20 @@ Host nano4-dtn
     ServerAliveInterval 60
     ServerAliveCountMax 3
 
+# 第 02 章步驟 E 使用：本機 ssh-proxy 的入口 (需先在本機啟動 ssh-proxy)
+# ssh-proxy 會從上面的 Host nano4 讀取主機位址與帳號，請保留 Host nano4
+Host nano4-proxy
+    HostName 127.0.0.1
+    Port 2222
+    User YOUR_ISERVICE_ACCOUNT
+    # 本機 proxy 每次啟動都會產生新的暫時金鑰；這兩行只能用在這個 127.0.0.1 別名，
+    # 絕對不要加到 nano4 或其他遠端主機
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+    LogLevel ERROR
+    ServerAliveInterval 30
+    ServerAliveCountMax 3
+
 # 備用設定：直連指定內部登入節點 (若需指定特定節點除錯，須在內網或已跳板環境)
 # Host nano4-lgn01
 #     HostName 25a-lgn01

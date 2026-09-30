@@ -129,7 +129,7 @@ nano4.nchc.org.tw:22
 
 Intel Mac 沒有預先編譯的檔案，請依 ssh-proxy README 的「Run from Source with uv」方式執行。
 
-**2. 在本機 `~/.ssh/config` 加入 proxy 專用的主機**（保留第 01 章的 `Host nano4`，ssh-proxy 會從它讀取主機名稱與帳號）：
+**2. 在本機 `~/.ssh/config` 加入 proxy 專用的主機**（保留第 01 章的 `Host nano4`，ssh-proxy 會從它讀取主機名稱與帳號；完整範本見 [`01-nano4-ssh-and-2fa/config/ssh_config_example`](https://github.com/gemini960114/Nano4-Docs/blob/main/01-nano4-ssh-and-2fa/config/ssh_config_example)，已包含下面這段）：
 
 ```ssh-config
 Host nano4-proxy
